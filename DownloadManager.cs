@@ -107,8 +107,6 @@ namespace Demoder.Common
         #endregion threading
 		#endregion members
 
-
-
         #region Constructors
 		/// <summary>
 		/// Create an instance of the DownloadManager class
