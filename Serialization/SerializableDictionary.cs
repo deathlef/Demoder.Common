@@ -25,7 +25,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Xml.Serialization;
 
-namespace Demoder.Common
+namespace Demoder.Common.Serialization
 {
     public class SerializableDictionary<T1, T2>
     {

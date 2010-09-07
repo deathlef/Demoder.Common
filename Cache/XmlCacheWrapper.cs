@@ -25,7 +25,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace Demoder.Common
+namespace Demoder.Common.Cache
 {
 	public class XmlCacheWrapper
 	{
