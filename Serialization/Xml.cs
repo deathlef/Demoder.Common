@@ -27,8 +27,9 @@ using System.Text;
 using System.IO;
 using System.Net;
 using System.Xml.Serialization;
+using Demoder.Common;
 
-namespace Demoder.Common
+namespace Demoder.Common.Serialization
 {
 	public static class Xml
 	{
@@ -201,7 +202,7 @@ namespace Demoder.Common
 			if (path == null) throw new ArgumentNullException("path");
 			try
 			{
-				MemoryStream stream = new MemoryStream(DownloadManager.GetBinaryData(path));
+				MemoryStream stream = new MemoryStream(Net.DownloadManager.GetBinaryData(path));
 				T obj = Deserialize<T>(stream, true);
 				return obj;
 			}

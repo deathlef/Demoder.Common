@@ -49,20 +49,20 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BackgroundWorkerInputQueue.cs" />
+    <Compile Include="Cache\File_Cache.cs" />
+    <Compile Include="Cache\XmlCache.cs" />
+    <Compile Include="Cache\XmlCacheWrapper.cs" />
     <Compile Include="cmdParams.cs" />
-    <Compile Include="DownloadManager.cs" />
     <Compile Include="EventLog.cs" />
     <Compile Include="FormatString.cs" />
     <Compile Include="Forms.cs" />
     <Compile Include="GenerateHash.cs" />
     <Compile Include="math.cs" />
     <Compile Include="Misc.cs" />
-    <Compile Include="SerializableDictionary.cs" />
-    <Compile Include="File_Cache.cs" />
-    <Compile Include="Xml.cs" />
+    <Compile Include="Net\DownloadManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="XmlCache.cs" />
-    <Compile Include="XmlCacheWrapper.cs" />
+    <Compile Include="Serialization\SerializableDictionary.cs" />
+    <Compile Include="Serialization\Xml.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Licence.txt" />

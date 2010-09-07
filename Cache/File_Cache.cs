@@ -26,8 +26,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Xml.Serialization;
+using Demoder.Common.Serialization;
 
-namespace Demoder.Common
+
+namespace Demoder.Common.Cache
 {
 	public class File_Cache
 	{

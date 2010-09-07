@@ -51,8 +51,9 @@ using System;
 using System.Text;
 using System.IO;
 using System.Collections.Generic;
+using Demoder.Common.Serialization;
 
-namespace Demoder.Common
+namespace Demoder.Common.Cache
 {
 	[Flags]
 	public enum XMLCacheFlags

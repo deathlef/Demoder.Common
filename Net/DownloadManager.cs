@@ -27,7 +27,7 @@ using System.Net;
 using System.Threading;
 using System.Text;
 
-namespace Demoder.Common
+namespace Demoder.Common.Net
 {
 	public class DownloadManager
 	{
