@@ -156,7 +156,6 @@ namespace Demoder.Common
 		}
 		#endregion
 
-
 		#region data classes
 		public class CacheInfo
 		{
