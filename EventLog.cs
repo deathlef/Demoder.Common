@@ -190,6 +190,7 @@ namespace Demoder.Common
 		public string Message { get { return this._message; } }
 		#endregion
 
+
 		#region Overrides
 		public override string ToString()
 		{
