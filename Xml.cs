@@ -201,7 +201,7 @@ namespace Demoder.Common
 			if (path == null) throw new ArgumentNullException("path");
 			try
 			{
-				Stream stream = DownloadManager.GetReadStream(path);
+				MemoryStream stream = new MemoryStream(DownloadManager.GetBinaryData(path));
 				T obj = Deserialize<T>(stream, true);
 				return obj;
 			}
