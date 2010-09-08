@@ -28,18 +28,18 @@ namespace Demoder.Common
 {
 	public static class Maths
 	{
-		public static int Percent (int max, int cur) {
-			return (int)System.Math.Round((double)(cur * 100 / max), 0);
+		public static int Percent (int MaxValue, int CurrentValue) {
+			return (int)System.Math.Round((double)(CurrentValue * 100 / MaxValue), 0);
 		}
 		/// <summary>
 		/// Determines how much of 'full' the provided 'percent' means.
 		/// </summary>
-		/// <param name="full">Number of units</param>
-		/// <param name="partial">Percent</param>
+		/// <param name="MaxValue">Number of units</param>
+		/// <param name="Percent">Percent</param>
 		/// <returns></returns>
-		public static int dePercent(int full, int percent)
+		public static int DePercent(int MaxValue, int Percent)
 		{
-			return (int)Math.Round(percent * ((double)full / 100), 0);
+			return (int)Math.Round(Percent * ((double)MaxValue / 100), 0);
 		}
 	}
 }

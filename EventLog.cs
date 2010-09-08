@@ -136,14 +136,14 @@ namespace Demoder.Common
 		/// Create a log entry
 		/// </summary>
 		/// <param name="e"></param>
-		public EventLogEntry(EventLogLevel LogLevel, object Source, ProgressChangedEventArgs e) {
+		public EventLogEntry(EventLogLevel LogLevel, object Source, ProgressChangedEventArgs E) {
 			this._logLevel = LogLevel;
 			this._source = Source;
 			this._time = DateTime.Now;
 			
-			string message = e.UserState.ToString();
-			if (e.ProgressPercentage > 0) 
-				message += " (" + e.ProgressPercentage.ToString() + "%)";
+			string message = E.UserState.ToString();
+			if (E.ProgressPercentage > 0) 
+				message += " (" + E.ProgressPercentage.ToString() + "%)";
 			this._message = message;
 		}
 

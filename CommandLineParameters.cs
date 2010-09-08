@@ -37,14 +37,14 @@ namespace Demoder.Common
 		/// Process provided commandline arguments.
 		/// </summary>
 		/// <param name="args"></param>
-		public CommandLineParameters(string[] args)
+		public CommandLineParameters(string[] Args)
 		{
 			Regex rx_flags = new Regex("[^-]-([\\w]*)"); // -flag_to_set
 			Regex rx_args = new Regex("--([\\w]*)=\"([^\"]+)\""); //--setting="value"
             Regex rx_longflags = new Regex("--([\\w]*)[^=]"); //--setting
 
 			
-			Match mc = rx_flags.Match(" "+string.Join(" ", args));
+			Match mc = rx_flags.Match(" "+string.Join(" ", Args));
 			do
 			{
 				string flag = mc.Groups[1].Value;
@@ -58,7 +58,7 @@ namespace Demoder.Common
 				mc = mc.NextMatch();
 			} while (mc.Success);
 
-			mc = rx_args.Match(string.Join(" ", args));
+			mc = rx_args.Match(string.Join(" ", Args));
 			do
 			{
 				string arg = mc.Groups[1].Value;
@@ -68,7 +68,7 @@ namespace Demoder.Common
 				mc = mc.NextMatch();
 			} while (mc.Success);
 
-            mc = rx_longflags.Match(string.Join(" ", args));
+            mc = rx_longflags.Match(string.Join(" ", Args));
             do
             {
                 string flag = mc.Groups[1].Value;
@@ -85,10 +85,10 @@ namespace Demoder.Common
 		/// </summary>
 		/// <param name="Flag">CMD: -v   flag: v</param>
 		/// <returns></returns>
-		public uint Flag(string Flag)
+		public uint Flag(string FlagName)
 		{
-            if (this._flags.ContainsKey(Flag))
-                return this._flags[Flag];
+            if (this._flags.ContainsKey(FlagName))
+                return this._flags[FlagName];
             else
                 return 0;
 		}
@@ -98,10 +98,10 @@ namespace Demoder.Common
         /// </summary>
         /// <param name="LongFlag">CMD: --v   longflag: v</param>
         /// <returns></returns>
-        public uint LongFlag(string LongFlag)
+        public uint LongFlag(string LongFlagName)
         {
-            if (this._longflags.ContainsKey(LongFlag))
-                return this._longflags[LongFlag];
+            if (this._longflags.ContainsKey(LongFlagName))
+                return this._longflags[LongFlagName];
             else
                 return 0;
         }
