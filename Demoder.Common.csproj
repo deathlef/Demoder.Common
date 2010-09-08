@@ -49,15 +49,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BackgroundWorkerInputQueue.cs" />
-    <Compile Include="Cache\File_Cache.cs" />
+    <Compile Include="Cache\FileCache.cs" />
     <Compile Include="Cache\XmlCache.cs" />
     <Compile Include="Cache\XmlCacheWrapper.cs" />
-    <Compile Include="cmdParams.cs" />
+    <Compile Include="CommandLineParameters.cs" />
     <Compile Include="EventLog.cs" />
     <Compile Include="FormatString.cs" />
     <Compile Include="Forms.cs" />
     <Compile Include="GenerateHash.cs" />
-    <Compile Include="math.cs" />
+    <Compile Include="Maths.cs" />
     <Compile Include="Misc.cs" />
     <Compile Include="Net\DownloadManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

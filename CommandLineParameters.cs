@@ -28,7 +28,7 @@ using System.Text.RegularExpressions;
 namespace Demoder.Common
 {
 	//Processes commandline arguments, and make a unix-like flag/argument system out of it.
-	public class cmdParams
+	public class CommandLineParameters
 	{
 		private Dictionary<string, string> _arguments = new Dictionary<string, string>();
 		private Dictionary<string, uint> _flags = new Dictionary<string, uint>();
@@ -37,7 +37,7 @@ namespace Demoder.Common
 		/// Process provided commandline arguments.
 		/// </summary>
 		/// <param name="args"></param>
-		public cmdParams(string[] args)
+		public CommandLineParameters(string[] args)
 		{
 			Regex rx_flags = new Regex("[^-]-([\\w]*)"); // -flag_to_set
 			Regex rx_args = new Regex("--([\\w]*)=\"([^\"]+)\""); //--setting="value"

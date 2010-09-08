@@ -31,7 +31,7 @@ using Demoder.Common.Serialization;
 
 namespace Demoder.Common.Cache
 {
-	public class File_Cache
+	public class FileCache
 	{
 		#region members
 		/// <summary>
@@ -52,7 +52,7 @@ namespace Demoder.Common.Cache
 		/// Initializes the URL cache
 		/// </summary>
 		/// <param name="RootDirectory">Directory used for storage</param>
-		public File_Cache(DirectoryInfo RootDirectory)
+		public FileCache(DirectoryInfo RootDirectory)
 		{
 			//Define cache directories
 			this._cacheRootDirectory = RootDirectory;
@@ -75,7 +75,7 @@ namespace Demoder.Common.Cache
 		#endregion
 
 		#region Methods
-		public void FileCache(string Key, byte[] Data)
+		public void Cache(string Key, byte[] Data)
 		{
 			lock (this._cacheIndex)
 			{
@@ -119,7 +119,7 @@ namespace Demoder.Common.Cache
 		/// </summary>
 		/// <param name="Key">ID of file to read</param>
 		/// <returns></returns>
-		public byte[] FileRead(string Key)
+		public byte[] Read(string Key)
 		{
 			lock (this._cacheIndex)
 			{
@@ -131,13 +131,13 @@ namespace Demoder.Common.Cache
 					//Ensure the index is up to date.
 					string md5 = GenerateHash.md5(bytes);
 					if (md5 != this._cacheIndex[Key].Hash)
-						this.FileCache(Key, bytes);
+						this.Cache(Key, bytes);
 					return bytes;
 				}
 			}
 		}
 
-		public DateTime FileTime(string Key)
+		public DateTime Time(string Key)
 		{
 			lock (this._cacheIndex)
 			{
