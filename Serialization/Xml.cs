@@ -115,19 +115,11 @@ namespace Demoder.Common.Serialization
 		/// <returns></returns>
 		public static T Deserialize<T>(Stream Stream, bool CloseStream) where T : class
 		{
-			if (Stream == null) throw new ArgumentNullException("Stream");
-			try
-			{
-				XmlSerializer serializer = new XmlSerializer(typeof(T));
-				T obj = (T)serializer.Deserialize(Stream);
-				if (Stream != null && CloseStream) Stream.Close();
-				return obj;
-			}
-			catch (Exception ex)
-			{
-				if (Stream != null && CloseStream) Stream.Close();
+			object obj = Compat.Deserialize(typeof(T), Stream, CloseStream);
+			if (obj == null)
 				return default(T);
-			}
+			else
+				return (T)obj;
 		}
 
 		/// <summary>
@@ -215,6 +207,40 @@ namespace Demoder.Common.Serialization
 				return obj;
 			}
 			catch { return default(T); }
+		}
+		#endregion
+
+
+		#region compat
+		public static class Compat
+		{
+			#region Deserialize
+			/// <summary>
+			/// Deserialize a stream
+			/// </summary>
+			/// <param name="T"></param>
+			/// <param name="Stream"></param>
+			/// <param name="CloseStream"></param>
+			/// <returns></returns>
+			public static object Deserialize(Type T, Stream Stream, bool CloseStream)
+			{
+				if (Stream == null) throw new ArgumentNullException("Stream");
+				try
+				{
+					XmlSerializer serializer = new XmlSerializer(T);
+					object obj = serializer.Deserialize(Stream);
+					if (Stream != null && CloseStream) Stream.Close();
+					return obj;
+				}
+				catch (Exception ex)
+				{
+					if (Stream != null && CloseStream) 
+						Stream.Close();
+					return null;
+				}
+			}
+
+			#endregion deserialize
 		}
 		#endregion
 	}
