@@ -28,9 +28,9 @@ using System.Security.Cryptography;
 
 namespace Demoder.Common
 {
-	#region MD5
 	public static class GenerateHash
 	{
+		#region MD5
 		/// <summary>
 		/// Generates a hexadecimal string representing the MD5 hash of the provided data.
 		/// </summary>
@@ -115,6 +115,7 @@ namespace Demoder.Common
 		}
 
 		#endregion
+
 		#region SHA1
 		/// <summary>
 		/// Get SHA1 hash of byte array

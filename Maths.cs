@@ -26,7 +26,7 @@ using System.Text;
 
 namespace Demoder.Common
 {
-	public static class math
+	public static class Maths
 	{
 		public static int Percent (int max, int cur) {
 			return (int)System.Math.Round((double)(cur * 100 / max), 0);
