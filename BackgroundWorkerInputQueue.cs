@@ -42,7 +42,7 @@ namespace Demoder.Common
 		/// <summary>
 		/// How many items are in queue?
 		/// </summary>
-		protected int QueueCount { get { return this._queue.Count; } }
+		protected int _queueCount { get { return this._queue.Count; } }
 		#endregion
 
 		#region Events
@@ -76,10 +76,10 @@ namespace Demoder.Common
 		/// Add an item to the worker queue
 		/// </summary>
 		/// <param name="obj"></param>
-		protected void enqueue(object obj)
+		protected void enqueue(object Obj)
 		{
 			lock (this._queue)
-				this._queue.Enqueue(obj);
+				this._queue.Enqueue(Obj);
 			this._bgwMRE.Set();
 			if (!this.BackgroundWorker.IsBusy)
 				this.BackgroundWorker.RunWorkerAsync();
@@ -90,9 +90,9 @@ namespace Demoder.Common
 		/// </summary>
 		/// <param name="sender"></param>
 		/// <param name="e"></param>
-		private void worker_PullQueue(object sender, DoWorkEventArgs e)
+		private void worker_PullQueue(object Sender, DoWorkEventArgs E)
 		{
-			while (!e.Cancel)
+			while (!E.Cancel)
 			{
 				if (this._queue.Count == 0)
 				{
@@ -111,7 +111,7 @@ namespace Demoder.Common
 					lock (this._queue)
 						worktask = this._queue.Dequeue();
 					//Submit work task to the DoWork event. WORK TASK IS STORED AS SENDER!
-					this.myWorker(this, e, worktask);
+					this.myWorker(this, E, worktask);
 					return;
 				}
 			}
@@ -122,13 +122,13 @@ namespace Demoder.Common
 		/// </summary>
 		/// <param name="sender"></param>
 		/// <param name="e"></param>
-		private void worker_WorkCompleted(object sender, RunWorkerCompletedEventArgs e)
+		private void worker_WorkCompleted(object Sender, RunWorkerCompletedEventArgs E)
 		{
 			if (this.WorkComplete != null)
 				lock (this.WorkComplete)
-					this.WorkComplete(sender, e);
+					this.WorkComplete(Sender, E);
 			//Start the worker again.
-			if (!e.Cancelled)
+			if (!E.Cancelled)
 				this.BackgroundWorker.RunWorkerAsync();
 		}
 		#endregion
@@ -140,7 +140,7 @@ namespace Demoder.Common
 		/// <param name="sender">Object performing this action</param>
 		/// <param name="e">Original DoWorkEventArgs provided by the background worker</param>
 		/// <param name="QueueItem">Work item provided by the queue manager</param>
-		protected abstract void myWorker(object sender, DoWorkEventArgs e, object QueueItem);
+		protected abstract void myWorker(object Sender, DoWorkEventArgs E, object QueueItem);
 		#endregion
 	}
 }

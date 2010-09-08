@@ -29,38 +29,43 @@ namespace Demoder.Common
 {
 	public class FormatString
 	{
-		private Dictionary<string, object> dictionary;
+		#region members
+		private Dictionary<string, object> _dictionary;
+		#endregion
 
-        /// <summary>
+		#region constructors
+		/// <summary>
         /// Initialize without any pre-defined parameters 
         /// </summary>
         public FormatString() 
         {
-            this.dictionary = null;
+            this._dictionary = null;
         }
 
         /// <summary>
         /// Initialize with a pre-defined set of parameters
         /// </summary>
         /// <param name="dict"></param>
-        public FormatString(Dictionary<string, object> dict)
+        public FormatString(Dictionary<string, object> Dictionary)
 		{
-			this.dictionary = dict;
+			this._dictionary = Dictionary;
 		}
+		#endregion
 
-        /// <summary>
+		#region methods
+		/// <summary>
         /// Format a string using the provided parameters
         /// </summary>
         /// <param name="ToFormat"></param>
         /// <param name="dict"></param>
         /// <returns></returns>
-        public string Format(string ToFormat, Dictionary<string, object> dict)
+        public string Format(string ToFormat, Dictionary<string, object> Dictionary)
         {
             lock (this)
             {
-                if (dict == null)
+                if (Dictionary == null)
                     throw new ArgumentException("Argument cannot be null", "dict");
-                this.dictionary = dict;
+                this._dictionary = Dictionary;
                 return this.Format(ToFormat);
             }
         }
@@ -74,7 +79,7 @@ namespace Demoder.Common
 		{
             lock (this)
             {
-                if (this.dictionary == null)
+                if (this._dictionary == null)
                     throw new InvalidOperationException("Dictioanry not provided upon instance creation. Therefore, it must be provided upon string formatting.");
                 string outstring = ToFormat;
                 Regex re = new Regex(@"\{[^}]*\}");
@@ -89,13 +94,12 @@ namespace Demoder.Common
 		/// <param name="ToFormat">String which needs formatting</param>
 		/// <param name="param">string[] { tag, value }</param>
 		/// <returns>formatted string</returns>
-		public string Format(string ToFormat, params string[][] param)
+		public string Format(string ToFormat, params KeyValuePair<string, object>[] Parameters)
 		{
 			Dictionary<string, object> dict = new Dictionary<string, object>();
-			foreach (string[] s in param)
-				if (!dict.ContainsKey(s[0]))
-					dict.Add(s[0], s[1]);
-
+			foreach (KeyValuePair<string, object> kvp in Parameters)
+				if (!dict.ContainsKey(kvp.Key))
+					dict.Add(kvp.Key, kvp.Value);
 			return this.Format(ToFormat, dict);
 		}
 		
@@ -104,13 +108,14 @@ namespace Demoder.Common
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        private string doFormatString(Match input)
+        private string doFormatString(Match Input)
 		{
-			string matchkey = input.Value.Substring(1, input.Value.Length - 2).ToLower();
-			if (this.dictionary.ContainsKey(matchkey))
-				return this.dictionary[matchkey].ToString();
+			string matchkey = Input.Value.Substring(1, Input.Value.Length - 2).ToLower();
+			if (this._dictionary.ContainsKey(matchkey))
+				return this._dictionary[matchkey].ToString();
 			else
 				return string.Empty;
 		}
+		#endregion
 	}
 }

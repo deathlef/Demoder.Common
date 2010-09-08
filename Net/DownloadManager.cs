@@ -70,13 +70,13 @@ namespace Demoder.Common.Net
 		private Queue<KeyValuePair<object, Uri>> _downloadQueue;
 
 		#region connection tracking
-		private Dictionary<string, DateTime> _HostLastConnectionTime;
-		private Dictionary<string, Queue<WebClient>> _WebRequests;
+		private Dictionary<string, DateTime> _hostLastConnectionTime;
+		private Dictionary<string, Queue<WebClient>> _webRequests;
 		private Dictionary<string, int> _activeconnections = new Dictionary<string, int>();
 		
-		private int _MaxConnections = 12;
-		private int _MaxConnectionsPerServer = 4;
-		private int _ActiveWebClients = 0;
+		private int _maxConnections = 12;
+		private int _maxConnectionsPerServer = 4;
+		private int _activeWebClients = 0;
 		private object _activeWebClientsLock = new object();
 		#endregion
 
@@ -116,11 +116,11 @@ namespace Demoder.Common.Net
 		{
 			this._downloadedFiles = new List<KeyValuePair<object, byte[]>>();
 			this._downloadQueue = new Queue<KeyValuePair<object, Uri>>();
-			this._ActiveWebClients = 0;
-			this._MaxConnections = MaxConnections;
-			this._MaxConnectionsPerServer = MaxConnectionsPerServer;
-			this._HostLastConnectionTime = new Dictionary<string, DateTime>();
-            this._WebRequests = new Dictionary<string, Queue<WebClient>>();
+			this._activeWebClients = 0;
+			this._maxConnections = MaxConnections;
+			this._maxConnectionsPerServer = MaxConnectionsPerServer;
+			this._hostLastConnectionTime = new Dictionary<string, DateTime>();
+            this._webRequests = new Dictionary<string, Queue<WebClient>>();
 		}
 		#endregion
 
@@ -130,10 +130,10 @@ namespace Demoder.Common.Net
         /// </summary>
         /// <param name="tag"></param>
         /// <param name="uri"></param>
-		public void Enqueue(object tag, Uri uri)
+		public void Enqueue(object Tag, Uri Uri)
 		{
             lock (this._downloadQueue)
-			    this._downloadQueue.Enqueue(new KeyValuePair<object, Uri>(tag, uri));
+			    this._downloadQueue.Enqueue(new KeyValuePair<object, Uri>(Tag, Uri));
 			this._queueMRE.Set();
 		}
 
@@ -155,22 +155,22 @@ namespace Demoder.Common.Net
 		/// </summary>
 		/// <param name="uri"></param>
 		/// <returns></returns>
-		public static byte[] GetBinaryData(Uri uri)
+		public static byte[] GetBinaryData(Uri Uri)
 		{
 			WebClient wc = new WebClient();
 			wc.Headers.Set(HttpRequestHeader.UserAgent, "Demoder.Common.DownloadManager/0.8");
-			return wc.DownloadData(uri);			
+			return wc.DownloadData(Uri);			
 		}
 		/// <summary>
 		/// Open a readable stream to the provided uri
 		/// </summary>
 		/// <param name="uri"></param>
 		/// <returns></returns>
-		public static Stream GetReadStream(Uri uri)
+		public static Stream GetReadStream(Uri Uri)
 		{
 			WebClient wc = new WebClient();
 			wc.Headers.Set(HttpRequestHeader.UserAgent, "Demoder.Common.DownloadManager/0.8");
-			Stream stream = wc.OpenRead(uri);
+			Stream stream = wc.OpenRead(Uri);
 			return stream;
 		}
 		#endregion
@@ -206,14 +206,14 @@ namespace Demoder.Common.Net
 
 		
 
-		private void queueManager(object obj)
+		private void queueManager(object Obj)
 		{
             this._active = true;
 			while (this._running)
             {
 				//make sure we don't exceed max number of connections
 				#region don't exceed max number of connections
-				while (this._MaxConnections <= this._ActiveWebClients)
+				while (this._maxConnections <= this._activeWebClients)
 				{
 					this._workerMRE.Reset();
 					this._workerMRE.WaitOne();
@@ -237,7 +237,7 @@ namespace Demoder.Common.Net
 				#region Track active connections
 				if (this._activeconnections.ContainsKey(wrhost))
 				{
-					if (this._activeconnections[wrhost] >= this._MaxConnections)
+					if (this._activeconnections[wrhost] >= this._maxConnections)
 					{
 						lock (this._downloadQueue)
 						{
@@ -252,10 +252,10 @@ namespace Demoder.Common.Net
 					lock (this._activeconnections)
 						this._activeconnections.Add(wrhost, 0);
 				}
-				if (!this._WebRequests.ContainsKey(wrhost))
-                    this._WebRequests.Add(wrhost, new Queue<WebClient>());
+				if (!this._webRequests.ContainsKey(wrhost))
+                    this._webRequests.Add(wrhost, new Queue<WebClient>());
 				lock (this._activeWebClientsLock)
-					this._ActiveWebClients++;
+					this._activeWebClients++;
 				lock (this._activeconnections)
 					this._activeconnections[wrhost]++;
 				#endregion 
@@ -266,102 +266,44 @@ namespace Demoder.Common.Net
                     this._running = false;
 			}
             //Wait for active fetchers to finish
-            while (this._ActiveWebClients > 0)
+            while (this._activeWebClients > 0)
                 this._workerMRE.WaitOne();
             this._active = false;
 		}
-		/*
-		private void DownloadBinaryData_UsingWebRequest(object obj) 
-		{
-			KeyValuePair<object, Uri> kvp = (KeyValuePair<object, Uri>)obj;
-			string wrhost = kvp.Value.Host + ":" + kvp.Value.Port.ToString();
-			HttpWebRequest request = (HttpWebRequest)WebRequest.Create(kvp.Value);
-			request.UserAgent = "Demoder.Common.DownloadManager/0.8";
-			request.KeepAlive = true;
-			request.ProtocolVersion = HttpVersion.Version11;
 
-			HttpWebResponse response = null;
-			try { 
-				response = (HttpWebResponse)request.GetResponse(); 
-			}
-			catch (WebException ex) 
-			{
-				switch (ex.Status)
-				{
-					case WebExceptionStatus.KeepAliveFailure:
-					case WebExceptionStatus.ConnectionClosed:
-					case WebExceptionStatus.ConnectFailure:
-					case WebExceptionStatus.ReceiveFailure:
-					case WebExceptionStatus.RequestCanceled:
-					case WebExceptionStatus.SendFailure:
-					case WebExceptionStatus.Timeout:
-					case WebExceptionStatus.UnknownError:
-						lock (this._downloadQueue)
-							this._downloadQueue.Enqueue(kvp);
-						this.DBD_Done(wrhost);
-						return;
-					case WebExceptionStatus.Success:
-						//Why did we get an exception then? Strange... Continue as if it didn't happen!
-						break;
-				}
-			}
-			if (response == null)
-			{
-				lock (this._downloadQueue)
-					this._downloadQueue.Enqueue(kvp);
-				this.DBD_Done(wrhost);
-				return;
-			}
-
-			byte[] buffer = new byte[1024];
-			MemoryStream ms = new MemoryStream();
-			Stream stream = response.GetResponseStream();
-			int read=0;
-			do {
-				read = stream.Read(buffer, 0, buffer.Length);
-				if (read>0)
-					ms.Write(buffer, 0, read);
-			} while (read>0);
-			if (response != null)
-				lock (this._downloadedFiles)
-					this._downloadedFiles.Add(new KeyValuePair<object, byte[]>(kvp.Key, ms.ToArray()));
-			this.DBD_Done(wrhost);
-		}
-		*/
-
-        private void DownloadBinaryData(object obj)
+        private void DownloadBinaryData(object Obj)
         {
-            KeyValuePair<object, Uri> kvp = (KeyValuePair<object, Uri>)obj;
+            KeyValuePair<object, Uri> kvp = (KeyValuePair<object, Uri>)Obj;
 			string wrhost = kvp.Value.Host + ":" + kvp.Value.Port.ToString();
             bool sleep = true;
-            bool NewConnection = false;
+            bool newConnection = false;
             WebClient wr = null;
-            lock (this._WebRequests)
+            lock (this._webRequests)
             {
-                if (this._WebRequests[wrhost].Count == 0)
+                if (this._webRequests[wrhost].Count == 0)
                 {
                     wr = new WebClient();
                     wr.Headers.Set(HttpRequestHeader.UserAgent, "Demoder.Common.DownloadManager/0.8");
                     wr.Headers.Set(HttpRequestHeader.KeepAlive, "30");
-                    NewConnection = true;
+                    newConnection = true;
                 }
                 else
                 {
-                    wr = this._WebRequests[wrhost].Dequeue();
-                    NewConnection = false;
+                    wr = this._webRequests[wrhost].Dequeue();
+                    newConnection = false;
                 }
             }
-            if (NewConnection)
+            if (newConnection)
             {
                 #region anti-DoS
                 while (sleep)
                 {
                     int sleeptime = 0;
-                    lock (this._HostLastConnectionTime)
+                    lock (this._hostLastConnectionTime)
                     {
-                        if (this._HostLastConnectionTime.ContainsKey(kvp.Value.DnsSafeHost))
+                        if (this._hostLastConnectionTime.ContainsKey(kvp.Value.DnsSafeHost))
                         {
-                            TimeSpan ts = DateTime.Now - this._HostLastConnectionTime[kvp.Value.DnsSafeHost];
+                            TimeSpan ts = DateTime.Now - this._hostLastConnectionTime[kvp.Value.DnsSafeHost];
                             int timespan = 600 - ts.Milliseconds;
                             if (timespan >= 600)  //No need to wait
                                 sleep = false;
@@ -369,7 +311,7 @@ namespace Demoder.Common.Net
                             { //Performance-wise smarter to toss things back to queue and fetch the next.
                                 lock (this._downloadQueue)
                                     this._downloadQueue.Enqueue(kvp);
-                                this.DBD_Done(wrhost);
+                                this.dbdDone(wrhost);
                                 return;
                             }
                             else //Performance-wise smarter to wait for it
@@ -382,12 +324,12 @@ namespace Demoder.Common.Net
                         sleep = false;
                 }
                 //Update last connection time info.
-                lock (this._HostLastConnectionTime)
+                lock (this._hostLastConnectionTime)
                 {
-                    if (this._HostLastConnectionTime.ContainsKey(kvp.Value.Host))
-                        this._HostLastConnectionTime[kvp.Value.Host] = DateTime.Now;
+                    if (this._hostLastConnectionTime.ContainsKey(kvp.Value.Host))
+                        this._hostLastConnectionTime[kvp.Value.Host] = DateTime.Now;
                     else
-                        this._HostLastConnectionTime.Add(kvp.Value.Host, DateTime.Now);
+                        this._hostLastConnectionTime.Add(kvp.Value.Host, DateTime.Now);
                 }
                 #endregion
             }
@@ -411,7 +353,7 @@ namespace Demoder.Common.Net
 					case WebExceptionStatus.UnknownError:
 						lock (this._downloadQueue)
 							this._downloadQueue.Enqueue(kvp);
-						this.DBD_Done(wrhost);
+						this.dbdDone(wrhost);
 						return;
 					case WebExceptionStatus.Success:
 						//Why did we get an exception then? Strange... Continue as if it didn't happen!
@@ -419,7 +361,7 @@ namespace Demoder.Common.Net
 					case WebExceptionStatus.ProtocolError: //protocol errors such as 404 not found. Drop the request.
 						lock (this._protocolErrors)
 							this._protocolErrors.Add(kvp);
-						this.DBD_Done(wrhost);
+						this.dbdDone(wrhost);
 						return;
 				}
 				Console.WriteLine(ex);
@@ -430,22 +372,21 @@ namespace Demoder.Common.Net
 					this._downloadedFiles.Add(new KeyValuePair<object, byte[]>(kvp.Key, response));
             #endregion
             //Toss the Webclient back to the queue, for other threads to use.
-            lock (this._WebRequests)
-                this._WebRequests[wrhost].Enqueue(wr);
-            this.DBD_Done(wrhost);
+            lock (this._webRequests)
+                this._webRequests[wrhost].Enqueue(wr);
+            this.dbdDone(wrhost);
         }
 
         /// <summary>
         /// Method run when the DownloadBinaryData method is done, for one reason or another.
         /// </summary>
-        private void DBD_Done(string wrhost)
+        private void dbdDone(string wrhost)
         {
 			lock (this._activeWebClientsLock)
-				this._ActiveWebClients--;
+				this._activeWebClients--;
 			lock (this._activeconnections)
 				this._activeconnections[wrhost]--;
             this._workerMRE.Set();
-			
         }
 		#endregion
 	}

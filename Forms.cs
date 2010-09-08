@@ -29,9 +29,9 @@ namespace Demoder.Common
 {
 	public static class Forms
 	{
-		public static void AutoResizeHeaders(ListView lvi, ColumnHeaderAutoResizeStyle style) {
-			foreach (ColumnHeader ch in lvi.Columns)
-				ch.AutoResize(style);
+		public static void AutoResizeHeaders(ListView ListView, ColumnHeaderAutoResizeStyle AutoResizeStyle) {
+			foreach (ColumnHeader ch in ListView.Columns)
+				ch.AutoResize(AutoResizeStyle);
 		}
 
 		#region ListView column sorting
@@ -40,16 +40,16 @@ namespace Demoder.Common
 		/// </summary>
 		/// <param name="sender"></param>
 		/// <param name="e"></param>
-		public static void ListView_ColumnClick(object sender, ColumnClickEventArgs e)
+		public static void ListView_ColumnClick(object Sender, ColumnClickEventArgs E)
 		{
-			ListView lv = (ListView)sender;
+			ListView lv = (ListView)Sender;
 			Forms.ListViewSorter lvs = new Forms.ListViewSorter();
 
 			if (!(lv.ListViewItemSorter is Forms.ListViewSorter))
 				lv.ListViewItemSorter = lvs;
 			else
 				lvs = (Forms.ListViewSorter)lv.ListViewItemSorter;
-			if (lvs.LastSort == e.Column)
+			if (lvs.LastSort == E.Column)
 			{
 				if (lv.Sorting == SortOrder.Ascending)
 					lv.Sorting = SortOrder.Descending;
@@ -60,22 +60,42 @@ namespace Demoder.Common
 			{
 				lv.Sorting = SortOrder.Descending;
 			}
-			lvs.ByColumn = e.Column;
+			lvs.ByColumn = E.Column;
 			lv.Sort();
 		}
-		#region This class is taken from http://www.java2s.com/Code/CSharp/GUI-Windows-Form/SortaListViewbyAnyColumn.htm
+		#region This class derives from http://www.java2s.com/Code/CSharp/GUI-Windows-Form/SortaListViewbyAnyColumn.htm
 		public class ListViewSorter : System.Collections.IComparer
 		{
-			public int Compare(object o1, object o2)
+			#region Members
+			private int _column = 0;
+			private int _lastColumn = 0;
+			#endregion
+
+			#region Public accessors
+			public int ByColumn
 			{
-				if (!(o1 is ListViewItem))
+				get { return _column; }
+				set { _column = value; }
+			}
+
+			public int LastSort
+			{
+				get { return _lastColumn; }
+				set { _lastColumn = value; }
+			}
+			#endregion
+
+			#region Methods
+			public int Compare(object Obj1, object Obj2)
+			{
+				if (!(Obj1 is ListViewItem))
 					return (0);
-				if (!(o2 is ListViewItem))
+				if (!(Obj2 is ListViewItem))
 					return (0);
 
-				ListViewItem lvi1 = (ListViewItem)o2;
+				ListViewItem lvi1 = (ListViewItem)Obj2;
 				string str1 = lvi1.SubItems[ByColumn].Text;
-				ListViewItem lvi2 = (ListViewItem)o1;
+				ListViewItem lvi2 = (ListViewItem)Obj1;
 				string str2 = lvi2.SubItems[ByColumn].Text;
 				int result;
 				if (lvi1.ListView.Sorting == SortOrder.Ascending)
@@ -85,21 +105,9 @@ namespace Demoder.Common
 				LastSort = ByColumn;
 				return (result);
 			}
-			public int ByColumn
-			{
-				get { return Column; }
-				set { Column = value; }
-			}
-			int Column = 0;
-
-			public int LastSort
-			{
-				get { return LastColumn; }
-				set { LastColumn = value; }
-			}
-			int LastColumn = 0;
+			#endregion Methods
 		}
-		#endregion this class is taken from http://www.java2s.com/Code/CSharp/GUI-Windows-Form/SortaListViewbyAnyColumn.htm
-		#endregion
+		#endregion class
+		#endregion ListView column sorting
 	}
 }

@@ -60,7 +60,7 @@ namespace Demoder.Common.Cache
 			this._cacheDataDirectory = new DirectoryInfo(RootDirectory.FullName + Path.DirectorySeparatorChar + "Data");
 			//Check if cache directories exist
 			if (!this._cacheRootDirectory.Exists)
-				RootDirectory.Create();
+				this._cacheRootDirectory.Create();
 			if (!this._cacheIndexDirectory.Exists)
 				this._cacheIndexDirectory.Create();
 			if (!this._cacheDataDirectory.Exists)
@@ -79,7 +79,7 @@ namespace Demoder.Common.Cache
 		{
 			lock (this._cacheIndex)
 			{
-				string md5 = GenerateHash.md5(Data);
+				string md5 = GenerateHash.MD5(Data);
 				//Is this data the same as the old?
 				if (this._cacheIndex.ContainsKey(Key))
 					if (this._cacheIndex[Key].Hash == md5)
@@ -129,7 +129,7 @@ namespace Demoder.Common.Cache
 				{
 					byte[] bytes = File.ReadAllBytes(this._getDataFileName(Key));
 					//Ensure the index is up to date.
-					string md5 = GenerateHash.md5(bytes);
+					string md5 = GenerateHash.MD5(bytes);
 					if (md5 != this._cacheIndex[Key].Hash)
 						this.Cache(Key, bytes);
 					return bytes;
@@ -150,11 +150,11 @@ namespace Demoder.Common.Cache
 
 		private string _getIndexFileName(string Key) 
 		{
-			return this._cacheIndexDirectory.FullName + Path.DirectorySeparatorChar + GenerateHash.md5(Key) + ".xml";
+			return this._cacheIndexDirectory.FullName + Path.DirectorySeparatorChar + GenerateHash.MD5(Key) + ".xml";
 		}
 		private string _getDataFileName(string Key)
 		{
-			return this._cacheDataDirectory.FullName + Path.DirectorySeparatorChar + GenerateHash.md5(Key) + ".data";
+			return this._cacheDataDirectory.FullName + Path.DirectorySeparatorChar + GenerateHash.MD5(Key) + ".data";
 		}
 		#endregion
 

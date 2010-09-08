@@ -116,20 +116,20 @@ namespace Demoder.Common
 		/// <summary>
 		/// Get a DateTime object representing the local time defined by the provided unixtime
 		/// </summary>
-		/// <param name="unixtime"></param>
+		/// <param name="UnixTime"></param>
 		/// <returns></returns>
-		public static DateTime Unixtime(Int64 unixtime)
+		public static DateTime Unixtime(Int64 UnixTime)
 		{
 			DateTime dt = new DateTime(1970, 1, 1);
-			return dt.AddSeconds(unixtime).ToLocalTime();
+			return dt.AddSeconds(UnixTime).ToLocalTime();
 		}
 
-		public static void PadMemoryStream(ref MemoryStream ms, int length, byte PadByte)
+		public static void PadMemoryStream(ref MemoryStream MemoryStream, int Length, byte PadByte)
 		{
-			while (ms.Length < length)
-				ms.WriteByte(PadByte);
+			while (MemoryStream.Length < Length)
+				MemoryStream.WriteByte(PadByte);
 				//If slice will be larger than the padding
-			if (ms.Length > length)
+			if (MemoryStream.Length > Length)
 				throw new Exception("Padding: MemoryStream is larger than defined static length!");
 		}
 	}

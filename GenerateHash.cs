@@ -34,12 +34,12 @@ namespace Demoder.Common
 		/// <summary>
 		/// Generates a hexadecimal string representing the MD5 hash of the provided data.
 		/// </summary>
-		/// <param name="input">byte[] array representing data</param>
+		/// <param name="Input">byte[] array representing data</param>
 		/// <returns>a hexadecimal string of 32 characters representing the MD5 hash of the provided data</returns>
-		public static string md5(byte[] input)
+		public static string MD5(byte[] Input)
 		{
 			MD5 _md5 = System.Security.Cryptography.MD5.Create();
-			byte[] hash = _md5.ComputeHash(input);
+			byte[] hash = _md5.ComputeHash(Input);
 			//Generate a hexadecimal string
 			StringBuilder sb = new StringBuilder();
 			for (int i = 0; i < hash.Length; i++)
@@ -53,12 +53,12 @@ namespace Demoder.Common
 		/// <summary>
 		/// Generates a hexadecimal string representing the MD5 hash of the provided data.
 		/// </summary>
-		/// <param name="input">stream input</param>
+		/// <param name="Input">stream input</param>
 		/// <returns>a hexadecimal string of 32 characters representing the MD5 hash of the provided data</returns>
-		public static string md5(Stream input)
+		public static string MD5(Stream Input)
 		{
 			MD5 _md5 = System.Security.Cryptography.MD5.Create();
-			byte[] hash = _md5.ComputeHash(input);
+			byte[] hash = _md5.ComputeHash(Input);
 			//Generate a hexadecimal string
 			StringBuilder sb = new StringBuilder();
 			for (int i = 0; i < hash.Length; i++)
@@ -71,11 +71,11 @@ namespace Demoder.Common
 		/// <summary>
 		/// Generates a hexadecimal string representing the MD5 hash of the provided data
 		/// </summary>
-		/// <param name="ms">MemoryStream input</param>
+		/// <param name="Input">MemoryStream input</param>
 		/// <returns>a hexadecimal string of 32 characters representing the MD5 hash of the provided data</returns>
-		public static string md5(MemoryStream ms)
+		public static string MD5(MemoryStream Input)
 		{
-			return md5(ms.ToArray());
+			return MD5(Input.ToArray());
 		}
 
 		/// <summary>
@@ -83,35 +83,35 @@ namespace Demoder.Common
 		/// </summary>
 		/// <param name="input">char[] array representing data</param>
 		/// <returns>a hexadecimal string of 32 characters representing the MD5 hash of the provided data</returns>
-		public static string md5(char[] input)
+		public static string MD5(char[] Input)
 		{
 			//Convert the char array to a byte array
-			byte[] b = new byte[input.Length];
-			for (int i = 0; i < input.Length; i++)
+			byte[] b = new byte[Input.Length];
+			for (int i = 0; i < Input.Length; i++)
 			{
-				b[i] = byte.Parse(input[i].ToString());
+				b[i] = byte.Parse(Input[i].ToString());
 			}
-			return md5(b);
+			return MD5(b);
 		}
 
 		/// <summary>
 		/// Generates a hexadecimal string representing the MD5 hash of the provided data
 		/// </summary>
-		/// <param name="input">string input representing data</param>
+		/// <param name="Input">string input representing data</param>
 		/// <returns>a hexadecimal string of 32 characters representing the MD5 hash of the provided data</returns>
-		public static string md5(string input) { return md5(Encoding.Default.GetBytes(input)); }
+		public static string MD5(string Input) { return MD5(Encoding.Default.GetBytes(Input)); }
 
-		public static string md5(List<byte> input) { return md5(input.ToArray()); }
+		public static string MD5(List<byte> Input) { return MD5(Input.ToArray()); }
 
 		/// <summary>
 		/// Generates a hexadecimal string representing the MD5 hash of the file located at path
 		/// </summary>
-		/// <param name="path">Full path to the file we should generate a MD5 hash of</param>
+		/// <param name="FilePath">Full path to the file we should generate a MD5 hash of</param>
 		/// <exception cref="FileNotFoundException">File does not exist</exception>
 		/// <returns>a hexadecimal string of 32 characters representing the MD5 hash of the provided file</returns>
-		public static string md5_file(string path) {
-			if (!File.Exists(path)) throw new FileNotFoundException("File does not exist");
-			return md5(File.ReadAllBytes(path));
+		public static string MD5(FileInfo FilePath) {
+			if (!FilePath.Exists) throw new FileNotFoundException("File does not exist");
+			return MD5(File.ReadAllBytes(FilePath.FullName));
 		}
 
 		#endregion
@@ -120,12 +120,12 @@ namespace Demoder.Common
 		/// <summary>
 		/// Get SHA1 hash of byte array
 		/// </summary>
-		/// <param name="data"></param>
+		/// <param name="Input"></param>
 		/// <returns></returns>
-		public static string sha1(byte[] data)
+		public static string SHA1(byte[] Input)
 		{
 			SHA1 _sha1 = new SHA1CryptoServiceProvider();
-			byte[] hash = _sha1.ComputeHash(data);
+			byte[] hash = _sha1.ComputeHash(Input);
 			StringBuilder sb = new StringBuilder();
 			for (int i = 0; i < hash.Length; i++)
 			{
@@ -137,12 +137,12 @@ namespace Demoder.Common
 		/// <summary>
 		/// Get SHA1 hash of Stream input.
 		/// </summary>
-		/// <param name="data"></param>
+		/// <param name="Input"></param>
 		/// <returns></returns>
-		public static string sha1(Stream data)
+		public static string SHA1(Stream Input)
 		{
 			SHA1 _sha1 = new SHA1CryptoServiceProvider();
-			byte[] hash = _sha1.ComputeHash(data);
+			byte[] hash = _sha1.ComputeHash(Input);
 			StringBuilder sb = new StringBuilder();
 			for (int i = 0; i < hash.Length; i++)
 			{
@@ -156,39 +156,36 @@ namespace Demoder.Common
 		/// <summary>
 		/// Get SHA1 hash of text
 		/// </summary>
-		/// <param name="text"></param>
+		/// <param name="Input"></param>
 		/// <returns></returns>
-		public static string sha1(string text)
+		public static string SHA1(string Input)
 		{
-			return sha1(Encoding.Default.GetBytes(text));
+			return SHA1(Encoding.Default.GetBytes(Input));
 		}
 
 		/// <summary>
 		/// Get SHA1 hash of MemoryStream
 		/// </summary>
-		/// <param name="ms"></param>
+		/// <param name="Input"></param>
 		/// <returns></returns>
-		public static string sha1(MemoryStream ms)
+		public static string SHA1(MemoryStream Input)
 		{
-			return sha1(ms.ToArray());
+			return SHA1(Input.ToArray());
 		}
 
-		public static string sha1(List<byte> input) { return sha1(input.ToArray()); }
+		public static string SHA1(List<byte> Input) { return SHA1(Input.ToArray()); }
 
 		/// <summary>
 		/// Get SHA1 hash of file
 		/// </summary>
-		/// <param name="path">path to file</param>
+		/// <param name="FilePath">path to file</param>
 		/// <exception cref="FileNotFoundException">File does not exist</exception>
 		/// <returns></returns>
-		public static string sha1_file(string path)
+		public static string SHA1(FileInfo FilePath)
 		{
-			if (!File.Exists(path)) throw new FileNotFoundException("File does not exist");
-			return sha1(File.ReadAllBytes(path));
+			if (!FilePath.Exists) throw new FileNotFoundException("File does not exist");
+			return SHA1(File.ReadAllBytes(FilePath.FullName));
 		}
-
-		
-
 		#endregion
 	}
 }
