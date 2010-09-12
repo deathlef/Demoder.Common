@@ -55,6 +55,7 @@
     <Compile Include="GenerateHash.cs" />
     <Compile Include="Maths.cs" />
     <Compile Include="Misc.cs" />
+    <Compile Include="Net\Downloader.cs" />
     <Compile Include="Net\DownloadItem.cs" />
     <Compile Include="Net\DownloadManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
