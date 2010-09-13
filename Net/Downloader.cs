@@ -44,10 +44,12 @@ namespace Demoder.Common.Net
 		/// Hostname to provide to the foreign webserver
 		/// </summary>
 		private string _hostName;
-
+		/// <summary>
+		/// Our user-agent.
+		/// </summary>
 		private string _userAgent;
 
-		WebClient _webClient = new WebClient();
+		WebClient _webClient;
 		#endregion
 
 		#region Constructor
@@ -72,14 +74,23 @@ namespace Demoder.Common.Net
 		private void createWebClient()
 		{
 			WebClient wc = new WebClient();
-			wc.BaseAddress = string.Format("http://{0}:{1}",
-				this._ipEndPoint.Address,
-				this._ipEndPoint.Port);
+			wc.Proxy = new WebProxy(this._ipEndPoint.Address.ToString(), this._ipEndPoint.Port); //Workaround: Enable connecting to a specified mirror
 			wc.Headers.Add(HttpRequestHeader.Host, this._hostName);
-			wc.Headers.Add(HttpRequestHeader.KeepAlive, "30");
+			wc.Headers.Add(HttpRequestHeader.KeepAlive, "15");
 			wc.Headers.Add(HttpRequestHeader.UserAgent, this._userAgent);
-
 			this._webClient = wc;
+		}
+		#endregion
+
+
+		#region Overrides
+		public override string ToString()
+		{
+			return String.Format("{0}: Connected to IP {1} port {2}. (Host: {3})",
+				this.GetType().ToString(),
+				this._ipEndPoint.Address,
+				this._ipEndPoint.Port,
+				this._hostName);
 		}
 		#endregion
 	}
