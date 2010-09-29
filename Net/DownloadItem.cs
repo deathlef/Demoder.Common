@@ -21,6 +21,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Text;
 
@@ -37,12 +38,21 @@ namespace Demoder.Common.Net
 		private readonly string _expectedMD5;
 		private Queue<Uri> _mirrors;
 
-		private List<Uri> _failedMirrors = null;
+		private List<Uri> _failedMirrors;
 
 		//Describing the download data
 		private byte[] _bytes = null;
 		private object _httpStatusCode = null;
 		private string _downloadedMD5 = string.Empty;
+		//Delegates
+		/// <summary>
+		/// Signaled when the download succeeds.
+		/// </summary>
+		private readonly DownloadItemEventHandler _downloadSuccessDelegate;
+		/// <summary>
+		/// Signalted when the download fails.
+		/// </summary>
+		private readonly DownloadItemEventHandler _downloadFailureDelegate;
 		#endregion
 
 		#region Constructors
@@ -51,28 +61,45 @@ namespace Demoder.Common.Net
 		/// </summary>
 		/// <param name="Tag">Userdefined tag of this download</param>
 		/// <param name="Uri">Uri to download from</param>
-		public DownloadItem(object Tag, Uri Uri) :
-			this(Tag, new List<Uri>(new Uri[] { Uri })) { }
+		public DownloadItem(object Tag,
+			Uri Uri,
+			DownloadItemEventHandler DownloadSuccessDelegate,
+			DownloadItemEventHandler DownloadFailureDelegate) :
+			this(Tag, new List<Uri>(new Uri[] { Uri }), DownloadSuccessDelegate, DownloadFailureDelegate) { }
+
 		/// <summary>
 		/// Initialize a DownloadItem
 		/// </summary>
 		/// <param name="Tag">Uerdefined tag for this download</param>
 		/// <param name="Mirrors">URIs to download from</param>
-		public DownloadItem(object Tag, List<Uri> Mirrors) :
-			this(Tag, Mirrors, string.Empty) { }
+		public DownloadItem(
+			object Tag,
+			List<Uri> Mirrors,
+			DownloadItemEventHandler DownloadSuccessDelegate,
+			DownloadItemEventHandler DownloadFailureDelegate) :
+			this(Tag, Mirrors, DownloadSuccessDelegate, DownloadFailureDelegate, string.Empty) { }
+
 		/// <summary>
 		/// Initialize a DownloadItem
 		/// </summary>
 		/// <param name="Tag">Userdefined tag for this download</param>
 		/// <param name="Mirrors">URIs to download from</param>
 		/// <param name="ExpectedMD5">The file should have this MD5 hash to be considered a successfull download</param>
-		public DownloadItem(object Tag, List<Uri> Mirrors, string ExpectedMD5)
+		public DownloadItem(
+			object Tag,
+			List<Uri> Mirrors,
+			DownloadItemEventHandler DownloadSuccessDelegate,
+			DownloadItemEventHandler DownloadFailureDelegate,
+			string ExpectedMD5)
 		{
 			if (ExpectedMD5 == null)
 				throw new ArgumentNullException("ExpectedMD5", "Parameter cannot be null. Use string.Empty instead.");
 
 			this._tag = Tag;
 			this._mirrors = new Queue<Uri>(Mirrors);
+			this._failedMirrors = new List<Uri>(Mirrors.Count);
+			this._downloadSuccessDelegate = DownloadSuccessDelegate;
+			this._downloadFailureDelegate = DownloadFailureDelegate;
 			this._expectedMD5 = ExpectedMD5;
 		}
 		#endregion
@@ -89,7 +116,7 @@ namespace Demoder.Common.Net
 				{
 					if (this._bytes == null) //Don't have data. Assume the download failed.
 						return false;
-					if (this._expectedMD5 == string.Empty) //Since we have data, and no expected MD5, assume the download manager verified the server-reported MD5.
+					if (String.IsNullOrEmpty(this._expectedMD5)) //Since we have data, and no expected MD5, assume the download manager verified the server-reported MD5.
 						return true;
 					if (this._expectedMD5 == this._downloadedMD5) //Integrity ok
 						return true;
@@ -139,17 +166,62 @@ namespace Demoder.Common.Net
 					if (this._mirrors.Count == 0)
 						return null;
 					else
-						return this._mirrors.Dequeue();
+						return this._mirrors.Peek();
 				}
 			}
 		}
+
+		/// <summary>
+		/// Retrieves scheme://host:port representing the next mirror.
+		/// </summary>
+		public string NextMirrorConnectionString
+		{
+			get
+			{
+				Uri nextMirror = this.NextMirror;
+				return String.Format("{0}://{1}:{2}",
+					nextMirror.Scheme,
+					nextMirror.Host,
+					nextMirror.Port);
+			}
+		}
+
+		/// <summary>
+		/// Download failed. Move the mirror to the failed queue and call the DownloadFailed delegate.
+		/// </summary>
+		/// <returns>true if we have more items in queue, false otherwise.</returns>
+		public bool DownloadFailed()
+		{
+			Uri uri;
+			lock (this._mirrors)
+				uri = this._mirrors.Dequeue();
+			lock (this._failedMirrors)
+				this._failedMirrors.Add(uri);
+
+			if (this._mirrors.Count == 0)
+			{
+				DownloadItemEventHandler dieh;
+				lock (this._downloadFailureDelegate)
+					dieh = this._downloadFailureDelegate;
+				if (dieh != null)
+					dieh(this);
+				return false;
+			}
+			return true;
+		}
 		#endregion
 
-		#region Members
-		public void FailMirror(Uri Uri)
+		#region Methods
+		/// <summary>
+		/// This method will call the DownloadSuccessDelegate.
+		/// </summary>
+		public void SuccessfullDownload()
 		{
-			lock (this._failedMirrors)
-				this._failedMirrors.Add(Uri);
+			DownloadItemEventHandler dieh;
+			lock (this._downloadSuccessDelegate)
+				dieh = this._downloadSuccessDelegate;
+			if (dieh != null)
+				dieh(this);
 		}
 		#endregion
 	}
