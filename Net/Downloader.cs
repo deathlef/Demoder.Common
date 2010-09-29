@@ -121,6 +121,7 @@ namespace Demoder.Common.Net
 			this._queueManager.Name = "Queue Manager: "+this.ToString();
 			this._queueManager.Priority = ThreadPriority.Lowest;
 			//this._queueManager.SetApartmentState(ApartmentState.STA);
+			this._queueManager.Start();
 			this._running = true;
 			
 		}
@@ -147,6 +148,7 @@ namespace Demoder.Common.Net
 			{
 				DownloadItem[] ldi = this._downloadQueue.ToArray();
 				this._downloadQueue.Clear();
+				this._queueManagerMRE.Set();
 				return ldi;
 			}
 			
@@ -156,7 +158,7 @@ namespace Demoder.Common.Net
 		{
 			WebClient wc = new WebClient();
 			wc.Proxy = new WebProxy(this._ipEndPoint.Address.ToString(), this._ipEndPoint.Port); //Workaround: Enable connecting to a specified mirror
-			wc.Headers.Add(HttpRequestHeader.Host, this._hostName);
+			//wc.Headers.Add(HttpRequestHeader.Host, this._hostName);
 			wc.Headers.Add(HttpRequestHeader.KeepAlive, "15");
 			wc.Headers.Add(HttpRequestHeader.UserAgent, this._userAgent);
 			return wc;
@@ -182,7 +184,7 @@ namespace Demoder.Common.Net
 				{
 					// We should wait for the MRE. 
 					// Wait a maximum of 100ms in case we've been told to stop while waiting.
-					this._queueManagerMRE.WaitOne(100);
+					this._queueManagerMRE.WaitOne();
 					continue; //Restart the loop in case we have been told to stop.
 				}
 				this.queueProcessEntry(di);
@@ -199,7 +201,9 @@ namespace Demoder.Common.Net
 			{
 				DownloadItem.Data = this._webClient.DownloadData(DownloadItem.NextMirror);
 			}
-			catch { }
+			catch (Exception ex)
+			{ 
+			}
 			if (this.SlaveModeDelegate != null) //Slave mode.
 				this.SlaveModeDelegate(this, DownloadItem);
 			else

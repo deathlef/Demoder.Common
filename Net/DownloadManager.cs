@@ -41,7 +41,7 @@ namespace Demoder.Common.Net
 		/// <summary>
 		/// Max connections per IP
 		/// </summary>
-		private int _clMaxPerIp = 3;
+		private int _clMaxPerIp = 1;
 		#endregion
 
 		#region Events
@@ -73,6 +73,15 @@ namespace Demoder.Common.Net
 		}
 		#endregion
 
+		#region Public static methods
+		//These need to be knit into the DLM as a whole, somehow.
+		public static byte[] GetBinaryData(Uri Uri)
+		{
+			WebClient wc = new WebClient();
+			return wc.DownloadData(Uri);
+		}
+		#endregion
+
 		#region Private Methods
 
 		/// <summary>
@@ -81,6 +90,14 @@ namespace Demoder.Common.Net
 		/// <param name="DownloadItem"></param>
 		private void addItemToQueue(DownloadItem DownloadItem)
 		{
+			//Initial check if the next mirror is null.
+			if (DownloadItem.NextMirror == null)
+			{
+				//No more mirrors to try.
+				this.onDownloadFailure(DownloadItem);
+				return;
+			}
+
 			string connectionKey = DownloadItem.NextMirrorConnectionString;
 			lock (this._connections)
 			{
@@ -106,13 +123,24 @@ namespace Demoder.Common.Net
 				{
 					if (dl.QueueCount < queuelength)
 					{
-						queuelength = dl.QueueCount;
-						lowestEntry = dl;
+						if (!DownloadItem.InfoTags.Contains(dl.IPEndPoint))
+						{
+							queuelength = dl.QueueCount;
+							lowestEntry = dl;
+						}
 					}
 				}
 
 				//Actually add it to the queue.
-				lowestEntry.DownloadData(DownloadItem);
+				if (lowestEntry == null)
+				{
+					DownloadItem.DownloadFailed();
+					this.addItemToQueue(DownloadItem);
+				}
+				else
+				{
+					lowestEntry.DownloadData(DownloadItem);
+				}
 			}
 		}
 
@@ -139,8 +167,8 @@ namespace Demoder.Common.Net
 			}
 
 			lock (this._connections)
-				if (!this._connections.ContainsKey(Uri.Host.ToLower()))
-					this._connections.Add(Uri.Host.ToLower(), downloaders);
+				if (!this._connections.ContainsKey(Key))
+					this._connections.Add(Key, downloaders);
 		}
 
 		/// <summary>
@@ -178,6 +206,9 @@ namespace Demoder.Common.Net
 			// Check if we should remove this downloader from the list or not.
 			// If we do, we should redistribute its queue as well.
 			bool shouldRedistributeQueue = false;
+			
+			DownloadItem.InfoTags.Add(Sender.IPEndPoint); //Add the IPEndpoint to our "internal" fail list.
+
 			if (Sender.HaveCancelled)
 				shouldRedistributeQueue = false;
 			else if (Sender.FailedDownloads > 5 && ((double)Sender.FailedDownloads / (double)Sender.SuccessfullDownloads > 1))
@@ -213,7 +244,9 @@ namespace Demoder.Common.Net
 				if (this._connections[DownloadItem.NextMirrorConnectionString].Count == 0)
 					DownloadItem.DownloadFailed();
 			}
-			// Check if we should add this item to another downloader.
+
+			downloadItems.Add(DownloadItem);
+
 			foreach (DownloadItem di in downloadItems)
 				this.Download(di);
 		}
