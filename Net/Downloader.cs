@@ -134,7 +134,6 @@ namespace Demoder.Common.Net
 			//insert code to download here...
 			this._downloadQueue.Enqueue(DownloadItem);
 			this._queueManagerMRE.Set();
-#warning Trigger a MRE here, to signal the download thread.
 		}
 
 		/// <summary>
