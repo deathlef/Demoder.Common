@@ -39,6 +39,10 @@ namespace Demoder.Common.Net
 		private Queue<Uri> _mirrors;
 
 		private List<Uri> _failedMirrors;
+		/// <summary>
+		/// A list of tags assigned to this object.
+		/// </summary>
+		public List<object> InfoTags = new List<object>();
 
 		//Describing the download data
 		private byte[] _bytes = null;
@@ -179,10 +183,17 @@ namespace Demoder.Common.Net
 			get
 			{
 				Uri nextMirror = this.NextMirror;
-				return String.Format("{0}://{1}:{2}",
-					nextMirror.Scheme,
-					nextMirror.Host,
-					nextMirror.Port);
+				if (nextMirror != null)
+				{
+					return String.Format("{0}://{1}:{2}",
+						nextMirror.Scheme,
+						nextMirror.Host,
+						nextMirror.Port);
+				}
+				else
+				{
+					return "Null";
+				}
 			}
 		}
 
@@ -200,9 +211,10 @@ namespace Demoder.Common.Net
 
 			if (this._mirrors.Count == 0)
 			{
-				DownloadItemEventHandler dieh;
-				lock (this._downloadFailureDelegate)
-					dieh = this._downloadFailureDelegate;
+				DownloadItemEventHandler dieh=null;
+				if (this._downloadFailureDelegate!=null)
+					lock (this._downloadFailureDelegate)
+						dieh = this._downloadFailureDelegate;
 				if (dieh != null)
 					dieh(this);
 				return false;
@@ -222,6 +234,25 @@ namespace Demoder.Common.Net
 				dieh = this._downloadSuccessDelegate;
 			if (dieh != null)
 				dieh(this);
+		}
+		#endregion
+
+		#region Overrides
+		public override string ToString()
+		{
+			int bytecount = 0;
+			if (this._bytes != null)
+				bytecount = this._bytes.Length;
+
+			List<string> mirrors = new List<string>();
+			foreach (Uri uri in this._mirrors)
+				mirrors.Add(uri.ToString());
+			foreach (Uri uri in this._failedMirrors)
+				mirrors.Add(uri.ToString());
+			return String.Format("bytes: {0}, md5: {1}, mirrors: {2}",
+				bytecount,
+				this._downloadedMD5,
+				string.Join(", ", mirrors.ToArray()));
 		}
 		#endregion
 	}
