@@ -120,7 +120,6 @@ namespace Demoder.Common.Net
 			this._queueManager.IsBackground = true;
 			this._queueManager.Name = "Queue Manager: "+this.ToString();
 			this._queueManager.Priority = ThreadPriority.Lowest;
-			//this._queueManager.SetApartmentState(ApartmentState.STA);
 			this._queueManager.Start();
 			this._running = true;
 			
@@ -199,7 +198,10 @@ namespace Demoder.Common.Net
 		{
 			try
 			{
-				DownloadItem.Data = this._webClient.DownloadData(DownloadItem.NextMirror);
+				if (DownloadItem.SaveAs != null)
+					this._webClient.DownloadFile(DownloadItem.NextMirror, DownloadItem.SaveAs.FullName);
+				else 
+					DownloadItem.Data = this._webClient.DownloadData(DownloadItem.NextMirror);
 			}
 			catch (Exception ex)
 			{ 

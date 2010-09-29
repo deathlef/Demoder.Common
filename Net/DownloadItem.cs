@@ -48,6 +48,7 @@ namespace Demoder.Common.Net
 		private byte[] _bytes = null;
 		private object _httpStatusCode = null;
 		private string _downloadedMD5 = string.Empty;
+		private FileInfo _saveAs = null;
 		//Delegates
 		/// <summary>
 		/// Signaled when the download succeeds.
@@ -82,6 +83,17 @@ namespace Demoder.Common.Net
 			DownloadItemEventHandler DownloadSuccessDelegate,
 			DownloadItemEventHandler DownloadFailureDelegate) :
 			this(Tag, Mirrors, DownloadSuccessDelegate, DownloadFailureDelegate, string.Empty) { }
+
+
+		public DownloadItem(object Tag,
+			List<Uri> Mirrors,
+			DownloadItemEventHandler DownloadSuccessDelegate,
+			DownloadItemEventHandler DownloadFailureDelegate,
+			FileInfo SaveAs)
+			: this(Tag, Mirrors, DownloadSuccessDelegate, DownloadFailureDelegate)
+		{
+			this._saveAs = SaveAs;
+		}
 
 		/// <summary>
 		/// Initialize a DownloadItem
@@ -135,6 +147,16 @@ namespace Demoder.Common.Net
 		{
 			get
 			{
+				if (this._bytes == null && this._saveAs != null)
+				{
+					//Get the binary data from file, cache it in this object, then return it.
+					try
+					{
+						this.Data = File.ReadAllBytes(this._saveAs.FullName);
+					}
+					catch { }
+					return this._bytes;
+				}
 				return this._bytes;
 			}
 			set
@@ -149,6 +171,9 @@ namespace Demoder.Common.Net
 				}
 			}
 		}
+
+		public FileInfo SaveAs { get { return this._saveAs; } }
+
 		/// <summary>
 		/// Userdefined tag
 		/// </summary>
