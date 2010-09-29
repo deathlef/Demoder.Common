@@ -42,6 +42,11 @@ namespace Demoder.Common.Net
 		/// Max connections per IP
 		/// </summary>
 		private int _clMaxPerIp = 1;
+
+		/// <summary>
+		/// UserAgent reported to remote web server.
+		/// </summary>
+		public string UserAgent = "Demoder.Common DownloadManager";
 		#endregion
 
 		#region Events
@@ -160,7 +165,7 @@ namespace Demoder.Common.Net
 			{
 				foreach (IPAddress ip in ips)
 				{
-					Downloader downloader = new Downloader(new IPEndPoint(ip, Uri.Port), Uri.Host, "Demoder.Common DownloadManager");
+					Downloader downloader = new Downloader(new IPEndPoint(ip, Uri.Port), Uri.Host, this.UserAgent);
 					downloader.SlaveModeDelegate = new DownloaderSlaveEventHandler(this.dseHandler);
 					downloaders.Add(downloader);
 				}
