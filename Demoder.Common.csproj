@@ -49,6 +49,7 @@
     <Compile Include="Cache\XmlCacheWrapper.cs" />
     <Compile Include="CommandLineParameters.cs" />
     <Compile Include="EventLog.cs" />
+    <Compile Include="delegates.cs" />
     <Compile Include="FormatString.cs" />
     <Compile Include="Forms.cs" />
     <Compile Include="GenerateHash.cs" />
