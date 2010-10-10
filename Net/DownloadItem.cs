@@ -167,7 +167,7 @@ namespace Demoder.Common.Net
 					if (value == null)
 						this._downloadedMD5 = string.Empty;
 					else
-						this._downloadedMD5 = GenerateHash.MD5(value);
+						this._downloadedMD5 = GenerateHash.MD5(value).String;
 				}
 			}
 		}
