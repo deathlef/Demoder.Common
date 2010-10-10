@@ -49,7 +49,10 @@
     <Compile Include="delegates.cs" />
     <Compile Include="FormatString.cs" />
     <Compile Include="Forms.cs" />
-    <Compile Include="GenerateHash.cs" />
+    <Compile Include="Hash\ChecksumTemplate.cs" />
+    <Compile Include="Hash\Generate.cs" />
+    <Compile Include="Hash\MD5Checksum.cs" />
+    <Compile Include="Hash\SHA1Checksum.cs" />
     <Compile Include="Maths.cs" />
     <Compile Include="Misc.cs" />
     <Compile Include="Net\Downloader.cs" />

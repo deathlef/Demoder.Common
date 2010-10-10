@@ -26,6 +26,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Xml.Serialization;
+
+using Demoder.Common.Hash;
 using Demoder.Common.Serialization;
 
 
@@ -79,7 +81,7 @@ namespace Demoder.Common.Cache
 		{
 			lock (this._cacheIndex)
 			{
-				string md5 = GenerateHash.MD5(Data).String;
+				string md5 = Generate.MD5(Data).String;
 				//Is this data the same as the old?
 				if (this._cacheIndex.ContainsKey(Key))
 					if (this._cacheIndex[Key].Hash == md5)
@@ -129,7 +131,7 @@ namespace Demoder.Common.Cache
 				{
 					byte[] bytes = File.ReadAllBytes(this._getDataFileName(Key));
 					//Ensure the index is up to date.
-					string md5 = GenerateHash.MD5(bytes).String;
+					string md5 = Generate.MD5(bytes).String;
 					if (md5 != this._cacheIndex[Key].Hash)
 						this.Cache(Key, bytes);
 					return bytes;
@@ -150,11 +152,11 @@ namespace Demoder.Common.Cache
 
 		private string _getIndexFileName(string Key) 
 		{
-			return this._cacheIndexDirectory.FullName + Path.DirectorySeparatorChar + GenerateHash.MD5(Key) + ".xml";
+			return this._cacheIndexDirectory.FullName + Path.DirectorySeparatorChar + Generate.MD5(Key) + ".xml";
 		}
 		private string _getDataFileName(string Key)
 		{
-			return this._cacheDataDirectory.FullName + Path.DirectorySeparatorChar + GenerateHash.MD5(Key) + ".data";
+			return this._cacheDataDirectory.FullName + Path.DirectorySeparatorChar + Generate.MD5(Key) + ".data";
 		}
 		#endregion
 
