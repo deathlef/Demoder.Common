@@ -25,6 +25,8 @@ using System.IO;
 using System.Collections.Generic;
 using System.Text;
 
+using Demoder.Common.Hash;
+
 namespace Demoder.Common.Net
 {
 	/// <summary>
@@ -35,7 +37,7 @@ namespace Demoder.Common.Net
 		#region Members
 		//Describing the download task
 		private readonly object _tag;
-		private readonly string _expectedMD5;
+		private readonly MD5Checksum _expectedMD5;
 		private Queue<Uri> _mirrors;
 
 		private List<Uri> _failedMirrors;
@@ -47,7 +49,7 @@ namespace Demoder.Common.Net
 		//Describing the download data
 		private byte[] _bytes = null;
 		private object _httpStatusCode = null;
-		private string _downloadedMD5 = string.Empty;
+		private MD5Checksum _downloadedMD5 = null;
 		private FileInfo _saveAs = null;
 		//Delegates
 		/// <summary>
@@ -82,15 +84,16 @@ namespace Demoder.Common.Net
 			List<Uri> Mirrors,
 			DownloadItemEventHandler DownloadSuccessDelegate,
 			DownloadItemEventHandler DownloadFailureDelegate) :
-			this(Tag, Mirrors, DownloadSuccessDelegate, DownloadFailureDelegate, string.Empty) { }
+			this(Tag, Mirrors, DownloadSuccessDelegate, DownloadFailureDelegate, null) { }
 
 
 		public DownloadItem(object Tag,
 			List<Uri> Mirrors,
 			DownloadItemEventHandler DownloadSuccessDelegate,
 			DownloadItemEventHandler DownloadFailureDelegate,
+			MD5Checksum ExcpectedMD5,
 			FileInfo SaveAs)
-			: this(Tag, Mirrors, DownloadSuccessDelegate, DownloadFailureDelegate)
+			: this(Tag, Mirrors, DownloadSuccessDelegate, DownloadFailureDelegate, ExcpectedMD5)
 		{
 			this._saveAs = SaveAs;
 		}
@@ -106,7 +109,7 @@ namespace Demoder.Common.Net
 			List<Uri> Mirrors,
 			DownloadItemEventHandler DownloadSuccessDelegate,
 			DownloadItemEventHandler DownloadFailureDelegate,
-			string ExpectedMD5)
+			MD5Checksum ExpectedMD5)
 		{
 			if (ExpectedMD5 == null)
 				throw new ArgumentNullException("ExpectedMD5", "Parameter cannot be null. Use string.Empty instead.");
@@ -132,7 +135,7 @@ namespace Demoder.Common.Net
 				{
 					if (this._bytes == null) //Don't have data. Assume the download failed.
 						return false;
-					if (String.IsNullOrEmpty(this._expectedMD5)) //Since we have data, and no expected MD5, assume the download manager verified the server-reported MD5.
+					if (this._expectedMD5==null) //Since we have data, and no expected MD5, assume the download manager verified the server-reported MD5.
 						return true;
 					if (this._expectedMD5 == this._downloadedMD5) //Integrity ok
 						return true;
@@ -165,9 +168,9 @@ namespace Demoder.Common.Net
 				{
 					this._bytes = value;
 					if (value == null)
-						this._downloadedMD5 = string.Empty;
+						this._downloadedMD5 = null;
 					else
-						this._downloadedMD5 = GenerateHash.MD5(value).String;
+						this._downloadedMD5 = Generate.MD5(value);
 				}
 			}
 		}
