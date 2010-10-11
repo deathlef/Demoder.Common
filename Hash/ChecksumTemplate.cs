@@ -24,10 +24,18 @@ using System;
 using System.Security.Cryptography;
 using System.Collections.Generic;
 using System.Text;
+using System.Xml;
+using System.Xml.Schema;
 using System.Xml.Serialization;
+using System.Runtime.Serialization;
 
 namespace Demoder.Common.Hash
 {
+	/// <summary>
+	/// Template used for storing byte/hexadecimal checksums.
+	/// This class cannot be serialized into an attribute.
+	///	Workaround: Add [XmlIgnore] to the member of this class, and add a public accessor to access the member of this class which you want to use for serialization.
+	/// </summary>
 	public class ChecksumTemplate
 	{
 		#region Members
@@ -52,6 +60,14 @@ namespace Demoder.Common.Hash
 		public ChecksumTemplate(string Hex)
 		{
 			this.String = Hex;
+		}
+
+		/// <summary>
+		/// Constructor used by the XML serializer
+		/// </summary>
+		public ChecksumTemplate()
+		{
+
 		}
 
 		#endregion
@@ -114,7 +130,7 @@ namespace Demoder.Common.Hash
 		/// <summary>
 		/// Byte array representing the checksum
 		/// </summary>
-		[XmlAttribute("bytes")]
+		[XmlIgnore]
 		public byte[] Bytes
 		{
 			set
@@ -131,6 +147,7 @@ namespace Demoder.Common.Hash
 		/// <summary>
 		/// String representing the checksum
 		/// </summary>
+		[XmlAttribute("value")] 
 		public string String
 		{
 			get { return this._string; }

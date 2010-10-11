@@ -31,5 +31,6 @@ namespace Demoder.Common.Hash
 	{
 		public SHA1Checksum(byte[] Bytes) : base(Bytes) { }
 		public SHA1Checksum(string Hex) : base(Hex) { }
+		public SHA1Checksum() : base() { }
 	}
 }
