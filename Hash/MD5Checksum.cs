@@ -31,5 +31,6 @@ namespace Demoder.Common.Hash
 	{
 		public MD5Checksum(byte[] Bytes) : base(Bytes) { }
 		public MD5Checksum(string Hex) : base(Hex) { }
+		public MD5Checksum() : base() { }
 	}
 }
