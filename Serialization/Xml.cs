@@ -108,7 +108,7 @@ namespace Demoder.Common.Serialization
 		/// <typeparam name="T">Class type to parse as</typeparam>
 		/// <param name="Uris">List of mirrors to try</param>
 		/// <returns></returns>
-		public static T Deserialize<T>(Uri[] Uris) where T : class
+		public static T Deserialize<T>(IEnumerable<Uri> Uris) where T : class
 		{
 			object obj = Compat.Deserialize(typeof(T), Uris);
 			if (obj == null)
@@ -293,7 +293,7 @@ namespace Demoder.Common.Serialization
 			/// <param name="T"></param>
 			/// <param name="Uris"></param>
 			/// <returns></returns>
-			public static object Deserialize(Type T, Uri[] Uris)
+			public static object Deserialize(Type T, IEnumerable<Uri> Uris)
 			{
 				Object ret = null;
 				foreach (Uri uri in Uris)
