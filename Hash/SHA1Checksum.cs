@@ -21,6 +21,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 using System;
+using System.Collections.Generic;
+using System.Text;
+using System.IO;
+using System.Security.Cryptography;
 
 namespace Demoder.Common.Hash
 {
@@ -29,8 +33,70 @@ namespace Demoder.Common.Hash
 	/// </summary>
 	public class SHA1Checksum : ChecksumTemplate
 	{
+		#region Constructors
 		public SHA1Checksum(byte[] Bytes) : base(Bytes) { }
 		public SHA1Checksum(string Hex) : base(Hex) { }
 		public SHA1Checksum() : base() { }
+		#endregion
+
+		#region Static Generate
+		/// <summary>
+		/// Get SHA1 hash of byte array
+		/// </summary>
+		/// <param name="Input"></param>
+		/// <returns></returns>
+		public static SHA1Checksum Generate(byte[] Input)
+		{
+			SHA1 _sha1 = new SHA1CryptoServiceProvider();
+			byte[] hash = _sha1.ComputeHash(Input);
+			return new SHA1Checksum(hash);
+		}
+		/// <summary>
+		/// Get SHA1 hash of Stream input.
+		/// </summary>
+		/// <param name="Input"></param>
+		/// <returns></returns>
+		public static SHA1Checksum Generate(Stream Input)
+		{
+			SHA1 _sha1 = new SHA1CryptoServiceProvider();
+			byte[] hash = _sha1.ComputeHash(Input);
+			return new SHA1Checksum(hash);
+		}
+
+
+		/// <summary>
+		/// Get SHA1 hash of text
+		/// </summary>
+		/// <param name="Input"></param>
+		/// <returns></returns>
+		public static SHA1Checksum Generate(string Input)
+		{
+			return Generate(Encoding.Default.GetBytes(Input));
+		}
+
+		/// <summary>
+		/// Get SHA1 hash of MemoryStream
+		/// </summary>
+		/// <param name="Input"></param>
+		/// <returns></returns>
+		public static SHA1Checksum Generate(MemoryStream Input)
+		{
+			return Generate(Input.ToArray());
+		}
+
+		public static SHA1Checksum Generate(List<byte> Input) { return Generate(Input.ToArray()); }
+
+		/// <summary>
+		/// Get SHA1 hash of file
+		/// </summary>
+		/// <param name="FilePath">path to file</param>
+		/// <exception cref="FileNotFoundException">File does not exist</exception>
+		/// <returns></returns>
+		public static SHA1Checksum Generate(FileInfo FilePath)
+		{
+			if (!FilePath.Exists) throw new FileNotFoundException("File does not exist");
+			return Generate(File.ReadAllBytes(FilePath.FullName));
+		}
+		#endregion
 	}
 }

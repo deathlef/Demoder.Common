@@ -36,11 +36,10 @@ namespace Demoder.Common.Hash
 	/// This class cannot be serialized into an attribute.
 	///	Workaround: Add [XmlIgnore] to the member of this class, and add a public accessor to access the member of this class which you want to use for serialization.
 	/// </summary>
-	public class ChecksumTemplate
+	public class ChecksumTemplate : IFormattable
 	{
 		#region Members
-		private byte[] _bytes;
-		private string _string;
+		private byte[] _bytes = new byte[0];
 		#endregion
 		#region Constructors
 		/// <summary>
@@ -50,7 +49,6 @@ namespace Demoder.Common.Hash
 		public ChecksumTemplate(byte[] Bytes)
 		{
 			this._bytes = Bytes;
-			this._string = this.generateString();
 		}
 
 		/// <summary>
@@ -73,11 +71,6 @@ namespace Demoder.Common.Hash
 		#endregion
 
 		#region Overrides
-		public override string ToString()
-		{
-			return this._string;
-		}
-
 		public override bool Equals(object obj)
 		{
 			//If it's a string.
@@ -136,8 +129,6 @@ namespace Demoder.Common.Hash
 			set
 			{
 				this._bytes = value;
-				this._string = this.generateString();
-
 			}
 			get
 			{
@@ -150,7 +141,7 @@ namespace Demoder.Common.Hash
 		[XmlAttribute("value")] 
 		public string String
 		{
-			get { return this._string; }
+			get { return this.generateString(); }
 			set
 			{
 				string val = value;
@@ -160,7 +151,6 @@ namespace Demoder.Common.Hash
 				try
 				{
 					this._bytes = this.generateBytes(val);
-					this._string = val;
 				}
 				catch 
 				{
@@ -187,6 +177,26 @@ namespace Demoder.Common.Hash
 			else
 				return true;
 		}
+		#endregion
+
+
+
+
+
+		#region IFormattable Members
+		public override string ToString()
+		{
+			return this.ToString("", null);
+		}
+
+		public string ToString(string Format, IFormatProvider Provider)
+		{
+			if (Provider == null)
+				Provider = System.Globalization.CultureInfo.CurrentCulture;
+
+			return this.generateString().ToString(Provider);
+		}
+
 		#endregion
 	}
 }

@@ -45,14 +45,15 @@
     <Compile Include="Cache\XmlCache.cs" />
     <Compile Include="Cache\XmlCacheWrapper.cs" />
     <Compile Include="CommandLineParameters.cs" />
-    <Compile Include="EventLog.cs" />
+    <Compile Include="Logging\enums.cs" />
+    <Compile Include="Logging\EventLog.cs" />
     <Compile Include="delegates.cs" />
     <Compile Include="FormatString.cs" />
     <Compile Include="Forms.cs" />
     <Compile Include="Hash\ChecksumTemplate.cs" />
-    <Compile Include="Hash\Generate.cs" />
     <Compile Include="Hash\MD5Checksum.cs" />
     <Compile Include="Hash\SHA1Checksum.cs" />
+    <Compile Include="Logging\EventLogEntry.cs" />
     <Compile Include="Maths.cs" />
     <Compile Include="Misc.cs" />
     <Compile Include="Net\Downloader.cs" />

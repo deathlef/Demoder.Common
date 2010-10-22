@@ -170,7 +170,7 @@ namespace Demoder.Common.Net
 					if (value == null)
 						this._downloadedMD5 = null;
 					else
-						this._downloadedMD5 = Generate.MD5(value);
+						this._downloadedMD5 = MD5Checksum.Generate(value);
 				}
 			}
 		}
