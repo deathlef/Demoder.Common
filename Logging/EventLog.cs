@@ -54,6 +54,7 @@ namespace Demoder.Common.Logging
 			lock (this._events)
 				this._events.Add(LogEntry);
 		}
+		#region ReadLog
 		/// <summary>
 		/// Read all log entries.
 		/// </summary>
@@ -106,6 +107,7 @@ namespace Demoder.Common.Logging
 			}
 			return returnVal;
 		}
+		#endregion ReadLog
 		#endregion
 
 	}
