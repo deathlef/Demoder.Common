@@ -30,20 +30,55 @@ namespace Demoder.Common.Logging
 	/// <summary>
 	/// Provides a full-featured eventlog
 	/// </summary>
-	public class EventLog<LogEntryType>
+	public class EventLog<LogEntryType> 
 	{
 		#region members
 		private List<LogEntryType> _events = new List<LogEntryType>();
 		private EventLogRead _defaultLimitInclude = EventLogRead.Last;
+		private ILogWriter _logWriter = new VoidWriter();
+		/// <summary>
+		/// Store log entries in memory
+		/// </summary>
+		private bool _storeInMemory = true;
+		/// <summary>
+		/// Pass log entries to writer
+		/// </summary>
+		private bool _passToWriter = true;
 		#endregion
 
 		#region constructors
+		/// <summary>
+		/// Keep log entries in memory, don't write them anywhere.
+		/// </summary>
 		public EventLog()
 		{
+			this._logWriter = new VoidWriter();
+			this._passToWriter = false;
+			this._storeInMemory = true;
+		}
 
+		/// <summary>
+		/// Pass log entries to the provided LogWriter., and keep entries in memory.
+		/// </summary>
+		/// <param name="LogWriter"></param>
+		public EventLog(ILogWriter LogWriter) : this(LogWriter, true) { }
+
+		/// <summary>
+		/// Pass log entries to the provided LogWriter.
+		/// </summary>
+		/// <param name="LogWriter"></param>
+		/// <param name="StoreInMemory">Should log entries be stored in memory?</param>
+		public EventLog(ILogWriter LogWriter, bool StoreInMemory)
+		{
+			this._logWriter = LogWriter;
+			this._storeInMemory = StoreInMemory;
+
+			if ((this._logWriter != null) && (this._logWriter.GetType() != typeof(VoidWriter)))
+			{
+				this._passToWriter = true;
+			}
 		}
 		#endregion
-
 		#region Methods
 		/// <summary>
 		/// Log a message.
@@ -51,9 +86,19 @@ namespace Demoder.Common.Logging
 		/// <param name="LogEntry"></param>
 		public void Log(LogEntryType LogEntry) 
 		{
-			lock (this._events)
-				this._events.Add(LogEntry);
+			//Store to memory
+			if (this._storeInMemory)
+				lock (this._events)
+					this._events.Add(LogEntry);
+			//Pass to writer
+			if (this._passToWriter)
+			{
+				if (this._logWriter != null)
+					lock (this._logWriter)
+						this._logWriter.WriteLogEntry(LogEntry.ToString());
+			}
 		}
+
 		#region ReadLog
 		/// <summary>
 		/// Read all log entries.
@@ -109,6 +154,5 @@ namespace Demoder.Common.Logging
 		}
 		#endregion ReadLog
 		#endregion
-
 	}
 }
