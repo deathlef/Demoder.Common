@@ -33,6 +33,6 @@ namespace Demoder.Common.Logging
 		/// Writes a log entry
 		/// </summary>
 		/// <returns></returns>
-		public bool WriteLogEntry(string Message);
+		bool WriteLogEntry(string Message);
 	}
 }

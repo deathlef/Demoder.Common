@@ -25,6 +25,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
+using System.IO.Compression;
 using System.Net;
 using System.Xml.Serialization;
 using Demoder.Common;
@@ -179,7 +180,7 @@ namespace Demoder.Common.Serialization
 				{
 					using (FileStream fs = Path.Create())
 					{
-						using (System.IO.Compression.GZipStream gzs = new System.IO.Compression.GZipStream(fs, System.IO.Compression.CompressionMode.Compress, true))
+						using (GZipStream gzs = new GZipStream(fs, CompressionMode.Compress))
 						{
 							Serialize(T, gzs, Obj, true);
 						}
@@ -251,7 +252,7 @@ namespace Demoder.Common.Serialization
 				{
 					using (FileStream fs = Path.OpenRead())
 					{
-						using (System.IO.Compression.GZipStream gzs = new System.IO.Compression.GZipStream(fs, System.IO.Compression.CompressionMode.Decompress, true))
+						using (GZipStream gzs = new System.IO.Compression.GZipStream(fs, CompressionMode.Decompress, true))
 						{
 							return Deserialize(T, gzs, true);
 						}
