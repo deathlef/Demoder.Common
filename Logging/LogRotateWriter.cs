@@ -28,6 +28,7 @@ THE SOFTWARE.
 
 using System;
 using System.IO;
+using System.IO.Compression;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
@@ -61,26 +62,24 @@ namespace Demoder.Common.Logging
 					this._logName));
 			}
 		}
-
-		private long _logFileStartSize = 0;
-
+		
 		//Logfile restrictions
 		/// <summary>
 		/// Logfile size in bytes
 		/// </summary>
-		private int _logSize = 0;
+		private long _logMaxSize = 0;
 		/// <summary>
 		/// Logfile age in seconds
 		/// </summary>
-		private int _logAge = 0;
+		private TimeSpan _logMaxAge = new TimeSpan(30, 0, 0, 0);
 		/// <summary>
 		/// Number of uncompressed log iterations to keep. (logname.X)
 		/// </summary>
-		private int _logIterations = 1;
+		private byte _logIterationsUncompressed = 1;
 		/// <summary>
 		/// Number of compressed iterations to keep. (logname.X.gz)
 		/// </summary>
-		private int _logCompressedIterations = 3;
+		private byte _logIterationsCompressed = 3;
 		#endregion
 		/// <summary>
 		/// Queue containing the to-be-written 
@@ -103,7 +102,8 @@ namespace Demoder.Common.Logging
 		private void writeLog()
 		{
 			long startSize = this._logFile.Length;
-			FileStream fs = this.rotateLog();
+			FileStream fs = null;
+			this.rotateLog(ref fs);
 				
 			while (true)
 			{
@@ -123,39 +123,130 @@ namespace Demoder.Common.Logging
 					fs.Write(bytes, 0, bytes.Length);
 					this._writeMRE.Reset();
 				}
-				this.rotateLog();
+				this.rotateLog(ref fs);
 			}
 		}
 
+
+		#region rotateLog
 		/// <summary>
 		/// Check if we should rotate the log.
+		/// If FileStream==null, a new FileStream() will be created for the logfile in question.
+		/// If the logfile is rotated, the current FileStream will be closed, and a new one will be opened.
 		/// </summary>
-		private FileStream rotateLog()
+		/// <param name="FileStream">Filestream used to access the current log</param>
+		private void rotateLog(ref FileStream FileStream)
 		{
-			if (this._logSize != 0 && this._logFileStartSize > this._logSize)
-				return this.rotateLog(true);
-#warning todo: Implement checking for # of log entries.
+			bool doRotate=false;
+			if (this._logMaxSize != 0 && this._logFile.Length > this._logMaxSize)
+				doRotate = true;
+			else if ((DateTime.UtcNow - this._logFile.CreationTimeUtc) >= this._logMaxAge)
+				doRotate = true;
 			else
 			{
-				return this.rotateLog(false);
+				doRotate = false;
 			}
-			
+
+			switch (doRotate)
+			{
+				case true:
+					//We should rotate.
+					FileStream = this.rotateLog(doRotate);
+					break;
+				case false:
+					//If FileStream isn't writeable, dispose & set to null, so it will be recreated later.
+					if (FileStream != null && !FileStream.CanWrite)
+					{
+						FileStream.Dispose();
+						FileStream = null;
+					}
+					//We shouldn't rotate. Only reopen FileStream if it's null.
+					if (FileStream == null)
+						FileStream = this.rotateLog(doRotate);
+					break;
+			}
 		}
+		/// <summary>
+		/// If Rotate is true, will rotate the log.
+		/// Will always return a FileStream handle to the new log.
+		/// </summary>
+		/// <param name="Rotate"></param>
+		/// <returns></returns>
 		private FileStream rotateLog(bool Rotate)
 		{
 			if (Rotate)
 			{
 				//Do stuff to rotate
-
-
-				
-				
+				this.rotateLog(this._logFile, 0);
 			}
+			
 			//Return a handle to the new log file
 			FileStream fs = File.Open(this._logFile.FullName, FileMode.Append, FileAccess.Write, FileShare.Read);
 			fs.Seek(0, SeekOrigin.End);
 			return fs;
 		}
+
+		private void rotateLog(FileInfo LogFile, uint Iteration)
+		{
+			FileInfo newLogFile = null;
+			FileInfo curLogFile = null;
+			//If iteration is 0, current logfile has no suffix.
+			if (Iteration==0)
+				curLogFile = new FileInfo(LogFile.FullName);
+			bool compress = false;
+			if ((Iteration < this._logIterationsUncompressed))
+			{
+				if (Iteration!=0)
+					curLogFile = new FileInfo(String.Format("{0}.{1}", LogFile.FullName, Iteration));
+				newLogFile = new FileInfo(String.Format("{0}.{1}", LogFile.FullName, Iteration + 1));
+				compress = false; //We need to move, but not compress, since we haven't hit the cap of uncompressed files yet.
+			}
+			else if ((this._logIterationsCompressed > 0) && (Iteration == this._logIterationsUncompressed))
+			{
+				//We're rotating a log which isn't compressed, but will be.
+				if (Iteration != 0)
+					curLogFile = new FileInfo(String.Format("{0}.{1}", LogFile.FullName, Iteration));
+				newLogFile = new FileInfo(String.Format("{0}.{1}.gz", LogFile.FullName, Iteration + 1));
+				compress = true; //We need to move & compress.
+			}
+			else if ((this._logIterationsCompressed > 0) && ((Iteration - this._logIterationsUncompressed) < this._logIterationsCompressed))
+			{
+				//We're iterating an already compressed log
+				if (Iteration != 0)
+					curLogFile = new FileInfo(String.Format("{0}.{1}.gz", LogFile.FullName, Iteration));
+				newLogFile = new FileInfo(String.Format("{0}.{1}.gz", LogFile.FullName, Iteration + 1));
+				compress = false; //Already compressed
+			}
+			//Check if the new logfile already exist.
+			if (newLogFile.Exists)
+				this.rotateLog(LogFile, Iteration + 1);
+
+			//The current iteration > than max iterations. Don't rotate file, but delete it.
+			if (Iteration > (this._logIterationsCompressed + this._logIterationsUncompressed))
+			{
+				curLogFile.Delete();
+			}
+			else
+			{
+				if (!compress)
+				{
+					//We are not compression. Only move file.
+					curLogFile.MoveTo(newLogFile.FullName);
+				}
+				else
+				{
+					//Write new log file.
+					using (GZipStream gzstream = new GZipStream(newLogFile.Create(), CompressionMode.Compress))
+					{
+						byte[] bytes = File.ReadAllBytes(curLogFile.FullName);
+						gzstream.Write(bytes, 0, bytes.Length);
+					}
+					//Delete current log file.
+					curLogFile.Delete();
+				}
+			}
+		}
+		#endregion rotateLog
 
 		#region Interfaces
 		#region ILogWriter Members
