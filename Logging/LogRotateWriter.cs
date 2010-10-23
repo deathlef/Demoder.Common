@@ -81,21 +81,88 @@ namespace Demoder.Common.Logging
 		/// </summary>
 		private byte _logIterationsCompressed = 3;
 		#endregion
+		private ManualResetEvent _writeMRE = new ManualResetEvent(false);
+
+		#region All members within here are only accessed after locking _messageQueue
 		/// <summary>
-		/// Queue containing the to-be-written 
+		/// Queue containing the to-be-written text
 		/// </summary>
 		private Queue<string> _messageQueue = new Queue<string>(16);
-		private ManualResetEvent _writeMRE = new ManualResetEvent(false);
 		
+		/// <summary>
+		/// Timer which should trigger the _writeMRE to make the threaded writer start writing.
+		/// </summary>
+		private Timer _writeTimer = null;
+		/// <summary>
+		/// How many times have the timer been bumped?
+		/// </summary>
+		private DateTime _firstBump = DateTime.Now;
+		private bool _bumped = false;
+		#endregion
+		
+		private Thread _writerThread;
+		private bool _stopThread = false;
+		private bool _disposed = false;
 		#endregion Members
 
 		#region Constructors
-		public LogRotateWriter()
+		/// <summary>
+		/// Initializes with default limits.
+		/// MaxSize: 10KiB
+		/// MagAge: 7 days
+		/// UncompressedIterations: 1
+		/// CompressedIterations: 3
+		/// </summary>
+		/// <param name="LogDir">Directory to store logs in</param>
+		/// <param name="LogName">Name of this log file</param>
+		public LogRotateWriter(DirectoryInfo LogDir, string LogName) : this(LogDir, LogName,10240, new TimeSpan(0), 1, 3) { }
+		/// <summary>
+		/// Initializes with default limits. No rotation by age.
+		/// MaxLogSize: 10KiB
+		/// UncompressedIterations: 1
+		/// CompressedIterations: 3
+		/// </summary>
+		/// <param name="LogDir">Directory to store logs in</param>
+		/// <param name="LogName">Name of this log file</param>
+		/// <param name="MaxSize">Custom maxmimum log size in bytes</param>
+		/// <param name="MaxAge">Custom maximum log age</param>
+		public LogRotateWriter(DirectoryInfo LogDir, string LogName, long MaxSize, TimeSpan MaxAge) : this(LogDir, LogName, MaxSize, MaxAge, 1, 3) { }
+		/// <summary>
+		/// Initialized with default limits. No rotation by age.
+		/// UncompressedIterations: 1
+		/// CompressedIterations: 3
+		/// </summary>
+		/// <param name="LogDir">Directory to store logs in</param>
+		/// <param name="LogName">Name of this log file</param>
+		/// <param name="MaxSize"></param>
+		public LogRotateWriter(DirectoryInfo LogDir, string LogName, long MaxSize) : this(LogDir, LogName, MaxSize, new TimeSpan(0), 1, 3) { }
+
+		
+		/// <summary>
+		/// Initializes with provided limits
+		/// </summary>
+		/// <param name="LogDir">Directory to store logs in</param>
+		/// <param name="LogName">Name of this log file</param>
+		/// <param name="MaxSize">Maximum size of logfile in bytes before it's rotated. Set to 0 to disable</param>
+		/// <param name="MaxAge">Maximum age of logfile before it's rotated. Set to 0 ticks to disable</param>
+		/// <param name="UncompressedIterations">Maximum number of uncompressed rotations of the logfile to keep</param>
+		/// <param name="CompressedIterations">Maximum number of compressed rotations of the logfile to keep</param>
+		public LogRotateWriter(DirectoryInfo LogDir, string LogName, long MaxSize, TimeSpan MaxAge, byte UncompressedIterations, byte CompressedIterations )
 		{
+			this._logDirectory = LogDir;
+			this._logName = LogName;
+			this._logMaxSize = MaxSize;
+			this._logMaxAge = MaxAge;
+
+			this._logIterationsUncompressed = UncompressedIterations;
+			this._logIterationsCompressed = CompressedIterations;
+
+			this._writeTimer = new Timer(new TimerCallback(this.timerTriggerWriterThread), true, Timeout.Infinite, Timeout.Infinite);
 		}
 
 		#endregion
-
+		
+		#region Threaded methods
 		/// <summary>
 		/// Threaded method to handle writes to the log.
 		/// </summary>
@@ -105,7 +172,7 @@ namespace Demoder.Common.Logging
 			FileStream fs = null;
 			this.rotateLog(ref fs);
 				
-			while (true)
+			while (!this._stopThread)
 			{
 				this._writeMRE.WaitOne();
 				int writtenEntries = 0;
@@ -122,12 +189,16 @@ namespace Demoder.Common.Logging
 					byte[] bytes = ASCIIEncoding.ASCII.GetBytes(message);
 					fs.Write(bytes, 0, bytes.Length);
 					this._writeMRE.Reset();
+					
+					//Reset the timer
+					this._bumped = false;
+					this._writeTimer.Change(Timeout.Infinite, Timeout.Infinite);
 				}
 				this.rotateLog(ref fs);
 			}
 		}
-
-
+		#endregion
+		
 		#region rotateLog
 		/// <summary>
 		/// Check if we should rotate the log.
@@ -140,7 +211,8 @@ namespace Demoder.Common.Logging
 			bool doRotate=false;
 			if (this._logMaxSize != 0 && this._logFile.Length > this._logMaxSize)
 				doRotate = true;
-			else if ((DateTime.UtcNow - this._logFile.CreationTimeUtc) >= this._logMaxAge)
+			else if ((this._logMaxAge.TotalSeconds!=0) && ((DateTime.UtcNow - this._logFile.CreationTimeUtc) >= this._logMaxAge))
+				//If MaxAge is enabled
 				doRotate = true;
 			else
 			{
@@ -151,6 +223,7 @@ namespace Demoder.Common.Logging
 			{
 				case true:
 					//We should rotate.
+					FileStream.Dispose();
 					FileStream = this.rotateLog(doRotate);
 					break;
 				case false:
@@ -183,6 +256,15 @@ namespace Demoder.Common.Logging
 			//Return a handle to the new log file
 			FileStream fs = File.Open(this._logFile.FullName, FileMode.Append, FileAccess.Write, FileShare.Read);
 			fs.Seek(0, SeekOrigin.End);
+			if (Rotate)
+			{
+				//Add notice to the new file that we rotated the file
+				byte[] bytes=ASCIIEncoding.ASCII.GetBytes(String.Format("{0} {1}: LogRotateWriter: Disposing.{2}",
+					DateTime.Now.ToShortDateString(),
+					DateTime.Now.ToShortTimeString(),
+					this._lineEnd));
+				fs.Write(bytes,0, bytes.Length);
+			}
 			return fs;
 		}
 
@@ -247,22 +329,74 @@ namespace Demoder.Common.Logging
 			}
 		}
 		#endregion rotateLog
+		/// <summary>
+		/// Timed delegate for setting the writer MRE.
+		/// </summary>
+		/// <param name="Obj"></param>
+		private void timerTriggerWriterThread(object Obj)
+		{
+			this._writeMRE.Set();
+		}
 
 		#region Interfaces
 		#region ILogWriter Members
 		public bool WriteLogEntry(string Message)
 		{
+			if (this._disposed)
+				throw new ObjectDisposedException("This instance has either already been disposed, or is in the progress of disposing.");
 			lock (this._messageQueue)
+			{
 				this._messageQueue.Enqueue(Message);
-			this._writeMRE.Set();
+				bool setTimer = true;
+				//Is this the first bump since last write?
+				if (!this._bumped)
+				{
+					setTimer = true;
+					this._firstBump = DateTime.Now;
+					this._bumped=true;
+				}
+				#warning This hardcoded value should be configurable
+				//If we haven't written anything for 20s, don't postpone timer any more
+				else if ((DateTime.Now - this._firstBump).TotalSeconds >= 20)
+					setTimer = false;
+				//Otherwise, postpone timer.
+				else
+					setTimer = true;
+				if (setTimer)
+				{
+					#warning This hardcoded value should be configurable
+					this._writeTimer.Change(2000, Timeout.Infinite);
+				}
+			}
 			return true;
 		}
 		#endregion
 	
 		#region IDisposable Member
-		public void  Dispose()
+		public void Dispose()
 		{
- 			throw new NotImplementedException();
+			if (!this._disposed)
+			{
+				this._disposed = true; //Set disposed flag
+				this._stopThread = true; //Tell writerthread to stop on next loop
+				//Add "we're disposing" to logfile, and trigger the thread immediately.
+				lock (this._messageQueue)
+				{
+					this._messageQueue.Enqueue(String.Format("{0} {1}: LogRotateWriter: Disposing.", DateTime.Now.ToShortDateString(), DateTime.Now.ToShortTimeString()));
+					this._writeTimer.Change(0, Timeout.Infinite);
+				}
+				this._writerThread.Join(2500); //Wait max 2.5s for thread to exit.
+				if (this._writerThread.IsAlive)
+					throw new Exception("Failed to terminate writer thread within the defined timeframe");
+
+				this._writeTimer = null;
+				this._writerThread = null;
+				this._writeMRE = null;
+				this._messageQueue = null;
+				this._logName = null;
+				this._logDirectory = null;
+				this._lineEnd = null;
+			}
 		}
 		#endregion
 		#endregion Interfaces
