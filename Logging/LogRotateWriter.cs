@@ -182,7 +182,7 @@ namespace Demoder.Common.Logging
 				this._writeMRE.WaitOne();
 				lock (this._messageQueue)
 				{
-					//Fetch all log entries & make one string for one big write.
+					//Cycle until we have emptied the queue.
 					while (this._messageQueue.Count > 0)
 					{
 						byte writtenEntries = 0;
@@ -193,9 +193,8 @@ namespace Demoder.Common.Logging
 						else
 							maxSize = long.MaxValue;
 						if (maxSize <= 0)
-						{
 							this.rotateLog();
-						}
+						//Fetch up to byte.MaxValue logentries & make one string for one big write.
 						while (this._messageQueue.Count > 0 && writtenEntries < byte.MaxValue && message.Length <= maxSize)
 						{
 							message += this._messageQueue.Dequeue() + this._lineEnd;
@@ -298,10 +297,12 @@ namespace Demoder.Common.Logging
 		{
 			FileInfo newLogFile = null;
 			FileInfo curLogFile = null;
+			bool compress = false;
+
 			//If iteration is 0, current logfile has no suffix.
 			if (Iteration==0)
 				curLogFile = new FileInfo(LogFile.FullName);
-			bool compress = false;
+			
 			if ((Iteration < this._logIterationsUncompressed))
 			{
 				if (Iteration != 0)
@@ -357,6 +358,7 @@ namespace Demoder.Common.Logging
 			}
 		}
 		#endregion rotateLog
+
 		/// <summary>
 		/// Timed delegate for setting the writer MRE.
 		/// </summary>
@@ -368,7 +370,7 @@ namespace Demoder.Common.Logging
 
 		#region Interfaces
 		#region ILogWriter Members
-		public bool WriteLogEntry(string Message)
+		bool ILogWriter.WriteLogEntry(string Message)
 		{
 			if (this._disposed)
 				throw new ObjectDisposedException("This instance has either already been disposed, or is in the progress of disposing.");
@@ -406,29 +408,33 @@ namespace Demoder.Common.Logging
 		#endregion
 	
 		#region IDisposable Member
-		public void Dispose()
+		void IDisposable.Dispose()
 		{
-			if (!this._disposed)
+			lock (this)
 			{
-				this._disposed = true; //Set disposed flag
-				this._stopThread = true; //Tell writerthread to stop on next loop
-				//Add "we're disposing" to logfile, and trigger the thread immediately.
-				lock (this._messageQueue)
+				if (!this._disposed)
 				{
-					this._messageQueue.Enqueue(String.Format("{0} {1}: LogRotateWriter: Disposing.", DateTime.Now.ToShortDateString(), DateTime.Now.ToShortTimeString()));
-					this._writeTimer.Change(0, Timeout.Infinite);
+					this._disposed = true; //Set disposed flag
+					this._stopThread = true; //Tell writerthread to stop on next loop
+					//Add "we're disposing" to logfile, and trigger the thread immediately.
+					lock (this._messageQueue)
+					{
+						this._messageQueue.Enqueue(String.Format("{0} {1}: LogRotateWriter: Disposing.", DateTime.Now.ToShortDateString(), DateTime.Now.ToShortTimeString()));
+						this._writeTimer.Change(0, Timeout.Infinite);
+					}
+					this._writerThread.Join(2500); //Wait max 2.5s for thread to exit.
+					if (this._writerThread.IsAlive)
+					{
+						throw new Exception("Failed to terminate writer thread within the defined timeframe");
+					}
+					this._writeTimer = null;
+					this._writerThread = null;
+					this._writeMRE = null;
+					this._messageQueue = null;
+					this._logName = null;
+					this._logDirectory = null;
+					this._lineEnd = null;
 				}
-				this._writerThread.Join(2500); //Wait max 2.5s for thread to exit.
-				if (this._writerThread.IsAlive)
-					throw new Exception("Failed to terminate writer thread within the defined timeframe");
-
-				this._writeTimer = null;
-				this._writerThread = null;
-				this._writeMRE = null;
-				this._messageQueue = null;
-				this._logName = null;
-				this._logDirectory = null;
-				this._lineEnd = null;
 			}
 		}
 		#endregion
