@@ -87,7 +87,7 @@ namespace Demoder.Common.Logging
 		/// <summary>
 		/// Queue containing the to-be-written text
 		/// </summary>
-		private Queue<string> _messageQueue = new Queue<string>(16);
+		private Queue<string> _messageQueue = new Queue<string>(64);
 		
 		/// <summary>
 		/// Timer which should trigger the _writeMRE to make the threaded writer start writing.
@@ -365,6 +365,11 @@ namespace Demoder.Common.Logging
 				if (setTimer)
 				{
 					#warning This hardcoded value should be configurable
+					int timerTime;
+					if (this._messageQueue.Count >= 64)
+						timerTime = 0;
+					else
+						timerTime = 2000;
 					this._writeTimer.Change(2000, Timeout.Infinite);
 				}
 			}
