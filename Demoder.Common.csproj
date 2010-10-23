@@ -45,6 +45,7 @@
     <Compile Include="Cache\XmlCache.cs" />
     <Compile Include="Cache\XmlCacheWrapper.cs" />
     <Compile Include="CommandLineParameters.cs" />
+    <Compile Include="Logging\IEventLogEntry.cs" />
     <Compile Include="Logging\LogRotateWriter.cs" />
     <Compile Include="Logging\VoidWriter.cs" />
     <Compile Include="Logging\enums.cs" />

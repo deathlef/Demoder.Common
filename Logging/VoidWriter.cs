@@ -29,9 +29,8 @@ namespace Demoder.Common.Logging
 	/// </summary>
 	public class VoidWriter : ILogWriter
 	{
-
 		#region ILogWriter Members
-		public bool WriteLogEntry(string Message)
+		bool ILogWriter.WriteLogEntry(IEventLogEntry EventLog)
 		{
 			return true;
 		}

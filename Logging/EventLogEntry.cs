@@ -29,12 +29,11 @@ namespace Demoder.Common.Logging
 	/// <summary>
 	/// Represents an EventLog entry
 	/// </summary>
-	public class EventLogEntry<LogItemType>
+	public class EventLogEntry<LogItemType> : IEventLogEntry
 	{
 		#region members
 		private readonly EventLogLevel _logLevel;
 		private readonly DateTime _time;
-		private readonly object _source;
 		private readonly LogItemType _logitem;
 		#endregion
 		#region Constructors
@@ -44,8 +43,8 @@ namespace Demoder.Common.Logging
 		/// <param name="LogLevel"></param>
 		/// <param name="Source"></param>
 		/// <param name="Message"></param>
-		public EventLogEntry(EventLogLevel LogLevel, object Source, LogItemType LogItem) :
-			this(LogLevel, Source, LogItem, DateTime.Now) { }
+		public EventLogEntry(EventLogLevel LogLevel, LogItemType LogItem) :
+			this(LogLevel, LogItem, DateTime.Now) { }
 
 		/// <summary>
 		/// Create a log entry with custom timestamp
@@ -54,22 +53,16 @@ namespace Demoder.Common.Logging
 		/// <param name="Source"></param>
 		/// <param name="Message"></param>
 		/// <param name="Time"></param>
-		public EventLogEntry(EventLogLevel LogLevel, object Source, LogItemType LogItem, DateTime Time)
+		public EventLogEntry(EventLogLevel LogLevel, LogItemType LogItem, DateTime Time)
 		{
 			this._logLevel = LogLevel;
 			this._time = Time;
-			this._source = Source;
 			this._logitem = LogItem;
 		}
 
 		#endregion
 
 		#region Public accessors
-		public EventLogLevel LogLevel { get { return this._logLevel; } }
-		/// <summary>
-		/// When did the event happen?
-		/// </summary>
-		public DateTime Time { get { return this._time; } }
 		/// <summary>
 		/// How long ago did the event happen?
 		/// </summary>
@@ -80,25 +73,37 @@ namespace Demoder.Common.Logging
 				return (DateTime.Now - this._time);
 			}
 		}
-		/// <summary>
-		/// When did the event happen? (UNIX timestamp)
-		/// </summary>
-		public long TimeStamp { get { return Misc.Unixtime(this._time); } }
-		/// <summary>
-		/// The logged message
-		/// </summary>
-		public LogItemType LogItem { get { return this._logitem; } }
 		#endregion
 
 		#region Overrides
 		public override string ToString()
 		{
-			return String.Format("[{0} {1}] [{2}] [{3}] {4}",
+			return String.Format("[{0} {1}] [{2}] {3}",
 				this._time.ToShortDateString(),
 				this._time.ToLongTimeString(),
 				this._logLevel.ToString(),
-				this._source.ToString(),
 				this._logitem);
+		}
+		#endregion
+
+		#region IEventLogEntry Members
+
+		DateTime IEventLogEntry.TimeStamp()
+		{
+			return this._time;
+		}
+
+		string IEventLogEntry.Message()
+		{
+			return this._logitem.ToString();
+		}
+		EventLogLevel IEventLogEntry.LogLevel()
+		{
+			return this._logLevel;
+		}
+		object IEventLogEntry.LoggedObject()
+		{
+			return this._logitem;
 		}
 		#endregion
 	}
