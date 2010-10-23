@@ -30,10 +30,10 @@ namespace Demoder.Common.Logging
 	/// <summary>
 	/// Provides a full-featured eventlog
 	/// </summary>
-	public class EventLog<LogEntryType> 
+	public class EventLog 
 	{
 		#region members
-		private List<LogEntryType> _events = new List<LogEntryType>();
+		private List<IEventLogEntry> _events = new List<IEventLogEntry>();
 		private EventLogRead _defaultLimitInclude = EventLogRead.Last;
 		private ILogWriter _logWriter = new VoidWriter();
 		/// <summary>
@@ -84,7 +84,7 @@ namespace Demoder.Common.Logging
 		/// Log a message.
 		/// </summary>
 		/// <param name="LogEntry"></param>
-		public void Log(LogEntryType LogEntry) 
+		public void Log(IEventLogEntry LogEntry) 
 		{
 			//Store to memory
 			if (this._storeInMemory)
@@ -95,7 +95,7 @@ namespace Demoder.Common.Logging
 			{
 				if (this._logWriter != null)
 					lock (this._logWriter)
-						this._logWriter.WriteLogEntry(LogEntry.ToString());
+						this._logWriter.WriteLogEntry(LogEntry);
 			}
 		}
 
@@ -104,7 +104,7 @@ namespace Demoder.Common.Logging
 		/// Read all log entries.
 		/// </summary>
 		/// <returns></returns>
-		public LogEntryType[] ReadLog()
+		public IEventLogEntry[] ReadLog()
 		{
 			return this.ReadLog(0, this._defaultLimitInclude);
 		}
@@ -113,7 +113,7 @@ namespace Demoder.Common.Logging
 		/// </summary>
 		/// <param name="NumEntries">Number of log entrie to read</param>
 		/// <returns></returns>
-		public LogEntryType[] ReadLog(int NumEntries)
+		public IEventLogEntry[] ReadLog(int NumEntries)
 		{
 			return this.ReadLog(NumEntries, this._defaultLimitInclude);
 		}
@@ -124,12 +124,12 @@ namespace Demoder.Common.Logging
 		/// <param name="NumEntries"></param>
 		/// <param name="LimitInclude">Should we read the first or the last log entries?</param>
 		/// <returns></returns>
-		public LogEntryType[] ReadLog(int NumEntries, EventLogRead LimitInclude)
+		public IEventLogEntry[] ReadLog(int NumEntries, EventLogRead LimitInclude)
 		{
 			if (NumEntries < 1)
 				return this._events.ToArray();
 
-			LogEntryType[] returnVal = new LogEntryType[NumEntries];
+			IEventLogEntry[] returnVal = new IEventLogEntry[NumEntries];
 			
 			lock (this._events)
 			{

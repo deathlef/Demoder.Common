@@ -91,7 +91,7 @@ namespace Demoder.Common.Logging
 		/// <summary>
 		/// Queue containing the to-be-written text
 		/// </summary>
-		private Queue<string> _messageQueue = new Queue<string>(64);
+		private Queue<IEventLogEntry> _messageQueue = new Queue<IEventLogEntry>(64);
 		
 		/// <summary>
 		/// Timer which should trigger the _writeMRE to make the threaded writer start writing.
@@ -197,7 +197,8 @@ namespace Demoder.Common.Logging
 						//Fetch up to byte.MaxValue logentries & make one string for one big write.
 						while (this._messageQueue.Count > 0 && writtenEntries < byte.MaxValue && message.Length <= maxSize)
 						{
-							message += this._messageQueue.Dequeue() + this._lineEnd;
+							IEventLogEntry iele = this._messageQueue.Dequeue();
+							message += this.createLogLine(iele.TimeStamp(), iele.LogLevel(), iele.Message());
 							writtenEntries++;
 						}
 						//Write all the entries to the logfile.
@@ -212,7 +213,17 @@ namespace Demoder.Common.Logging
 			}
 		}
 		#endregion
-		
+
+		private string createLogLine(DateTime Time, EventLogLevel LogLevel, string Message)
+		{
+			return String.Format("[{0} {1}] [{2}]: {3}{4}",
+				Time.ToShortDateString(),
+				Time.ToShortTimeString(),
+				LogLevel.ToString(),
+				Message,
+				this._lineEnd);
+		}
+
 		#region rotateLog
 		/// <summary>
 		/// Check if we should rotate the log.
@@ -284,10 +295,7 @@ namespace Demoder.Common.Logging
 			if (Rotate && fs!=null)
 			{
 				//Add notice to the new file that we rotated the file
-				byte[] bytes=ASCIIEncoding.ASCII.GetBytes(String.Format("{0} {1}: LogRotateWriter: Log was rotated.{2}",
-					DateTime.Now.ToShortDateString(),
-					DateTime.Now.ToShortTimeString(),
-					this._lineEnd));
+				byte[] bytes=ASCIIEncoding.ASCII.GetBytes(this.createLogLine(DateTime.Now, EventLogLevel.Notice, "LogRotateWriter: Log was rotated."));
 				fs.Write(bytes,0, bytes.Length);
 			}
 			return fs;
@@ -370,13 +378,13 @@ namespace Demoder.Common.Logging
 
 		#region Interfaces
 		#region ILogWriter Members
-		bool ILogWriter.WriteLogEntry(string Message)
+		bool ILogWriter.WriteLogEntry(IEventLogEntry LogEntry)
 		{
 			if (this._disposed)
 				throw new ObjectDisposedException("This instance has either already been disposed, or is in the progress of disposing.");
 			lock (this._messageQueue)
 			{
-				this._messageQueue.Enqueue(Message);
+				this._messageQueue.Enqueue(LogEntry);
 				bool setTimer = true;
 				//Is this the first bump since last write?
 				if (!this._bumped)
@@ -419,7 +427,8 @@ namespace Demoder.Common.Logging
 					//Add "we're disposing" to logfile, and trigger the thread immediately.
 					lock (this._messageQueue)
 					{
-						this._messageQueue.Enqueue(String.Format("{0} {1}: LogRotateWriter: Disposing.", DateTime.Now.ToShortDateString(), DateTime.Now.ToShortTimeString()));
+						EventLogEntry<string> el = new EventLogEntry<string>(EventLogLevel.Notice, String.Format("{0} {1}: LogRotateWriter: Disposing.", DateTime.Now.ToShortDateString(), DateTime.Now.ToShortTimeString()));
+						this._messageQueue.Enqueue(el);
 						this._writeTimer.Change(0, Timeout.Infinite);
 					}
 					this._writerThread.Join(2500); //Wait max 2.5s for thread to exit.
