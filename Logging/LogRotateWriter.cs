@@ -28,7 +28,6 @@ THE SOFTWARE.
 
 using System;
 using System.IO;
-using System.IO.Compression;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
@@ -48,42 +47,11 @@ namespace Demoder.Common.Logging
 		/// </summary>
 		private string _logName=null;
 		/// <summary>
-		/// Characters printed at end of a written log line
-		/// </summary>
-		private string _lineEnd = "\r\n";
-		/// <summary>
 		/// Length of logfile.
 		/// </summary>
 		private FileStream _logStream = null;
 
-		private FileInfo _logFile
-		{
-			get
-			{
-				return new FileInfo(String.Format("{1}{0}{2}",
-					Path.DirectorySeparatorChar,
-					this._logDirectory,
-					this._logName));
-			}
-		}
-		
-		//Logfile restrictions
-		/// <summary>
-		/// Logfile size in bytes
-		/// </summary>
-		private long _logMaxSize = 0;
-		/// <summary>
-		/// Logfile age in seconds
-		/// </summary>
-		private TimeSpan _logMaxAge = new TimeSpan(30, 0, 0, 0);
-		/// <summary>
-		/// Number of uncompressed log iterations to keep. (logname.X)
-		/// </summary>
-		private byte _logIterationsUncompressed = 1;
-		/// <summary>
-		/// Number of compressed iterations to keep. (logname.X.gz)
-		/// </summary>
-		private byte _logIterationsCompressed = 3;
+		private LogRotater _logRotate;
 		#endregion
 		private ManualResetEvent _writeMRE = new ManualResetEvent(false);
 
@@ -110,61 +78,14 @@ namespace Demoder.Common.Logging
 		#endregion Members
 
 		#region Constructors
-		/// <summary>
-		/// Initializes with default limits.
-		/// MaxSize: 10KiB
-		/// MagAge: 7 days
-		/// UncompressedIterations: 1
-		/// CompressedIterations: 3
-		/// </summary>
-		/// <param name="LogDir">Directory to store logs in</param>
-		/// <param name="LogName">Name of this log file</param>
-		public LogRotateWriter(DirectoryInfo LogDir, string LogName) : this(LogDir, LogName,10240, new TimeSpan(0), 1, 3) { }
-		/// <summary>
-		/// Initializes with default limits. No rotation by age.
-		/// MaxLogSize: 10KiB
-		/// UncompressedIterations: 1
-		/// CompressedIterations: 3
-		/// </summary>
-		/// <param name="LogDir">Directory to store logs in</param>
-		/// <param name="LogName">Name of this log file</param>
-		/// <param name="MaxSize">Custom maxmimum log size in bytes</param>
-		/// <param name="MaxAge">Custom maximum log age</param>
-		public LogRotateWriter(DirectoryInfo LogDir, string LogName, long MaxSize, TimeSpan MaxAge) : this(LogDir, LogName, MaxSize, MaxAge, 1, 3) { }
-		/// <summary>
-		/// Initialized with default limits. No rotation by age.
-		/// UncompressedIterations: 1
-		/// CompressedIterations: 3
-		/// </summary>
-		/// <param name="LogDir">Directory to store logs in</param>
-		/// <param name="LogName">Name of this log file</param>
-		/// <param name="MaxSize"></param>
-		public LogRotateWriter(DirectoryInfo LogDir, string LogName, long MaxSize) : this(LogDir, LogName, MaxSize, new TimeSpan(0), 1, 3) { }
-
-		
-		/// <summary>
-		/// Initializes with provided limits
-		/// </summary>
-		/// <param name="LogDir">Directory to store logs in</param>
-		/// <param name="LogName">Name of this log file</param>
-		/// <param name="MaxSize">Maximum size of logfile in bytes before it's rotated. Set to 0 to disable</param>
-		/// <param name="MaxAge">Maximum age of logfile before it's rotated. Set to 0 ticks to disable</param>
-		/// <param name="UncompressedIterations">Maximum number of uncompressed rotations of the logfile to keep</param>
-		/// <param name="CompressedIterations">Maximum number of compressed rotations of the logfile to keep</param>
-		public LogRotateWriter(DirectoryInfo LogDir, string LogName, long MaxSize, TimeSpan MaxAge, byte UncompressedIterations, byte CompressedIterations )
+		public LogRotateWriter(LogRotater LogRotater)
 		{
-			this._logDirectory = LogDir;
-			this._logName = LogName;
-			this._logMaxSize = MaxSize;
-			this._logMaxAge = MaxAge;
-
-			this._logIterationsUncompressed = UncompressedIterations;
-			this._logIterationsCompressed = CompressedIterations;
+			this._logRotate = LogRotater;
 
 			this._writeTimer = new Timer(new TimerCallback(this.timerTriggerWriterThread), true, Timeout.Infinite, Timeout.Infinite);
 			this._writerThread = new Thread(new ThreadStart(this.writeLog));
 			this._writerThread.IsBackground = true;
-			this._writerThread.Name = "LogRotateWriter: " + LogDir.FullName + "\\"+LogName;
+			this._writerThread.Name = "LogRotateWriter: " + LogRotater.LogDir.FullName + "\\"+LogRotater.LogName;
 			this._writerThread.Start();
 		}
 
@@ -178,7 +99,7 @@ namespace Demoder.Common.Logging
 		{
 			while (!this._stopThread)
 			{
-				this.rotateLog();
+				this._logRotate.Rotate(ref this._logStream);
 				this._writeMRE.WaitOne();
 				lock (this._messageQueue)
 				{
@@ -188,17 +109,17 @@ namespace Demoder.Common.Logging
 						byte writtenEntries = 0;
 						string message = string.Empty;
 						long maxSize;
-						if (this._logMaxSize > 0)
-							maxSize = this._logMaxSize - this._logStream.Position;
+						if (this._logRotate.LogMaxSize > 0)
+							maxSize = this._logRotate.LogMaxSize - this._logStream.Position;
 						else
 							maxSize = long.MaxValue;
 						if (maxSize <= 0)
-							this.rotateLog();
+							this._logRotate.Rotate(ref this._logStream);
 						//Fetch up to byte.MaxValue logentries & make one string for one big write.
 						while (this._messageQueue.Count > 0 && writtenEntries < byte.MaxValue && message.Length <= maxSize)
 						{
 							IEventLogEntry iele = this._messageQueue.Dequeue();
-							message += this.createLogLine(iele.TimeStamp, iele.LogLevel, iele.Message);
+							message += EventLog.CreateLogString(iele.TimeStamp, iele.LogLevel, iele.Message);
 							writtenEntries++;
 						}
 						//Write all the entries to the logfile.
@@ -214,159 +135,6 @@ namespace Demoder.Common.Logging
 		}
 		#endregion
 
-		private string createLogLine(DateTime Time, EventLogLevel LogLevel, string Message)
-		{
-			return String.Format("[{0} {1}] [{2}]: {3}{4}",
-				Time.ToShortDateString(),
-				Time.ToShortTimeString(),
-				LogLevel.ToString(),
-				Message,
-				this._lineEnd);
-		}
-
-		#region rotateLog
-		/// <summary>
-		/// Check if we should rotate the log.
-		/// If FileStream==null, a new FileStream() will be created for the logfile in question.
-		/// If the logfile is rotated, the current FileStream will be closed, and a new one will be opened.
-		/// </summary>
-		/// <param name="FileStream">Filestream used to access the current log</param>
-		private void rotateLog()
-		{
-			bool doRotate=false;
-			if (this._logStream == null)
-				doRotate = false;
-			else if (this._logMaxSize != 0 && this._logStream.Position > this._logMaxSize)
-				doRotate = true;
-			else if ((this._logMaxAge.TotalSeconds != 0) && ((DateTime.UtcNow - this._logFile.CreationTimeUtc) >= this._logMaxAge))
-				//If MaxAge is enabled
-				doRotate = true;
-			else
-			{
-				doRotate = false;
-			}
-
-			switch (doRotate)
-			{
-				case true:
-					//We should rotate.
-					this._logStream.Dispose();
-					this._logStream = this.rotateLog(doRotate);
-					break;
-				case false:
-					//If FileStream isn't writeable, dispose & set to null, so it will be recreated later.
-					if (this._logStream != null && !this._logStream.CanWrite)
-					{
-						this._logStream.Dispose();
-						this._logStream = null;
-					}
-					//We shouldn't rotate. Only reopen FileStream if it's null.
-					if (this._logStream == null)
-						this._logStream = this.rotateLog(doRotate);
-					break;
-			}
-		}
-		/// <summary>
-		/// If Rotate is true, will rotate the log.
-		/// Will always return a FileStream handle to the new log.
-		/// </summary>
-		/// <param name="Rotate"></param>
-		/// <returns></returns>
-		private FileStream rotateLog(bool Rotate)
-		{
-			if (Rotate)
-			{
-				//Do stuff to rotate
-				this.rotateLog(this._logFile, 0);
-			}
-			
-			//Return a handle to the new log file
-			FileStream fs = null;
-			try
-			{
-				fs = File.Open(this._logFile.FullName, FileMode.Append, FileAccess.Write, FileShare.Read);
-				fs.Seek(0, SeekOrigin.End);
-			}
-			catch (Exception ex)
-			{
-				Console.WriteLine(ex);
-			}
-			
-			if (Rotate && fs!=null)
-			{
-				//Add notice to the new file that we rotated the file
-				byte[] bytes=ASCIIEncoding.ASCII.GetBytes(this.createLogLine(DateTime.Now, EventLogLevel.Notice, "LogRotateWriter: Log was rotated."));
-				fs.Write(bytes,0, bytes.Length);
-			}
-			return fs;
-		}
-
-		private void rotateLog(FileInfo LogFile, uint Iteration)
-		{
-			FileInfo newLogFile = null;
-			FileInfo curLogFile = null;
-			bool compress = false;
-
-			//If iteration is 0, current logfile has no suffix.
-			if (Iteration==0)
-				curLogFile = new FileInfo(LogFile.FullName);
-			
-			if ((Iteration < this._logIterationsUncompressed))
-			{
-				if (Iteration != 0)
-					curLogFile = new FileInfo(String.Format("{0}.{1}", LogFile.FullName, Iteration));
-				newLogFile = new FileInfo(String.Format("{0}.{1}", LogFile.FullName, Iteration + 1));
-				compress = false; //We need to move, but not compress, since we haven't hit the cap of uncompressed files yet.
-			}
-			else if ((this._logIterationsCompressed > 0) && (Iteration == this._logIterationsUncompressed))
-			{
-				//We're rotating a log which isn't compressed, but will be.
-				if (Iteration != 0)
-					curLogFile = new FileInfo(String.Format("{0}.{1}", LogFile.FullName, Iteration));
-				newLogFile = new FileInfo(String.Format("{0}.{1}.gz", LogFile.FullName, Iteration + 1));
-				compress = true; //We need to move & compress.
-			}
-			else if ((this._logIterationsCompressed > 0) && ((Iteration - this._logIterationsUncompressed) <= this._logIterationsCompressed))
-			{
-				//We're iterating an already compressed log
-				if (Iteration != 0)
-					curLogFile = new FileInfo(String.Format("{0}.{1}.gz", LogFile.FullName, Iteration));
-				newLogFile = new FileInfo(String.Format("{0}.{1}.gz", LogFile.FullName, Iteration + 1));
-				compress = false; //Already compressed
-			}
-			else 
-				return;
-			//Check if the new logfile already exist.
-			if (newLogFile!=null && newLogFile.Exists)
-				this.rotateLog(LogFile, Iteration + 1);
-
-			//The current iteration > than max iterations. Don't rotate file, but delete it.
-			if (Iteration >= (this._logIterationsCompressed + this._logIterationsUncompressed))
-			{
-				curLogFile.Delete();
-			}
-			else
-			{
-				if (!compress)
-				{
-					//We are not compression. Only move file.
-					curLogFile.MoveTo(newLogFile.FullName);
-				}
-				else
-				{
-					//Write new log file.
-					using (GZipStream gzstream = new GZipStream(newLogFile.Create(), CompressionMode.Compress))
-					{
-						byte[] bytes = File.ReadAllBytes(curLogFile.FullName);
-						gzstream.Write(bytes, 0, bytes.Length);
-					}
-					//Delete current log file.
-					curLogFile.Delete();
-				}
-			}
-		}
-		#endregion rotateLog
-
 		/// <summary>
 		/// Timed delegate for setting the writer MRE.
 		/// </summary>
@@ -381,7 +149,7 @@ namespace Demoder.Common.Logging
 		bool ILogWriter.WriteLogEntry(IEventLogEntry LogEntry)
 		{
 			if (this._disposed)
-				throw new ObjectDisposedException("This instance has either already been disposed, or is in the progress of disposing.");
+				throw new ObjectDisposedException("");
 			lock (this._messageQueue)
 			{
 				this._messageQueue.Enqueue(LogEntry);
@@ -442,7 +210,6 @@ namespace Demoder.Common.Logging
 					this._messageQueue = null;
 					this._logName = null;
 					this._logDirectory = null;
-					this._lineEnd = null;
 				}
 			}
 		}
