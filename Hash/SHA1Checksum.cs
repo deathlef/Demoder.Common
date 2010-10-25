@@ -31,14 +31,89 @@ namespace Demoder.Common.Hash
 	/// <summary>
 	/// Represents a single SHA1 checksum
 	/// </summary>
-	public class SHA1Checksum : ChecksumTemplate
+	public class SHA1Checksum : ICheckSum, IEquatable<ICheckSum>
 	{
-		#region Constructors
-		public SHA1Checksum(byte[] Bytes) : base(Bytes) { }
-		public SHA1Checksum(string Hex) : base(Hex) { }
-		public SHA1Checksum() : base() { }
+		#region Members
+		private ICheckSum _checkSumStore;
 		#endregion
+		#region Constructors
+		public SHA1Checksum(byte[] Bytes) : this() { this._checkSumStore = new ChecksumHexStore(Bytes); }
+		public SHA1Checksum(string Hex) : this() { this._checkSumStore = new ChecksumHexStore(String); }
+		public SHA1Checksum() { this._checkSumStore = null; }
+		#endregion
+		#region Interfaces
+		#region ICheckSum Members
+		/// <summary>
+		/// Set or retrieve a byte representation of this class
+		/// </summary>
+		public byte[] Bytes
+		{
+			get
+			{
+				if (this._checkSumStore == null)
+					return null;
+				return this._checkSumStore.Bytes;
+			}
+			set
+			{
+				if (this._checkSumStore == null)
+					this._checkSumStore = new ChecksumHexStore(value);
+				else
+					this._checkSumStore.Bytes = value;
+			}
+		}
+		/// <summary>
+		/// Set or retrieve a string representation of this class
+		/// </summary>
+		public string String
+		{
+			get
+			{
+				if (this._checkSumStore == null)
+					return String.Empty;
+				return this._checkSumStore.String;
+			}
+			set
+			{
+				if (this._checkSumStore == null)
+					this._checkSumStore = new ChecksumHexStore(value);
+				else
+					this._checkSumStore.String = value;
+			}
+		}
+		#endregion
+		#region IEquatable<ICheckSum> Members
+		public bool Equals(ICheckSum Other)
+		{
+			if (this.Bytes.Equals(Other.Bytes))
+				return true;
+			else
+				return false;
+		}
+		#endregion
+		#endregion Interfaces
 
+		public override string ToString()
+		{
+			return this.String;
+		}
+		
+		#region static operators
+		public static bool operator ==(ICheckSum CS1, ICheckSum CS2)
+		{
+			if (CS1.Bytes.Equals(CS2.Bytes))
+				return true;
+			else
+				return false;
+		}
+		public static bool operator !=(ICheckSum CS1, ICheckSum CS2)
+		{
+			if (!CS1.Bytes.Equals(CS2.Bytes))
+				return true;
+			else
+				return false;
+		}
+		#endregion
 		#region Static Generate
 		/// <summary>
 		/// Get SHA1 hash of byte array

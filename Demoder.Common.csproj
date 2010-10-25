@@ -45,6 +45,7 @@
     <Compile Include="Cache\XmlCache.cs" />
     <Compile Include="Cache\XmlCacheWrapper.cs" />
     <Compile Include="CommandLineParameters.cs" />
+    <Compile Include="Hash\ICheckSum.cs" />
     <Compile Include="Logging\IEventLogEntry.cs" />
     <Compile Include="Logging\LogRotater.cs" />
     <Compile Include="Logging\LogRotateWriter.cs" />
@@ -54,7 +55,7 @@
     <Compile Include="delegates.cs" />
     <Compile Include="FormatString.cs" />
     <Compile Include="Forms.cs" />
-    <Compile Include="Hash\ChecksumTemplate.cs" />
+    <Compile Include="Hash\ChecksumHexStore.cs" />
     <Compile Include="Hash\MD5Checksum.cs" />
     <Compile Include="Hash\SHA1Checksum.cs" />
     <Compile Include="Logging\EventLogEntry.cs" />

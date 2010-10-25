@@ -36,17 +36,17 @@ namespace Demoder.Common.Hash
 	/// This class cannot be serialized into an attribute.
 	///	Workaround: Add [XmlIgnore] to the member of this class, and add a public accessor to access the member of this class which you want to use for serialization.
 	/// </summary>
-	public class ChecksumTemplate : IFormattable
+	public struct ChecksumHexStore : ICheckSum, IEquatable<ICheckSum>
 	{
 		#region Members
-		private byte[] _bytes = new byte[0];
+		private byte[] _bytes;
 		#endregion
 		#region Constructors
 		/// <summary>
 		/// Initializes an instance using a byte representation of a checksum
 		/// </summary>
 		/// <param name="Bytes"></param>
-		public ChecksumTemplate(byte[] Bytes)
+		public ChecksumHexStore(byte[] Bytes)
 		{
 			this._bytes = Bytes;
 		}
@@ -55,19 +55,11 @@ namespace Demoder.Common.Hash
 		/// Initializes an instance using a string representation of a checksum
 		/// </summary>
 		/// <param name="Hex"></param>
-		public ChecksumTemplate(string Hex)
+		public ChecksumHexStore(string Hex)
 		{
+			this._bytes = null;
 			this.String = Hex;
 		}
-
-		/// <summary>
-		/// Constructor used by the XML serializer
-		/// </summary>
-		public ChecksumTemplate()
-		{
-
-		}
-
 		#endregion
 
 		#region Overrides
@@ -84,7 +76,7 @@ namespace Demoder.Common.Hash
 
 			try
 			{
-				ChecksumTemplate template = (ChecksumTemplate)obj;
+				ChecksumHexStore template = (ChecksumHexStore)obj;
 				if (template.String == this.String)
 					return true;
 				else
@@ -119,7 +111,7 @@ namespace Demoder.Common.Hash
 		}
 		#endregion
 
-		#region Public Accessors
+		#region Public Accessors (ICheckSum)
 		/// <summary>
 		/// Byte array representing the checksum
 		/// </summary>
@@ -162,41 +154,31 @@ namespace Demoder.Common.Hash
 		#endregion
 
 		#region Operators
-		public static bool operator ==(ChecksumTemplate template1, ChecksumTemplate template2)
+		public static bool operator ==(ChecksumHexStore template1, ChecksumHexStore template2)
 		{
-			if (template1.String == template2.String)
+			if (template1.Bytes.Equals(template2.Bytes))
 				return true;
 			else
 				return false;
 		}
 
-		public static bool operator !=(ChecksumTemplate template1, ChecksumTemplate template2)
+		public static bool operator !=(ChecksumHexStore template1, ChecksumHexStore template2)
 		{
-			if (template1 == template2)
-				return false;
-			else
+			if (!template1.Bytes.Equals(template2.Bytes))
 				return true;
+			else
+				return false;
 		}
 		#endregion
 
-
-
-
-
-		#region IFormattable Members
-		public override string ToString()
+		#region IEquatable<ICheckSum> Members
+		public bool Equals(ICheckSum Other)
 		{
-			return this.ToString("", null);
+			if (this._bytes.Equals(Other.Bytes))
+				return true;
+			else
+				return false;
 		}
-
-		public string ToString(string Format, IFormatProvider Provider)
-		{
-			if (Provider == null)
-				Provider = System.Globalization.CultureInfo.CurrentCulture;
-
-			return this.generateString().ToString(Provider);
-		}
-
 		#endregion
 	}
 }
