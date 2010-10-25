@@ -88,22 +88,22 @@ namespace Demoder.Common.Logging
 
 		#region IEventLogEntry Members
 
-		DateTime IEventLogEntry.TimeStamp()
+		DateTime IEventLogEntry.TimeStamp
 		{
-			return this._time;
+			get { return this._time; }
 		}
 
-		string IEventLogEntry.Message()
+		string IEventLogEntry.Message
 		{
-			return this._logitem.ToString();
+			get { return this._logitem.ToString(); }
 		}
-		EventLogLevel IEventLogEntry.LogLevel()
+		EventLogLevel IEventLogEntry.LogLevel
 		{
-			return this._logLevel;
+			get { return this._logLevel; }
 		}
-		object IEventLogEntry.LoggedObject()
+		object IEventLogEntry.LoggedObject
 		{
-			return this._logitem;
+			get { return this._logitem; }
 		}
 		#endregion
 	}

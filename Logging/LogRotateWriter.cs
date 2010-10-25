@@ -198,7 +198,7 @@ namespace Demoder.Common.Logging
 						while (this._messageQueue.Count > 0 && writtenEntries < byte.MaxValue && message.Length <= maxSize)
 						{
 							IEventLogEntry iele = this._messageQueue.Dequeue();
-							message += this.createLogLine(iele.TimeStamp(), iele.LogLevel(), iele.Message());
+							message += this.createLogLine(iele.TimeStamp, iele.LogLevel, iele.Message);
 							writtenEntries++;
 						}
 						//Write all the entries to the logfile.
