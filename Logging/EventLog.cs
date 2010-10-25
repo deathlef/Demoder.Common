@@ -58,10 +58,10 @@ namespace Demoder.Common.Logging
 		}
 
 		/// <summary>
-		/// Pass log entries to the provided LogWriter., and keep entries in memory.
+		/// Pass log entries to the provided LogWriter, don't keep entries in memory
 		/// </summary>
 		/// <param name="LogWriter"></param>
-		public EventLog(ILogWriter LogWriter) : this(LogWriter, true) { }
+		public EventLog(ILogWriter LogWriter) : this(LogWriter, false) { }
 
 		/// <summary>
 		/// Pass log entries to the provided LogWriter.
@@ -153,6 +153,41 @@ namespace Demoder.Common.Logging
 			return returnVal;
 		}
 		#endregion ReadLog
+		#endregion Methods
+
+		#region Static methods
+		/// <summary>
+		/// Creates a new log line. Appends \\r\\n to end of message.
+		/// </summary>
+		/// <param name="Time">Time the event occured</param>
+		/// <param name="LogLevel"></param>
+		/// <param name="Message"></param>
+		/// <returns></returns>
+		public static string CreateLogString(DateTime Time, EventLogLevel LogLevel, string Message)
+		{
+			return CreateLogString(Time, LogLevel, Message, "\r\n");
+		}
+
+		/// <summary>
+		/// Creates a new log line.
+		/// </summary>
+		/// <param name="Time">Time the event occured</param>
+		/// <param name="LogLevel"></param>
+		/// <param name="Message"></param>
+		/// <param name="LineEnd">String to append to the end of line, or null</param>
+		/// <returns></returns>
+		public static string CreateLogString(DateTime Time, EventLogLevel LogLevel, string Message, string LineEnd)
+		{
+			if (LineEnd == null)
+				LineEnd = string.Empty;
+
+			return String.Format("[{0} {1}] [{2}]: {3}{4}",
+				Time.ToShortDateString(),
+				Time.ToShortTimeString(),
+				LogLevel.ToString(),
+				Message,
+				LineEnd);
+		}
 		#endregion
 	}
 }
