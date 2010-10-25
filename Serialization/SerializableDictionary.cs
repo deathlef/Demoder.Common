@@ -30,7 +30,10 @@ namespace Demoder.Common.Serialization
 {
 	public class SerializableDictionary<TKey, TValue> : ICollection<SerializableKeyValuePair<TKey, TValue>>, IEnumerable<SerializableKeyValuePair<TKey, TValue>>, IEnumerable
     {
-        private List<SerializableKeyValuePair<TKey, TValue>> _items = new List<SerializableKeyValuePair<TKey,TValue>>();
+        //private List<SerializableKeyValuePair<TKey, TValue>> _items = new List<SerializableKeyValuePair<TKey,TValue>>();
+		private Dictionary<int, List<SerializableKeyValuePair<TKey, TValue>>> _hashedList = new Dictionary<int,List<SerializableKeyValuePair<TKey,TValue>>>();
+		//private Dictionary<TKey, TValue> _items = new Dictionary<TKey, TValue>();
+		private int _count = 0;
         //adding value: add to Keys and Values.
         //Retrieving value: Find key in Keys list, fetch same index number from Values list
         //Constructor: Ensure that T1 and T2 are serializable
@@ -56,7 +59,19 @@ namespace Demoder.Common.Serialization
             {
                 throw new ArgumentException("Value type is not serializable");
             }
-        }
+		}
+		
+		private void hashCreate(int Hash)
+		{
+			if (!this._hashedList.ContainsKey(Hash))
+				this._hashedList.Add(Hash, new List<SerializableKeyValuePair<TKey, TValue>>());
+		}
+
+		public SerializableDictionary(int InitialSize)
+		{
+			//this._items = new List<SerializableKeyValuePair<TKey, TValue>>(InitialSize);
+			this._hashedList = new Dictionary<int, List<SerializableKeyValuePair<TKey, TValue>>>();
+		}
 
          /// <summary>
         /// Retrieve Keys associated value.
@@ -65,9 +80,16 @@ namespace Demoder.Common.Serialization
         /// <returns></returns>
         public TValue Get(TKey Key)
         {
+			int hash = Key.GetHashCode();
+			this.hashCreate(hash);
+			foreach (SerializableKeyValuePair<TKey, TValue> skvp in this._hashedList[hash])
+				if (skvp.Key.Equals(Key))
+					return skvp.Value;
+			/*
 			foreach (SerializableKeyValuePair<TKey, TValue> skvp in this._items)
 				if (skvp.Key.Equals(Key))
 					return skvp.Value;
+			 */
 			throw new ArgumentException("Key doesn't exist");
         }
         public TValue this[TKey Key]
@@ -91,12 +113,17 @@ namespace Demoder.Common.Serialization
 			{
 				if (this.ContainsKey(key))
 					throw new ArgumentException("Duplicate key");
-				this._items.Add(new SerializableKeyValuePair<TKey,TValue>(key, value));
+				this._hashedList[key.GetHashCode()].Add(new SerializableKeyValuePair<TKey, TValue>(key, value));
+				this._count++;
+				//this._items.Add(new SerializableKeyValuePair<TKey,TValue>(key, value));
 			}
 		}
 		public bool ContainsKey(TKey key)
 		{
-			foreach (SerializableKeyValuePair<TKey, TValue> skvp in this._items)
+			//foreach (SerializableKeyValuePair<TKey, TValue> skvp in this._items)
+			int hash = key.GetHashCode();
+			this.hashCreate(hash);
+			foreach (SerializableKeyValuePair<TKey, TValue> skvp in this._hashedList[hash])
 				if (skvp.Key.Equals(key))
 					return true;
 			return false;
@@ -104,10 +131,12 @@ namespace Demoder.Common.Serialization
 		[XmlIgnore]
 		ICollection<TKey> Keys
 		{
-			get { 
+			get
+			{
 				List<TKey> keys = new List<TKey>();
-				foreach (SerializableKeyValuePair<TKey,TValue> kvp in this._items)
-					keys.Add(kvp.Key);
+				foreach (KeyValuePair<int, List<SerializableKeyValuePair<TKey, TValue>>> kvp in this._hashedList)
+					foreach (SerializableKeyValuePair<TKey, TValue> skvp in kvp.Value)
+						keys.Add(skvp.Key);
 				return keys.ToArray();
 			}
 		}
@@ -117,8 +146,9 @@ namespace Demoder.Common.Serialization
 			get
 			{
 				List<TValue> values = new List<TValue>();
-				foreach (SerializableKeyValuePair<TKey, TValue> kvp in this._items)
-					values.Add(kvp.Value);
+				foreach (KeyValuePair<int, List<SerializableKeyValuePair<TKey, TValue>>> kvp in this._hashedList)
+					foreach (SerializableKeyValuePair<TKey, TValue> skvp in kvp.Value)
+						values.Add(skvp.Value);
 				return values.ToArray();
 			}
 		}
@@ -126,10 +156,12 @@ namespace Demoder.Common.Serialization
 		{
 			lock (this)
 			{
-				foreach (SerializableKeyValuePair<TKey, TValue> kvp in this._items)
+				int hash = key.GetHashCode();
+				this.hashCreate(hash);
+				foreach (SerializableKeyValuePair<TKey, TValue> kvp in this._hashedList[hash])
 					if (kvp.Equals(key))
 					{
-						this._items.Remove(kvp);
+						this._hashedList[key.GetHashCode()].Remove(kvp);
 						return true;
 					}
 			}
@@ -166,7 +198,8 @@ namespace Demoder.Common.Serialization
 		{
 			lock (this)
 			{
-				this._items = new List<SerializableKeyValuePair<TKey, TValue>>();
+				//this._items = new List<SerializableKeyValuePair<TKey, TValue>>();
+				this._hashedList = new Dictionary<int, List<SerializableKeyValuePair<TKey, TValue>>>();
 			}
 		}
 		public bool Contains(SerializableKeyValuePair<TKey, TValue> item)
@@ -184,7 +217,10 @@ namespace Demoder.Common.Serialization
 		}
 		public int Count
 		{
-			get { return this._items.Count; }
+			get {
+				return this._count;
+				//return this._items.Count; 
+			}
 		}
 		public bool IsReadOnly
 		{
@@ -194,10 +230,15 @@ namespace Demoder.Common.Serialization
 		{
 			lock (this)
 			{
-				foreach (SerializableKeyValuePair<TKey, TValue> kvp in this._items)
+				//foreach (SerializableKeyValuePair<TKey, TValue> kvp in this._items)
+				int hash = item.Key.GetHashCode();
+				this.hashCreate(hash);
+				foreach (SerializableKeyValuePair<TKey, TValue> kvp in this._hashedList[hash])
 					if (kvp.Key.Equals(item.Key) && kvp.Value.Equals(item.Value))
 					{
-						this._items.Remove(kvp);
+						//this._items.Remove(kvp);
+						this._hashedList[hash].Remove(kvp);
+						this._count--;
 						return true;
 					}
 				return false;
@@ -206,7 +247,7 @@ namespace Demoder.Common.Serialization
 		public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
 		{
 			int pos=arrayIndex;
-			foreach (SerializableKeyValuePair<TKey, TValue> kvp in this._items)
+			foreach (SerializableKeyValuePair<TKey, TValue> kvp in this.SerializableKeyValuePairs)
 			{
 				KeyValuePair<TKey, TValue> skvp = new KeyValuePair<TKey, TValue>(kvp.Key, kvp.Value);
 				array[pos] = skvp;
@@ -215,14 +256,19 @@ namespace Demoder.Common.Serialization
 		}
 		public void CopyTo(SerializableKeyValuePair<TKey, TValue>[] array, int arrayIndex)
 		{
-			this._items.CopyTo(array, arrayIndex);
+			int pos = arrayIndex;
+			foreach (SerializableKeyValuePair<TKey, TValue> kvp in this.SerializableKeyValuePairs)
+			{
+				array[pos] = kvp;
+				pos++;
+			}
 		}
 		#endregion
 
 		#region IEnumerable<SerializableKeyValuePair<TKey,TValue>> Members
 		public IEnumerator<SerializableKeyValuePair<TKey, TValue>> GetEnumerator()
 		{
-			return this._items.GetEnumerator();
+			return this.SerializableKeyValuePairs.GetEnumerator();
 		}
 		#endregion
 
@@ -238,15 +284,20 @@ namespace Demoder.Common.Serialization
 		#region Serialization
 		[XmlArray("Items")]
 		[XmlArrayItem("Item")]
-		public SerializableKeyValuePair<TKey, TValue>[] SerializableKeyValuePairs
+		public List<SerializableKeyValuePair<TKey, TValue>> SerializableKeyValuePairs
 		{
 			get
 			{
-				return this._items.ToArray();
+				List<SerializableKeyValuePair<TKey, TValue>> skvps = new List<SerializableKeyValuePair<TKey,TValue>>(this._count);
+				foreach (KeyValuePair<int, List<SerializableKeyValuePair<TKey, TValue>>> kvp in this._hashedList)
+					foreach (SerializableKeyValuePair<TKey, TValue> skvp in kvp.Value)
+						skvps.Add(skvp);
+				return skvps;
 			}
 			set
 			{
-				this._items = new List<SerializableKeyValuePair<TKey, TValue>>(value);
+				foreach (SerializableKeyValuePair<TKey, TValue> skvp in value)
+					this.Add(skvp);
 			}
 		}
 		#endregion

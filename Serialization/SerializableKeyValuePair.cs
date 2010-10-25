@@ -33,6 +33,7 @@ namespace Demoder.Common.Serialization
 		private TKey _key;
 		private TValue _value;
 		#endregion
+
 		#region Public accessors
 		public TKey Key
 		{
@@ -51,6 +52,7 @@ namespace Demoder.Common.Serialization
 			}
 		}
 		#endregion
+
 		public SerializableKeyValuePair() 
 		{
 			try
