@@ -25,18 +25,96 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using System.Security.Cryptography;
+using System.Xml;
+using System.Xml.Serialization;
 
 namespace Demoder.Common.Hash
 {
 	/// <summary>
 	/// Represents a single MD5 Checksum
 	/// </summary>
-	public class MD5Checksum : ChecksumTemplate
+	public class MD5Checksum : ICheckSum, IEquatable<ICheckSum>
 	{
+		#region Members
+		private ICheckSum _checkSumStore;
+		#endregion
 		#region Constructors
-		public MD5Checksum(byte[] Bytes) : base(Bytes) { }
-		public MD5Checksum(string Hex) : base(Hex) { }
-		public MD5Checksum() : base() { }
+		public MD5Checksum(byte[] Bytes) : this() { this._checkSumStore = new ChecksumHexStore(Bytes); }
+		public MD5Checksum(string Hex) : this() { this._checkSumStore = new ChecksumHexStore(String); }
+		public MD5Checksum() { this._checkSumStore = null; }
+		#endregion
+		#region Interfaces
+		#region ICheckSum Members
+		/// <summary>
+		/// Set or retrieve a byte representation of this class
+		/// </summary>
+		public byte[] Bytes
+		{
+			get
+			{
+				if (this._checkSumStore == null)
+					return null;
+				return this._checkSumStore.Bytes;
+			}
+			set
+			{
+				if (this._checkSumStore == null)
+					this._checkSumStore = new ChecksumHexStore(value);
+				else
+					this._checkSumStore.Bytes = value;
+			}
+		}
+		/// <summary>
+		/// Set or retrieve a string representation of this class
+		/// </summary>
+		public string String
+		{
+			get
+			{
+				if (this._checkSumStore == null)
+					return String.Empty;
+				return this._checkSumStore.String;
+			}
+			set
+			{
+				if (this._checkSumStore == null)
+					this._checkSumStore = new ChecksumHexStore(value);
+				else
+					this._checkSumStore.String = value;
+			}
+		}
+		#endregion
+		#region IEquatable<ICheckSum> Members
+		public bool Equals(ICheckSum Other)
+		{
+			if (this.Bytes.Equals(Other.Bytes))
+				return true;
+			else
+				return false;
+		}
+		#endregion
+		#endregion Interfaces
+
+		public override string ToString()
+		{
+			return this.String;
+		}
+
+		#region static operators
+		public static bool operator ==(ICheckSum CS1, ICheckSum CS2)
+		{
+			if (CS1.Bytes.Equals(CS2.Bytes))
+				return true;
+			else
+				return false;
+		}
+		public static bool operator !=(ICheckSum CS1, ICheckSum CS2)
+		{
+			if (!CS1.Bytes.Equals(CS2.Bytes))
+				return true;
+			else
+				return false;
+		}
 		#endregion
 
 		#region Static Generate
@@ -109,7 +187,6 @@ namespace Demoder.Common.Hash
 			if (!FilePath.Exists) throw new FileNotFoundException("File does not exist");
 			return Generate(File.ReadAllBytes(FilePath.FullName));
 		}
-
 		#endregion
 	}
 }
