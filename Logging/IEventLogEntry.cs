@@ -32,17 +32,17 @@ namespace Demoder.Common.Logging
 		/// The time the logged event happened
 		/// </summary>
 		/// <returns></returns>
-		DateTime TimeStamp();
+		DateTime TimeStamp { get; }
 		/// <summary>
 		/// String representation of event
 		/// </summary>
 		/// <returns></returns>
-		string Message();
+		string Message { get; }
 		/// <summary>
 		/// An object representing the logged event
 		/// </summary>
 		/// <returns></returns>
-		object LoggedObject();
-		EventLogLevel LogLevel();
+		object LoggedObject { get; }
+		EventLogLevel LogLevel { get; }
 	}
 }
