@@ -101,14 +101,14 @@ namespace Demoder.Common.Hash
 		}
 
 		#region static operators
-		public static bool operator ==(ICheckSum CS1, ICheckSum CS2)
+		public static bool operator ==(MD5Checksum CS1, MD5Checksum CS2)
 		{
 			if (CS1.Bytes.Equals(CS2.Bytes))
 				return true;
 			else
 				return false;
 		}
-		public static bool operator !=(ICheckSum CS1, ICheckSum CS2)
+		public static bool operator !=(MD5Checksum CS1, MD5Checksum CS2)
 		{
 			if (!CS1.Bytes.Equals(CS2.Bytes))
 				return true;
