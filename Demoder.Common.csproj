@@ -48,8 +48,8 @@
     <Compile Include="Hash\ICheckSum.cs" />
     <Compile Include="Logging\IEventLogEntry.cs" />
     <Compile Include="Logging\LogRotater.cs" />
-    <Compile Include="Logging\LogRotateWriter.cs" />
-    <Compile Include="Logging\VoidWriter.cs" />
+    <Compile Include="Logging\RotateLogWriter.cs" />
+    <Compile Include="Logging\VoidLogWriter.cs" />
     <Compile Include="Logging\enums.cs" />
     <Compile Include="Logging\EventLog.cs" />
     <Compile Include="delegates.cs" />

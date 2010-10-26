@@ -34,7 +34,7 @@ using System.Threading;
 
 namespace Demoder.Common.Logging 
 {
-	public class LogRotateWriter : ILogWriter, IDisposable
+	public class RotateLogWriter : ILogWriter, IDisposable
 	{
 		#region Members
 		#region LogFile information
@@ -73,12 +73,15 @@ namespace Demoder.Common.Logging
 		#endregion
 		
 		private Thread _writerThread;
-		private bool _stopThread = false;
+		/// <summary>
+		/// Abort the thread?
+		/// </summary>
+		private bool _abort = false;
 		private bool _disposed = false;
 		#endregion Members
 
 		#region Constructors
-		public LogRotateWriter(LogRotater LogRotater)
+		public RotateLogWriter(LogRotater LogRotater)
 		{
 			this._logRotate = LogRotater;
 
@@ -97,7 +100,7 @@ namespace Demoder.Common.Logging
 		/// </summary>
 		private void writeLog()
 		{
-			while (!this._stopThread)
+			while (!this._abort)
 			{
 				this._logRotate.Rotate(ref this._logStream);
 				this._writeMRE.WaitOne();
@@ -146,7 +149,7 @@ namespace Demoder.Common.Logging
 
 		#region Interfaces
 		#region ILogWriter Members
-		bool ILogWriter.WriteLogEntry(IEventLogEntry LogEntry)
+		bool ILogWriter.Write(IEventLogEntry LogEntry)
 		{
 			if (this._disposed)
 				throw new ObjectDisposedException("");
@@ -191,7 +194,7 @@ namespace Demoder.Common.Logging
 				if (!this._disposed)
 				{
 					this._disposed = true; //Set disposed flag
-					this._stopThread = true; //Tell writerthread to stop on next loop
+					this._abort = true; //Tell writerthread to stop on next loop
 					//Add "we're disposing" to logfile, and trigger the thread immediately.
 					lock (this._messageQueue)
 					{
