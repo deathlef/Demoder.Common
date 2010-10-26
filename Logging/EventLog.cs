@@ -35,15 +35,11 @@ namespace Demoder.Common.Logging
 		#region members
 		private List<IEventLogEntry> _events = new List<IEventLogEntry>();
 		private EventLogRead _defaultLimitInclude = EventLogRead.Last;
-		private ILogWriter _logWriter = new VoidWriter();
+		private ILogWriter _logWriter = null;
 		/// <summary>
 		/// Store log entries in memory
 		/// </summary>
 		private bool _storeInMemory = true;
-		/// <summary>
-		/// Pass log entries to writer
-		/// </summary>
-		private bool _passToWriter = true;
 		#endregion
 
 		#region constructors
@@ -52,8 +48,7 @@ namespace Demoder.Common.Logging
 		/// </summary>
 		public EventLog()
 		{
-			this._logWriter = new VoidWriter();
-			this._passToWriter = false;
+			this._logWriter = null;
 			this._storeInMemory = true;
 		}
 
@@ -72,11 +67,6 @@ namespace Demoder.Common.Logging
 		{
 			this._logWriter = LogWriter;
 			this._storeInMemory = StoreInMemory;
-
-			if ((this._logWriter != null) && (this._logWriter.GetType() != typeof(VoidWriter)))
-			{
-				this._passToWriter = true;
-			}
 		}
 		#endregion
 		#region Methods
@@ -84,19 +74,16 @@ namespace Demoder.Common.Logging
 		/// Log a message.
 		/// </summary>
 		/// <param name="LogEntry"></param>
-		public void Log(IEventLogEntry LogEntry) 
+		public void Log(IEventLogEntry LogEntry)
 		{
 			//Store to memory
 			if (this._storeInMemory)
 				lock (this._events)
 					this._events.Add(LogEntry);
 			//Pass to writer
-			if (this._passToWriter)
-			{
-				if (this._logWriter != null)
-					lock (this._logWriter)
-						this._logWriter.WriteLogEntry(LogEntry);
-			}
+			if (this._logWriter != null)
+				lock (this._logWriter)
+					this._logWriter.Write(LogEntry);
 		}
 
 		#region ReadLog

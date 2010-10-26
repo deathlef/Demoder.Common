@@ -27,10 +27,10 @@ namespace Demoder.Common.Logging
 	/// <summary>
 	/// Dummy implementation of ILogWriter. Does nothing.
 	/// </summary>
-	public class VoidWriter : ILogWriter
+	public class VoidLogWriter : ILogWriter
 	{
 		#region ILogWriter Members
-		bool ILogWriter.WriteLogEntry(IEventLogEntry EventLog)
+		bool ILogWriter.Write(IEventLogEntry EventLog)
 		{
 			return true;
 		}
