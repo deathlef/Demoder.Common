@@ -31,6 +31,9 @@ namespace Demoder.Common.Net
 {
 	public class DownloadManager
 	{
+		#region Static fields
+		internal static DownloadManager StaticDLM = new DownloadManager();
+		#endregion
 		#region Members
 		/// <summary>
 		/// Key: Hostname.  Value: [Key: IP Endpoint. Value: Downloader]

@@ -29,6 +29,9 @@ using System.Text;
 
 namespace Demoder.Common.Logging
 {
+	/// <summary>
+	/// Handles rotating of a single logfile using provided parameters
+	/// </summary>
 	public class LogRotater : IDisposable
 	{
 		#region Members
@@ -135,20 +138,22 @@ namespace Demoder.Common.Logging
 
 		#region Constructors
 		/// <summary>
+		/// <![CDATA[Handles rotating of a single logfile using provided parameters
 		/// Initializes with default limits.
 		/// MaxSize: 10KiB
 		/// MagAge: 7 days
 		/// UncompressedIterations: 1
-		/// CompressedIterations: 3
+		/// CompressedIterations: 3]]>
 		/// </summary>
 		/// <param name="LogDir">Directory to store logs in</param>
 		/// <param name="LogName">Name of this log file</param>
 		public LogRotater(DirectoryInfo LogDir, string LogName) : this(LogDir, LogName, 10240, new TimeSpan(0), 1, 3) { }
 		/// <summary>
+		/// <![CDATA[Handles rotating of a single logfile using provided parameters
 		/// Initializes with default limits. No rotation by age.
 		/// MaxLogSize: 10KiB
 		/// UncompressedIterations: 1
-		/// CompressedIterations: 3
+		/// CompressedIterations: 3]]>
 		/// </summary>
 		/// <param name="LogDir">Directory to store logs in</param>
 		/// <param name="LogName">Name of this log file</param>
@@ -156,16 +161,17 @@ namespace Demoder.Common.Logging
 		/// <param name="MaxAge">Custom maximum log age</param>
 		public LogRotater(DirectoryInfo LogDir, string LogName, long MaxSize, TimeSpan MaxAge) : this(LogDir, LogName, MaxSize, MaxAge, 1, 3) { }
 		/// <summary>
+		/// <![CDATA[Handles rotating of a single logfile using provided parameters
 		/// Initialized with default limits. No rotation by age.
 		/// UncompressedIterations: 1
-		/// CompressedIterations: 3
+		/// CompressedIterations: 3]]>
 		/// </summary>
 		/// <param name="LogDir">Directory to store logs in</param>
 		/// <param name="LogName">Name of this log file</param>
 		/// <param name="MaxSize"></param>
 		public LogRotater(DirectoryInfo LogDir, string LogName, long MaxSize) : this(LogDir, LogName, MaxSize, new TimeSpan(0), 1, 3) { }
 		/// <summary>
-		/// Initializes with provided limits
+		/// Handles rotating of a single logfile using provided parameters
 		/// </summary>
 		/// <param name="LogDir">Directory to store logs in</param>
 		/// <param name="LogName">Name of this log file</param>
