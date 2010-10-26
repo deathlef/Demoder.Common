@@ -29,6 +29,7 @@ using System.IO.Compression;
 using System.Net;
 using System.Xml.Serialization;
 using Demoder.Common;
+using Demoder.Common.Net;
 
 namespace Demoder.Common.Serialization
 {
@@ -296,14 +297,17 @@ namespace Demoder.Common.Serialization
 			/// <returns></returns>
 			public static object Deserialize(Type T, IEnumerable<Uri> Uris)
 			{
-				Object ret = null;
-				foreach (Uri uri in Uris)
+				try
 				{
-					ret = Deserialize(T, uri);
-					if (ret != null)  //If we got proper data
-						break;
+					DownloadItem di = new DownloadItem(null, Uris, null, null);
+					DownloadManager.StaticDLM.Download(di);
+					di.Wait();
+					return Deserialize(T, new MemoryStream(di.Data), true);
 				}
-				return ret;
+				catch
+				{
+					return null;
+				}
 			}
 
 			/// <summary>
@@ -317,9 +321,7 @@ namespace Demoder.Common.Serialization
 				if (Path == null) throw new ArgumentNullException("Path");
 				try
 				{
-					MemoryStream stream = new MemoryStream(Net.DownloadManager.GetBinaryData(Path));
-					object obj = Deserialize(T, stream, true);
-					return obj;
+					return Deserialize(T, new List<Uri>(new Uri[] {Path}));
 				}
 				catch { return null; }
 			}

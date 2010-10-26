@@ -24,7 +24,7 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Text;
-
+using System.Threading;
 using Demoder.Common.Hash;
 
 namespace Demoder.Common.Net
@@ -45,6 +45,8 @@ namespace Demoder.Common.Net
 		/// A list of tags assigned to this object.
 		/// </summary>
 		public List<object> InfoTags = new List<object>();
+
+		private ManualResetEvent _downloadMre = new ManualResetEvent(false);
 
 		//Describing the download data
 		private byte[] _bytes = null;
@@ -81,14 +83,14 @@ namespace Demoder.Common.Net
 		/// <param name="Mirrors">URIs to download from</param>
 		public DownloadItem(
 			object Tag,
-			List<Uri> Mirrors,
+			IEnumerable<Uri> Mirrors,
 			DownloadItemEventHandler DownloadSuccessDelegate,
 			DownloadItemEventHandler DownloadFailureDelegate) :
 			this(Tag, Mirrors, DownloadSuccessDelegate, DownloadFailureDelegate, null) { }
 
 
 		public DownloadItem(object Tag,
-			List<Uri> Mirrors,
+			IENumerable<Uri> Mirrors,
 			DownloadItemEventHandler DownloadSuccessDelegate,
 			DownloadItemEventHandler DownloadFailureDelegate,
 			MD5Checksum ExcpectedMD5,
@@ -106,7 +108,7 @@ namespace Demoder.Common.Net
 		/// <param name="ExpectedMD5">The file should have this MD5 hash to be considered a successfull download</param>
 		public DownloadItem(
 			object Tag,
-			List<Uri> Mirrors,
+			IEnumerable<Uri> Mirrors,
 			DownloadItemEventHandler DownloadSuccessDelegate,
 			DownloadItemEventHandler DownloadFailureDelegate,
 			MD5Checksum ExpectedMD5)
@@ -116,7 +118,7 @@ namespace Demoder.Common.Net
 
 			this._tag = Tag;
 			this._mirrors = new Queue<Uri>(Mirrors);
-			this._failedMirrors = new List<Uri>(Mirrors.Count);
+			this._failedMirrors = new List<Uri>(this._mirrors.Count);
 			this._downloadSuccessDelegate = DownloadSuccessDelegate;
 			this._downloadFailureDelegate = DownloadFailureDelegate;
 			this._expectedMD5 = ExpectedMD5;
@@ -196,7 +198,9 @@ namespace Demoder.Common.Net
 				lock (this._mirrors)
 				{
 					if (this._mirrors.Count == 0)
+					{
 						return null;
+					}
 					else
 						return this._mirrors.Peek();
 				}
@@ -228,7 +232,7 @@ namespace Demoder.Common.Net
 		/// <summary>
 		/// Download failed. Move the mirror to the failed queue and call the DownloadFailed delegate.
 		/// </summary>
-		/// <returns>true if we have more items in queue, false otherwise.</returns>
+		/// <returns>true if we have more items in queue, otherwise false.</returns>
 		public bool DownloadFailed()
 		{
 			Uri uri;
@@ -245,6 +249,7 @@ namespace Demoder.Common.Net
 						dieh = this._downloadFailureDelegate;
 				if (dieh != null)
 					dieh(this);
+				this._downloadMre.Set();
 				return false;
 			}
 			return true;
@@ -257,11 +262,19 @@ namespace Demoder.Common.Net
 		/// </summary>
 		public void SuccessfullDownload()
 		{
+			this._downloadMre.Set();
 			DownloadItemEventHandler dieh;
 			lock (this._downloadSuccessDelegate)
 				dieh = this._downloadSuccessDelegate;
 			if (dieh != null)
 				dieh(this);
+		}
+		/// <summary>
+		/// Wait for the download to finish
+		/// </summary>
+		public void Wait()
+		{
+			this._downloadMre.WaitOne();
 		}
 		#endregion
 
