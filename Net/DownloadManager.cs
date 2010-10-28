@@ -75,7 +75,7 @@ namespace Demoder.Common.Net
 		/// Download a single URI
 		/// </summary>
 		/// <param name="DownloadItem"></param>
-		public void Download(DownloadItem DownloadItem)
+		public void Download(IDownloadItem DownloadItem)
 		{
 				this.addItemToQueue(DownloadItem);
 		}
@@ -91,33 +91,32 @@ namespace Demoder.Common.Net
 		#endregion
 
 		#region Private Methods
-
 		/// <summary>
 		/// Adds a download item to queue.
 		/// </summary>
 		/// <param name="DownloadItem"></param>
-		private void addItemToQueue(DownloadItem DownloadItem)
+		private void addItemToQueue(IDownloadItem DownloadItem)
 		{
 			//Initial check if the next mirror is null.
-			if (DownloadItem.NextMirror == null)
+			if (DownloadItem.Mirror == null)
 			{
 				//No more mirrors to try.
 				this.onDownloadFailure(DownloadItem);
 				return;
 			}
 
-			string connectionKey = DownloadItem.NextMirrorConnectionString;
+			string connectionKey = DownloadItem.MirrorConnectionString;
 			lock (this._connections)
 			{
 				if (!this._connections.ContainsKey(connectionKey))
-					this.createDownloaders(DownloadItem.NextMirror, connectionKey);
+					this.createDownloaders(DownloadItem.Mirror, connectionKey);
 				//Check if we have any available downloaders.
 				if (this._connections[connectionKey].Count == 0)
 				{
 					//All mirrors for that host/port have been marked as bad.
-					DownloadItem.DownloadFailed();
+					DownloadItem.FailedDownload(true);
 				}
-				if (DownloadItem.NextMirror == null)
+				if (DownloadItem.Mirror == null)
 				{
 					//No more mirrors to try.
 					this.onDownloadFailure(DownloadItem);
@@ -131,7 +130,8 @@ namespace Demoder.Common.Net
 				{
 					if (dl.QueueCount < queuelength)
 					{
-						if (!DownloadItem.InfoTags.Contains(dl.IPEndPoint))
+						//If we haven't tried downloading from this IP endpoint yet
+						if (!DownloadItem.MirrorTags.Contains(dl.IPEndPoint))
 						{
 							queuelength = dl.QueueCount;
 							lowestEntry = dl;
@@ -142,8 +142,11 @@ namespace Demoder.Common.Net
 				//Actually add it to the queue.
 				if (lowestEntry == null)
 				{
-					DownloadItem.DownloadFailed();
-					this.addItemToQueue(DownloadItem);
+					//Cycle mirror.
+					DownloadItem.FailedDownload(true);
+					//If there's a mirror
+					if (DownloadItem.Mirror!=null)
+						this.addItemToQueue(DownloadItem);
 				}
 				else
 				{
@@ -169,7 +172,7 @@ namespace Demoder.Common.Net
 				foreach (IPAddress ip in ips)
 				{
 					Downloader downloader = new Downloader(new IPEndPoint(ip, Uri.Port), Uri.Host, this.UserAgent);
-					downloader.SlaveModeDelegate = new DownloaderSlaveEventHandler(this.dseHandler);
+					downloader.MasterDelegate = new DownloaderSlaveEventHandler(this.dseHandler);
 					downloaders.Add(downloader);
 				}
 			}
@@ -184,7 +187,7 @@ namespace Demoder.Common.Net
 		/// </summary>
 		/// <param name="Sender"></param>
 		/// <param name="DownloadItem"></param>
-		private void dseHandler(Downloader Sender, DownloadItem DownloadItem)
+		private void dseHandler(Downloader Sender, IDownloadItem DownloadItem)
 		{
 			// Check if it was successful or not.
 			if (DownloadItem.Data == null)
@@ -209,19 +212,19 @@ namespace Demoder.Common.Net
 		/// </summary>
 		/// <param name="Sender"></param>
 		/// <param name="DownloadItem"></param>
-		private void dseDownloadFailed(Downloader Sender, DownloadItem DownloadItem)
+		private void dseDownloadFailed(Downloader Sender, IDownloadItem DownloadItem)
 		{
 			// Check if we should remove this downloader from the list or not.
 			// If we do, we should redistribute its queue as well.
 			bool shouldRedistributeQueue = false;
 			
-			DownloadItem.InfoTags.Add(Sender.IPEndPoint); //Add the IPEndpoint to our "internal" fail list.
+			DownloadItem.MirrorTags.Add(Sender.IPEndPoint); //Add the IPEndpoint to our "internal" fail list.
 
 			if (Sender.HaveCancelled)
 				shouldRedistributeQueue = false;
-			else if (Sender.FailedDownloads > 5 && ((double)Sender.FailedDownloads / (double)Sender.SuccessfullDownloads > 1))
+			else if (Sender.FailedDownloads > 20 && ((double)Sender.FailedDownloads / (double)Sender.SuccessfullDownloads > 1.2))
 				shouldRedistributeQueue = true;
-			List<DownloadItem> downloadItems = new List<DownloadItem>();
+			List<IDownloadItem> downloadItems = new List<IDownloadItem>();
 
 			//Should stop this particular mirror from being used.
 			if (shouldRedistributeQueue)
@@ -229,15 +232,15 @@ namespace Demoder.Common.Net
 				lock (this._connections)
 				{
 					while (true) {
-						if (!this._connections.ContainsKey(DownloadItem.NextMirrorConnectionString))
+						if (!this._connections.ContainsKey(DownloadItem.MirrorConnectionString))
 							break;
-						List<Downloader> connections = this._connections[DownloadItem.NextMirrorConnectionString];
-						//Walk through each downloader and check its
+						List<Downloader> connections = this._connections[DownloadItem.MirrorConnectionString];
+						//Walk through each downloader and check it has already been used by this DownloadItem.
 						foreach (Downloader dloader in connections)
 						{
 							if (dloader.IPEndPoint == Sender.IPEndPoint)
 							{
-								this._connections[DownloadItem.NextMirrorConnectionString.ToLower()].Remove(dloader);
+								this._connections[DownloadItem.MirrorConnectionString.ToLower()].Remove(dloader);
 								downloadItems.AddRange(dloader.Stop()); //Add each and every ones download lists to our list.
 								continue;
 							}
@@ -247,21 +250,23 @@ namespace Demoder.Common.Net
 				}
 			}
 			//Check if there are more mirrors for this host. If not, move to the next host.
-			if (this._connections.ContainsKey(DownloadItem.NextMirrorConnectionString))
+			if (this._connections.ContainsKey(DownloadItem.MirrorConnectionString))
 			{
-				if (this._connections[DownloadItem.NextMirrorConnectionString].Count == 0)
-					DownloadItem.DownloadFailed();
+				if (this._connections[DownloadItem.MirrorConnectionString].Count == 0)
+				{
+					DownloadItem.FailedDownload(true);
+				}
 			}
-
 			downloadItems.Add(DownloadItem);
 
-			foreach (DownloadItem di in downloadItems)
+			//Add each and every item to the queue.
+			foreach (IDownloadItem di in downloadItems)
 				this.Download(di);
 		}
 		#endregion
 
 		#region Event firers
-		private void onDownloadFailure(DownloadItem DownloadItem) 
+		private void onDownloadFailure(IDownloadItem DownloadItem) 
 		{
 			DownloadItemEventHandler df = null;
 			if (this.DownloadFailure != null)
@@ -272,7 +277,7 @@ namespace Demoder.Common.Net
 				df(DownloadItem);
 		}
 
-		private void onDownloadSuccess(DownloadItem DownloadItem)
+		private void onDownloadSuccess(IDownloadItem DownloadItem)
 		{
 			DownloadItemEventHandler ds = null;
 			if (this.DownloadSuccess != null)

@@ -59,7 +59,7 @@ namespace Demoder.Common.Net
 		 * Need to think out a smart way of dealing with this queue.
 		 */
 
-		private Queue<DownloadItem> _downloadQueue = new Queue<DownloadItem>(8);
+		private Queue<IDownloadItem> _downloadQueue = new Queue<IDownloadItem>(8);
 		
 		//Threading
 		private Thread _queueManager;
@@ -71,7 +71,7 @@ namespace Demoder.Common.Net
 		/// In slave mode, the Downloader will be 'dumb', and pass parameters to a delegate method to deal with the specifics surrounding the download.
 		/// Use this when you want to implement more advanced handling of downloads than this class provides.
 		/// </summary>
-		public DownloaderSlaveEventHandler SlaveModeDelegate = null;
+		public DownloaderSlaveEventHandler MasterDelegate = null;
 
 		/// <summary>
 		/// Have this instance been cancelled?
@@ -88,7 +88,6 @@ namespace Demoder.Common.Net
 		}
 
 		#endregion
-
 		#region Public accessors
 		public bool IsBusy { get { return this._webClient.IsBusy; }	}
 		/// <summary>
@@ -127,9 +126,9 @@ namespace Demoder.Common.Net
 		#endregion
 
 		#region methods
-		public void DownloadData(DownloadItem DownloadItem)
+		public void DownloadData(IDownloadItem DownloadItem)
 		{
-			if (DownloadItem.NextMirror.Host.ToLower() != this._hostName)
+			if (DownloadItem.Mirror.Host.ToLower() != this._hostName)
 				throw new ArgumentException("This downloader may only retrieve data from the hostname " + this._hostName, "URI");
 			//insert code to download here...
 			this._downloadQueue.Enqueue(DownloadItem);
@@ -140,12 +139,12 @@ namespace Demoder.Common.Net
 		/// Tells the downloader to stop when it's done with the current download, and returns the remaining queue if any.
 		/// </summary>
 		/// <returns></returns>
-		public DownloadItem[] Stop()
+		public IDownloadItem[] Stop()
 		{
 			this._running = false;
 			lock (this._downloadQueue)
 			{
-				DownloadItem[] ldi = this._downloadQueue.ToArray();
+				IDownloadItem[] ldi = this._downloadQueue.ToArray();
 				this._downloadQueue.Clear();
 				this._queueManagerMRE.Set();
 				return ldi;
@@ -170,7 +169,7 @@ namespace Demoder.Common.Net
 			while (this._running)
 			{
 				//Get item.
-				DownloadItem di;
+				IDownloadItem di;
 				lock (this._downloadQueue)
 				{
 					if (this._downloadQueue.Count == 0)
@@ -182,7 +181,7 @@ namespace Demoder.Common.Net
 				if (di == null) //Empty queue
 				{
 					// We should wait for the MRE. 
-					// Wait a maximum of 100ms in case we've been told to stop while waiting.
+					// The MRE will be set when we're cancelled, so no point with a timeout.
 					this._queueManagerMRE.WaitOne();
 					continue; //Restart the loop in case we have been told to stop.
 				}
@@ -194,31 +193,25 @@ namespace Demoder.Common.Net
 		/// Processes a DownloadItem queue entry.
 		/// </summary>
 		/// <param name="DownloadItem"></param>
-		private void queueProcessEntry(DownloadItem DownloadItem)
+		private void queueProcessEntry(IDownloadItem DownloadItem)
 		{
 			try
 			{
 				if (DownloadItem.SaveAs != null)
-					this._webClient.DownloadFile(DownloadItem.NextMirror, DownloadItem.SaveAs.FullName);
-				else 
-					DownloadItem.Data = this._webClient.DownloadData(DownloadItem.NextMirror);
+					this._webClient.DownloadFile(DownloadItem.Mirror, DownloadItem.SaveAs.FullName);
+				else
+					DownloadItem.SuccessfullDownload(this._webClient.DownloadData(DownloadItem.Mirror));
 			}
 			catch (Exception ex)
-			{ 
+			{
 			}
-			if (this.SlaveModeDelegate != null) //Slave mode.
-				this.SlaveModeDelegate(this, DownloadItem);
-			else
-			{	//Standalone (no-slave) mode.
-				if (DownloadItem.Data == null)
-				{ //Failed download
-					DownloadItem.DownloadFailed();
-				}
-				else
-				{ //Successfull download
-					DownloadItem.SuccessfullDownload();
-				}
-			}
+			//Signal the DownloadItems faileddelegate
+			if (!DownloadItem.IntegrityOK)
+				DownloadItem.FailedDownload((this.MasterDelegate == null));
+
+			//Signal our master, if any
+			if (this.MasterDelegate != null) //Slave mode.
+				this.MasterDelegate(this, DownloadItem);
 		}
 		#endregion
 
