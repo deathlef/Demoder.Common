@@ -21,8 +21,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 using System;
-using System.IO;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Threading;
 using Demoder.Common.Hash;
@@ -32,20 +32,16 @@ namespace Demoder.Common.Net
 	/// <summary>
 	/// This class represents a single download.
 	/// </summary>
-	public class DownloadItem
+	public class DownloadItem : IDownloadItem
 	{
 		#region Members
 		//Describing the download task
 		private readonly object _tag;
 		private readonly MD5Checksum _expectedMD5;
 		private Queue<Uri> _mirrors;
+		private List<object> _mirrorTags = new List<object>();
 
 		private List<Uri> _failedMirrors;
-		/// <summary>
-		/// A list of tags assigned to this object.
-		/// </summary>
-		public List<object> InfoTags = new List<object>();
-
 		private ManualResetEvent _downloadMre = new ManualResetEvent(false);
 
 		//Describing the download data
@@ -90,7 +86,7 @@ namespace Demoder.Common.Net
 
 
 		public DownloadItem(object Tag,
-			IENumerable<Uri> Mirrors,
+			IEnumerable<Uri> Mirrors,
 			DownloadItemEventHandler DownloadSuccessDelegate,
 			DownloadItemEventHandler DownloadFailureDelegate,
 			MD5Checksum ExcpectedMD5,
@@ -157,26 +153,19 @@ namespace Demoder.Common.Net
 					//Get the binary data from file, cache it in this object, then return it.
 					try
 					{
-						this.Data = File.ReadAllBytes(this._saveAs.FullName);
+						this.storeBytes(File.ReadAllBytes(this._saveAs.FullName));
 					}
 					catch { }
 					return this._bytes;
 				}
 				return this._bytes;
 			}
-			set
-			{
-				lock (this._downloadedMD5)
-				{
-					this._bytes = value;
-					if (value == null)
-						this._downloadedMD5 = null;
-					else
-						this._downloadedMD5 = MD5Checksum.Generate(value);
-				}
-			}
 		}
-
+		private void storeBytes(byte[] Bytes)
+		{
+			this._bytes = Bytes;
+			this._downloadedMD5 = MD5Checksum.Generate(Bytes);
+		}
 		public FileInfo SaveAs { get { return this._saveAs; } }
 
 		/// <summary>
@@ -189,13 +178,13 @@ namespace Demoder.Common.Net
 		public Uri[] FailedMirrors { get { return this._failedMirrors.ToArray(); } }
 
 		/// <summary>
-		/// Retrieve the next mirror from the queue.
+		/// Retrieve the top mirror from the queue.
 		/// </summary>
-		public Uri NextMirror
+		public Uri Mirror
 		{
 			get
 			{
-				lock (this._mirrors)
+				lock (this)
 				{
 					if (this._mirrors.Count == 0)
 					{
@@ -208,13 +197,18 @@ namespace Demoder.Common.Net
 		}
 
 		/// <summary>
-		/// Retrieves scheme://host:port representing the next mirror.
+		/// A list of tags for this mirror. Will be reset when cycling mirrors.
 		/// </summary>
-		public string NextMirrorConnectionString
+		public List<object> MirrorTags { get { return this._mirrorTags; } }
+
+		/// <summary>
+		/// Retrieves scheme://host:port representing the top mirror.
+		/// </summary>
+		public string MirrorConnectionString
 		{
 			get
 			{
-				Uri nextMirror = this.NextMirror;
+				Uri nextMirror = this.Mirror;
 				if (nextMirror != null)
 				{
 					return String.Format("{0}://{1}:{2}",
@@ -228,46 +222,58 @@ namespace Demoder.Common.Net
 				}
 			}
 		}
-
-		/// <summary>
-		/// Download failed. Move the mirror to the failed queue and call the DownloadFailed delegate.
-		/// </summary>
-		/// <returns>true if we have more items in queue, otherwise false.</returns>
-		public bool DownloadFailed()
-		{
-			Uri uri;
-			lock (this._mirrors)
-				uri = this._mirrors.Dequeue();
-			lock (this._failedMirrors)
-				this._failedMirrors.Add(uri);
-
-			if (this._mirrors.Count == 0)
-			{
-				DownloadItemEventHandler dieh=null;
-				if (this._downloadFailureDelegate!=null)
-					lock (this._downloadFailureDelegate)
-						dieh = this._downloadFailureDelegate;
-				if (dieh != null)
-					dieh(this);
-				this._downloadMre.Set();
-				return false;
-			}
-			return true;
-		}
 		#endregion
 
 		#region Methods
 		/// <summary>
 		/// This method will call the DownloadSuccessDelegate.
 		/// </summary>
-		public void SuccessfullDownload()
+		public bool SuccessfullDownload(byte[] Bytes)
 		{
-			this._downloadMre.Set();
-			DownloadItemEventHandler dieh;
-			lock (this._downloadSuccessDelegate)
-				dieh = this._downloadSuccessDelegate;
-			if (dieh != null)
-				dieh(this);
+			lock (this)
+			{
+				this.storeBytes(Bytes);
+				if (this.IntegrityOK)
+				{
+					DownloadItemEventHandler dieh;
+					lock (this._downloadSuccessDelegate)
+						dieh = this._downloadSuccessDelegate;
+					if (dieh != null)
+						dieh(this);
+				}
+				return (this.IntegrityOK);
+			}
+		}
+
+		/// <summary>
+		/// Download failed. Move the mirror to the failed queue. If there are no more mirrors, call the DownloadFailed delegate and return false.
+		/// </summary>
+		/// <param name="FailMirror">Should we mark the mirror as failed</param>
+		/// <returns>true if we have more mirrors in queue, false otherwise.</returns>
+		public bool FailedDownload(bool FailMirror)
+		{
+			lock (this)
+			{
+				if (FailMirror)
+				{
+					Uri uri = this._mirrors.Dequeue();
+					this._failedMirrors.Add(uri);
+					//Clear mirror tags for previous mirror.
+					this._mirrorTags.Clear();
+				}
+				if (this._mirrors.Count == 0)
+				{
+					DownloadItemEventHandler dieh = null;
+					if (this._downloadFailureDelegate != null)
+						lock (this._downloadFailureDelegate)
+							dieh = this._downloadFailureDelegate;
+					if (dieh != null)
+						dieh(this);
+					return false;
+				}
+			}
+			return true;
+
 		}
 		/// <summary>
 		/// Wait for the download to finish
