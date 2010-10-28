@@ -29,12 +29,16 @@ using System.Text;
 
 namespace Demoder.Common.Net
 {
-	public class DownloadManager
+	public class DownloadManager : IDisposable
 	{
 		#region Static fields
 		internal static DownloadManager StaticDLM = new DownloadManager();
 		#endregion
 		#region Members
+		/// <summary>
+		/// Have we been told to abort/dispose?
+		/// </summary>
+		private bool _disposed = false;
 		/// <summary>
 		/// Key: Hostname.  Value: [Key: IP Endpoint. Value: Downloader]
 		/// </summary>
@@ -50,6 +54,19 @@ namespace Demoder.Common.Net
 		/// UserAgent reported to remote web server.
 		/// </summary>
 		public string UserAgent = "Demoder.Common DownloadManager";
+
+		/// <summary>
+		/// Queue with successfull downloads to fire
+		/// </summary>
+		private Queue<IDownloadItem> _successfullDownloads = new Queue<IDownloadItem>();
+		/// <summary>
+		/// Queue with failed downloads to fire
+		/// </summary>
+		private Queue<IDownloadItem> _failedDownloads = new Queue<IDownloadItem>();
+		#endregion
+		#region Threads
+		private Thread _eventQueueProcesserThread;
+		private ManualResetEvent _eventQueueProcesserMRE = new ManualResetEvent(false);
 		#endregion
 
 		#region Events
@@ -67,6 +84,10 @@ namespace Demoder.Common.Net
 		public DownloadManager()
 		{
 			this._connections = new Dictionary<string, List<Downloader>>(32);
+			this._eventQueueProcesserThread = new Thread(new ThreadStart(this.eventQueueProcesser));
+			this._eventQueueProcesserThread.IsBackground = true;
+			this._eventQueueProcesserThread.Name = "DownloadManager Event Firer";
+			this._eventQueueProcesserThread.Start();
 		}
 		#endregion
 
@@ -263,11 +284,64 @@ namespace Demoder.Common.Net
 			foreach (IDownloadItem di in downloadItems)
 				this.Download(di);
 		}
+
+
+		private void eventQueueProcesser() 
+		{
+			while (!this._disposed)
+			{
+				this._eventQueueProcesserMRE.WaitOne();
+				//Always wait 1s, to allow sending multiple items.
+				Thread.Sleep(1000); 
+				//Reset the event once we start working.
+				this._eventQueueProcesserMRE.Reset();
+				//Fetch failed downloads
+				List<IDownloadItem> failedDownloads = new List<IDownloadItem>();
+				lock (this._failedDownloads)
+					while (this._failedDownloads.Count > 0)
+						failedDownloads.Add(this._failedDownloads.Dequeue());
+
+				//Fetch successfull downloads
+				List<IDownloadItem> successDownloads = new List<IDownloadItem>();
+				lock (this._successfullDownloads)
+					while (this._successfullDownloads.Count > 0)
+						successDownloads.Add(this._successfullDownloads.Dequeue());
+
+				
+				//Trigger failure event handler.
+				if (failedDownloads.Count > 0)
+				{
+					DownloadItemEventHandler diehFail = this.DownloadFailure;
+					if (diehFail != null)
+						foreach (IDownloadItem idi in failedDownloads)
+							lock (diehFail)
+								this.DownloadFailure(idi);
+				}
+				
+				//Trigger failure event handler.
+				if (successDownloads.Count > 0)
+				{
+					DownloadItemEventHandler diehSuccess = this.DownloadSuccess;
+					if (diehSuccess != null)
+						foreach (IDownloadItem idi in successDownloads)
+							lock (diehSuccess)
+								this.DownloadSuccess(idi);
+				}
+
+			}
+		}
 		#endregion
+
+
+
 
 		#region Event firers
 		private void onDownloadFailure(IDownloadItem DownloadItem) 
 		{
+			lock (this._failedDownloads)
+			{
+				this._failedDownloads.Enqueue(DownloadItem);
+			}
 			DownloadItemEventHandler df = null;
 			if (this.DownloadFailure != null)
 				lock (this.DownloadFailure)
@@ -287,6 +361,29 @@ namespace Demoder.Common.Net
 			if (ds != null)
 				ds(DownloadItem);
 		}
+		#endregion
+
+		#region IDisposable Members
+
+		void IDisposable.Dispose()
+		{
+			if (!this._disposed)
+			{
+				this._disposed = true;
+				foreach (List<Downloader> ldl in this._connections.Values)
+					foreach (Downloader dl in ldl)
+						((IDisposable)dl).Dispose();
+				this._connections = null;
+				this._eventQueueProcesserMRE = null;
+				this._eventQueueProcesserThread = null;
+				this._failedDownloads = null;
+				this._successfullDownloads = null;
+				this.DownloadFailure = null;
+				this.DownloadSuccess = null;
+				GC.SuppressFinalize(this);
+			}
+		}
+
 		#endregion
 	}
 }

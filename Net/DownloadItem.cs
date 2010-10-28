@@ -161,11 +161,6 @@ namespace Demoder.Common.Net
 				return this._bytes;
 			}
 		}
-		private void storeBytes(byte[] Bytes)
-		{
-			this._bytes = Bytes;
-			this._downloadedMD5 = MD5Checksum.Generate(Bytes);
-		}
 		public FileInfo SaveAs { get { return this._saveAs; } }
 
 		/// <summary>
@@ -224,7 +219,15 @@ namespace Demoder.Common.Net
 		}
 		#endregion
 
-		#region Methods
+		#region Private Methods
+		private void storeBytes(byte[] Bytes)
+		{
+			this._bytes = Bytes;
+			this._downloadedMD5 = MD5Checksum.Generate(Bytes);
+		}
+		#endregion
+
+		#region Public Methods
 		/// <summary>
 		/// This method will call the DownloadSuccessDelegate.
 		/// </summary>
@@ -282,7 +285,7 @@ namespace Demoder.Common.Net
 		{
 			this._downloadMre.WaitOne();
 		}
-		#endregion
+		#endregion Public Methods
 
 		#region Overrides
 		public override string ToString()

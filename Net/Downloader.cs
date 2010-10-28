@@ -34,7 +34,7 @@ namespace Demoder.Common.Net
 	/// <summary>
 	/// Establishes a connection to a webserver, and maintains it for a period. Uses keep-alive to allow download of multiple items using the same connection.
 	/// </summary>
-	public class Downloader
+	public class Downloader : IDisposable
 	{
 		#region members
 		/// <summary>
@@ -64,7 +64,7 @@ namespace Demoder.Common.Net
 		//Threading
 		private Thread _queueManager;
 		private ManualResetEvent _queueManagerMRE = new ManualResetEvent(false);
-		private volatile bool _running;
+		private volatile bool _disposed;
 
 		/// <summary>
 		/// Set this to something else than null to enable slave mode.
@@ -80,7 +80,7 @@ namespace Demoder.Common.Net
 		{
 			get
 			{
-				if (this._running)
+				if (this._disposed)
 					return false;
 				else
 					return true;
@@ -120,7 +120,7 @@ namespace Demoder.Common.Net
 			this._queueManager.Name = "Queue Manager: "+this.ToString();
 			this._queueManager.Priority = ThreadPriority.Lowest;
 			this._queueManager.Start();
-			this._running = true;
+			this._disposed = false;
 			
 		}
 		#endregion
@@ -131,7 +131,8 @@ namespace Demoder.Common.Net
 			if (DownloadItem.Mirror.Host.ToLower() != this._hostName)
 				throw new ArgumentException("This downloader may only retrieve data from the hostname " + this._hostName, "URI");
 			//insert code to download here...
-			this._downloadQueue.Enqueue(DownloadItem);
+			lock (this._downloadQueue)
+				this._downloadQueue.Enqueue(DownloadItem);
 			this._queueManagerMRE.Set();
 		}
 
@@ -141,14 +142,16 @@ namespace Demoder.Common.Net
 		/// <returns></returns>
 		public IDownloadItem[] Stop()
 		{
-			this._running = false;
+			this._disposed = true;
+			IDownloadItem[] ldi;
 			lock (this._downloadQueue)
 			{
-				IDownloadItem[] ldi = this._downloadQueue.ToArray();
+				ldi = this._downloadQueue.ToArray();
 				this._downloadQueue.Clear();
 				this._queueManagerMRE.Set();
-				return ldi;
 			}
+			((IDisposable)this).Dispose();
+			return ldi;
 			
 		}
 
@@ -166,7 +169,7 @@ namespace Demoder.Common.Net
 		#region Queue handler
 		private void queueHandler()
 		{
-			while (this._running)
+			while (!this._disposed)
 			{
 				//Get item.
 				IDownloadItem di;
@@ -198,7 +201,10 @@ namespace Demoder.Common.Net
 			try
 			{
 				if (DownloadItem.SaveAs != null)
+				{
 					this._webClient.DownloadFile(DownloadItem.Mirror, DownloadItem.SaveAs.FullName);
+					DownloadItem.SuccessfullDownload(File.ReadAllBytes(DownloadItem.SaveAs.FullName));
+				}
 				else
 					DownloadItem.SuccessfullDownload(this._webClient.DownloadData(DownloadItem.Mirror));
 			}
@@ -224,6 +230,29 @@ namespace Demoder.Common.Net
 				this._ipEndPoint.Port,
 				this._hostName);
 		}
+		#endregion
+
+		#region IDisposable Members
+
+		void IDisposable.Dispose()
+		{
+			if (!this._disposed)
+			{
+				this._disposed = true;
+				this._queueManager.Join();
+				this._queueManager = null;
+				this._downloadQueue = null;
+				this._failedDownloads = 0;
+				this._hostName = null;
+				this._ipEndPoint = null;
+				this._queueManagerMRE = null;
+				this._userAgent = null;
+				this._webClient.Dispose();
+				this._webClient = null;
+				GC.SuppressFinalize(this);
+			}
+		}
+
 		#endregion
 	}
 }
