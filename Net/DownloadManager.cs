@@ -129,12 +129,15 @@ namespace Demoder.Common.Net
 		/// <summary>
 		/// Download data from the provided DownloadItem
 		/// </summary>
-		/// <param name="DownloadItem"></param>
+		/// <param name="DownloadItem">Time to wait in milliseconds. int.MaxValue for infinite.</param>
 		/// <returns></returns>
 		public static byte[] GetBinaryData(IDownloadItem DownloadItem, int Timeout)
 		{
 			DownloadManager.StaticDLM.Download(DownloadItem);
-			DownloadItem.Wait(Timeout);
+			if (Timeout == int.MaxValue)
+				DownloadItem.Wait();
+			else
+				DownloadItem.Wait(Timeout);
 			return DownloadItem.Data;
 		}
 		#endregion
