@@ -97,17 +97,77 @@ namespace Demoder.Common.Hash
 		{
 			return this.String;
 		}
-		
+
 		#region static operators
-		public static bool operator ==(SHA1Checksum CS1, SHA1Checksum CS2)
+		public static bool operator ==(SHA1Checksum CS1, MD5Checksum CS2)
 		{
+			//Check for null.
+			bool cs1_isnull = false;
+			try
+			{
+				CS1.ToString();
+			}
+			catch (NullReferenceException ex)
+			{
+				cs1_isnull = true;
+			}
+			catch (Exception ex) { }
+
+			bool cs2_isnull = false;
+			try
+			{
+				CS2.ToString();
+			}
+			catch (NullReferenceException ex)
+			{
+				cs2_isnull = true;
+			}
+			catch (Exception ex) { }
+
+			if (cs1_isnull == true && cs2_isnull == true)
+				return true;
+			if (cs1_isnull == true && cs2_isnull == false)
+				return false;
+			if (cs1_isnull == false && cs2_isnull == true)
+				return false;
+			//Done checking null
 			if (CS1.Bytes.Equals(CS2.Bytes))
 				return true;
 			else
 				return false;
 		}
-		public static bool operator !=(SHA1Checksum CS1, SHA1Checksum CS2)
+		public static bool operator !=(SHA1Checksum CS1, MD5Checksum CS2)
 		{
+			//Check for null.
+			bool cs1_isnull = false;
+			try
+			{
+				CS1.ToString();
+			}
+			catch (NullReferenceException ex)
+			{
+				cs1_isnull = true;
+			}
+			catch (Exception ex) { }
+
+			bool cs2_isnull = false;
+			try
+			{
+				CS2.ToString();
+			}
+			catch (NullReferenceException ex)
+			{
+				cs2_isnull = true;
+			}
+			catch (Exception ex) { }
+
+			if (cs1_isnull == true && cs2_isnull == true)
+				return true;
+			if (cs1_isnull == true && cs2_isnull == false)
+				return false;
+			if (cs1_isnull == false && cs2_isnull == true)
+				return false;
+			//Done checking null
 			if (!CS1.Bytes.Equals(CS2.Bytes))
 				return true;
 			else

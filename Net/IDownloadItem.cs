@@ -85,6 +85,15 @@ namespace Demoder.Common.Net
 		/// <param name="CycleMirror">Should the current mirror be marked as failed?</param>
 		/// <returns>true if we have more mirrors in queue, false otherwise</returns>
 		bool FailedDownload(bool FailMirror);
+		/// <summary>
+		/// Wait for the download to finish
+		/// </summary>
+		void Wait();
+		/// <summary>
+		/// Wait for the download to finish
+		/// </summary>
+		/// <param name="timeout">Timeout in milliseconds.</param>
+		void Wait(int timeout);
 		#endregion
 	}
 }

@@ -109,9 +109,6 @@ namespace Demoder.Common.Net
 			DownloadItemEventHandler DownloadFailureDelegate,
 			MD5Checksum ExpectedMD5)
 		{
-			if (ExpectedMD5 == null)
-				throw new ArgumentNullException("ExpectedMD5", "Parameter cannot be null. Use string.Empty instead.");
-
 			this._tag = Tag;
 			this._mirrors = new Queue<Uri>(Mirrors);
 			this._failedMirrors = new List<Uri>(this._mirrors.Count);
@@ -145,11 +142,11 @@ namespace Demoder.Common.Net
 		/// <summary>
 		/// Retrieves the datas actual MD5 checksum
 		/// </summary>
-		MD5Checksum MD5 { get { return this._downloadedMD5; } }
+		public MD5Checksum MD5 { get { return this._downloadedMD5; } }
 		/// <summary>
 		/// Retrieves the wanted MD5 checksum
 		/// </summary>
-		MD5Checksum WantedMD5 { get { return this._expectedMD5; } }
+		public MD5Checksum WantedMD5 { get { return this._expectedMD5; } }
 
 		/// <summary>
 		/// The downloaded data
@@ -248,11 +245,10 @@ namespace Demoder.Common.Net
 				this.storeBytes(Bytes);
 				if (this.IntegrityOK)
 				{
-					DownloadItemEventHandler dieh;
-					lock (this._downloadSuccessDelegate)
-						dieh = this._downloadSuccessDelegate;
-					if (dieh != null)
-						dieh(this);
+					if (this._downloadSuccessDelegate != null)
+						lock (this._downloadSuccessDelegate)
+							this._downloadSuccessDelegate(this);
+					this._downloadMre.Set();
 				}
 				return (this.IntegrityOK);
 			}
@@ -294,6 +290,14 @@ namespace Demoder.Common.Net
 		public void Wait()
 		{
 			this._downloadMre.WaitOne();
+		}
+		/// <summary>
+		/// Wait for download to finish.
+		/// </summary>
+		/// <param name="Timeout">Timeout in milliseconds</param>
+		public void Wait(int Timeout)
+		{
+			this._downloadMre.WaitOne(Timeout);
 		}
 		#endregion Public Methods
 
