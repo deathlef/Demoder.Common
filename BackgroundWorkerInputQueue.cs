@@ -98,9 +98,10 @@ namespace Demoder.Common
 				{
 					this._bgwMRE.Reset();
 					//Signal that the queue is empty.
-					if (this.QueueEmpty != null)
-						lock (this.QueueEmpty)
-							this.QueueEmpty(this, new EventArgs());
+					EventHandler eh = this.QueueEmpty;
+					if (eh != null)
+						lock (eh)
+							eh(this, new EventArgs());
 
 					this._bgwMRE.WaitOne(); //Wait till we get signaled.
 					continue;
@@ -124,9 +125,10 @@ namespace Demoder.Common
 		/// <param name="e"></param>
 		private void worker_WorkCompleted(object Sender, RunWorkerCompletedEventArgs E)
 		{
-			if (this.WorkComplete != null)
-				lock (this.WorkComplete)
-					this.WorkComplete(Sender, E);
+			RunWorkerCompletedEventHandler rwceh = this.WorkComplete;
+			if (rwceh != null)
+				lock (rwceh)
+					rwceh(Sender, E);
 			//Start the worker again.
 			if (!E.Cancelled)
 				this.BackgroundWorker.RunWorkerAsync();

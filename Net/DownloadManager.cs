@@ -351,7 +351,7 @@ namespace Demoder.Common.Net
 					if (diehFail != null)
 						foreach (IDownloadItem idi in failedDownloads)
 							lock (diehFail)
-								this.DownloadFailure(idi);
+								diehFail(idi);
 				}
 				
 				//Trigger failure event handler.
@@ -361,7 +361,7 @@ namespace Demoder.Common.Net
 					if (diehSuccess != null)
 						foreach (IDownloadItem idi in successDownloads)
 							lock (diehSuccess)
-								this.DownloadSuccess(idi);
+								diehSuccess(idi);
 				}
 
 			}
@@ -389,13 +389,10 @@ namespace Demoder.Common.Net
 
 		private void onDownloadSuccess(IDownloadItem DownloadItem)
 		{
-			DownloadItemEventHandler ds = null;
-			if (this.DownloadSuccess != null)
-				lock (this.DownloadSuccess)
-					ds = this.DownloadSuccess;
-
+			DownloadItemEventHandler ds = this.DownloadSuccess;
 			if (ds != null)
-				ds(DownloadItem);
+				lock (ds)
+					ds(DownloadItem);
 		}
 		#endregion
 
