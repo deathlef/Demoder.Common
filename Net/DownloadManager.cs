@@ -55,6 +55,8 @@ namespace Demoder.Common.Net
 		/// </summary>
 		public string UserAgent = "Demoder.Common DownloadManager";
 
+		private WebProxy _proxySettings;
+
 		/// <summary>
 		/// Queue with successfull downloads to fire
 		/// </summary>
@@ -81,8 +83,18 @@ namespace Demoder.Common.Net
 		#endregion
 
 		#region constructors
-		public DownloadManager()
+		/// <summary>
+		/// Initializes the DownloadManager, not using a proxy
+		/// </summary>
+		public DownloadManager() : this(null) { }
+
+		/// <summary>
+		/// Initializes the DownloadManager, telling it to use a proxy.
+		/// </summary>
+		/// <param name="ProxySettings"></param>
+		public DownloadManager(WebProxy ProxySettings)
 		{
+			this._proxySettings=ProxySettings;
 			this._connections = new Dictionary<string, List<Downloader>>(32);
 			this._eventQueueProcesserThread = new Thread(new ThreadStart(this.eventQueueProcesser));
 			this._eventQueueProcesserThread.IsBackground = true;
@@ -183,10 +195,16 @@ namespace Demoder.Common.Net
 		/// <param name="Key"></param>
 		private void createDownloaders(Uri Uri, string Key)
 		{
+			
+			IPAddress[] ips;
 			// DNS lookup
-			IPAddress[] ips = Dns.GetHostAddresses(Uri.Host);
+			if (this._proxySettings==null || this._proxySettings.IsBypassed(Uri)) 
+				ips = Dns.GetHostAddresses(Uri.Host); //Not using proxy
+			else
+				ips = Dns.GetHostAddresses(this._proxySettings.Address.Host); //Using proxy
+
 			// Spawn 3 downloaders per IP
-			List<Downloader> downloaders = new List<Downloader>(this._clMaxPerIp);
+			List<Downloader> downloaders = new List<Downloader>((int)Math.Round(((double)this._clMaxPerIp * (double)ips.Length), 0));
 			// Mix the destination IPs throughout the list for better load balancing.
 			for (int i = 0; i < this._clMaxPerIp; i++)
 			{
@@ -197,7 +215,6 @@ namespace Demoder.Common.Net
 					downloaders.Add(downloader);
 				}
 			}
-
 			lock (this._connections)
 				if (!this._connections.ContainsKey(Key))
 					this._connections.Add(Key, downloaders);

@@ -141,6 +141,16 @@ namespace Demoder.Common.Net
 				return false; //All other scenarios, download integrity is not ok.
 			}
 		}
+
+		/// <summary>
+		/// Retrieves the datas actual MD5 checksum
+		/// </summary>
+		MD5Checksum MD5 { get { return this._downloadedMD5; } }
+		/// <summary>
+		/// Retrieves the wanted MD5 checksum
+		/// </summary>
+		MD5Checksum WantedMD5 { get { return this._expectedMD5; } }
+
 		/// <summary>
 		/// The downloaded data
 		/// </summary>

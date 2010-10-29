@@ -25,6 +25,8 @@ using System.IO;
 using System.Collections.Generic;
 using System.Text;
 
+using Demoder.Common.Hash;
+
 namespace Demoder.Common.Net
 {
 	public interface IDownloadItem
@@ -34,6 +36,14 @@ namespace Demoder.Common.Net
 		/// Is the downloaded data as expected?
 		/// </summary>
 		bool IntegrityOK { get; }
+		/// <summary>
+		/// Retrieves the datas actual MD5 checksum
+		/// </summary>
+		MD5Checksum MD5 { get; }
+		/// <summary>
+		/// Retrieves the wanted MD5 checksum
+		/// </summary>
+		MD5Checksum WantedMD5 { get; }
 		/// <summary>
 		/// Get the downloaded bytes
 		/// </summary>
