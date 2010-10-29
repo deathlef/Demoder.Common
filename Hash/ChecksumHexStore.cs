@@ -154,21 +154,82 @@ namespace Demoder.Common.Hash
 		#endregion
 
 		#region Operators
-		public static bool operator ==(ChecksumHexStore template1, ChecksumHexStore template2)
+		#region static operators
+		public static bool operator ==(ChecksumHexStore CS1, ChecksumHexStore CS2)
 		{
-			if (template1.Bytes.Equals(template2.Bytes))
-				return true;
-			else
-				return false;
-		}
+			//Check for null.
+			bool cs1_isnull = false;
+			try
+			{
+				CS1.ToString();
+			}
+			catch (NullReferenceException ex)
+			{
+				cs1_isnull = true;
+			}
+			catch (Exception ex) { }
 
-		public static bool operator !=(ChecksumHexStore template1, ChecksumHexStore template2)
-		{
-			if (!template1.Bytes.Equals(template2.Bytes))
+			bool cs2_isnull = false;
+			try
+			{
+				CS2.ToString();
+			}
+			catch (NullReferenceException ex)
+			{
+				cs2_isnull = true;
+			}
+			catch (Exception ex) { }
+
+			if (cs1_isnull == true && cs2_isnull == true)
+				return true;
+			if (cs1_isnull == true && cs2_isnull == false)
+				return false;
+			if (cs1_isnull == false && cs2_isnull == true)
+				return false;
+			//Done checking null
+			if (CS1.Bytes.Equals(CS2.Bytes))
 				return true;
 			else
 				return false;
 		}
+		public static bool operator !=(ChecksumHexStore CS1, ChecksumHexStore CS2)
+		{
+			//Check for null.
+			bool cs1_isnull = false;
+			try
+			{
+				CS1.ToString();
+			}
+			catch (NullReferenceException ex)
+			{
+				cs1_isnull = true;
+			}
+			catch (Exception ex) { }
+
+			bool cs2_isnull = false;
+			try
+			{
+				CS2.ToString();
+			}
+			catch (NullReferenceException ex)
+			{
+				cs2_isnull = true;
+			}
+			catch (Exception ex) { }
+
+			if (cs1_isnull == true && cs2_isnull == true)
+				return true;
+			if (cs1_isnull == true && cs2_isnull == false)
+				return false;
+			if (cs1_isnull == false && cs2_isnull == true)
+				return false;
+			//Done checking null
+			if (!CS1.Bytes.Equals(CS2.Bytes))
+				return true;
+			else
+				return false;
+		}
+		#endregion
 		#endregion
 
 		#region IEquatable<ICheckSum> Members

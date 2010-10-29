@@ -115,11 +115,27 @@ namespace Demoder.Common.Net
 		#endregion
 
 		#region Public static methods
-		//These need to be knit into the DLM as a whole, somehow.
-		public static byte[] GetBinaryData(Uri Uri)
+		/// <summary>
+		/// Download a single Uri
+		/// </summary>
+		/// <param name="Uri">Uri to download</param>
+		/// <param name="Timeout">Timeout in milliseconds</param>
+		/// <returns></returns>
+		public static byte[] GetBinaryData(Uri Uri, int Timeout)
 		{
-			WebClient wc = new WebClient();
-			return wc.DownloadData(Uri);
+			DownloadItem di = new DownloadItem(null, Uri, null, null);
+			return GetBinaryData(di, Timeout);
+		}
+		/// <summary>
+		/// Download data from the provided DownloadItem
+		/// </summary>
+		/// <param name="DownloadItem"></param>
+		/// <returns></returns>
+		public static byte[] GetBinaryData(IDownloadItem DownloadItem, int Timeout)
+		{
+			DownloadManager.StaticDLM.Download(DownloadItem);
+			DownloadItem.Wait(Timeout);
+			return DownloadItem.Data;
 		}
 		#endregion
 
