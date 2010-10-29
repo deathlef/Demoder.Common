@@ -300,9 +300,7 @@ namespace Demoder.Common.Serialization
 				try
 				{
 					DownloadItem di = new DownloadItem(null, Uris, null, null);
-					DownloadManager.StaticDLM.Download(di);
-					di.Wait();
-					return Deserialize(T, new MemoryStream(di.Data), true);
+					return Deserialize(T, new MemoryStream(DownloadManager.GetBinaryData(di, int.MaxValue)), true);
 				}
 				catch
 				{
