@@ -105,12 +105,21 @@ namespace Demoder.Common.Net
 
 		#region Public Methods
 		/// <summary>
-		/// Download a single URI
+		/// Add a single item to the download queue
 		/// </summary>
 		/// <param name="DownloadItem"></param>
 		public void Download(IDownloadItem DownloadItem)
 		{
 				this.addItemToQueue(DownloadItem);
+		}
+		/// <summary>
+		/// Add multiple items to the download queue
+		/// </summary>
+		/// <param name="DownloadItems"></param>
+		public void Download(IEnumerable<IDownloadItem> DownloadItems)
+		{
+			foreach (IDownloadItem idi in DownloadItems)
+				this.addItemToQueue(idi);
 		}
 		#endregion
 
@@ -197,8 +206,10 @@ namespace Demoder.Common.Net
 					//Cycle mirror.
 					DownloadItem.FailedDownload(true);
 					//If there's a mirror
-					if (DownloadItem.Mirror!=null)
+					if (DownloadItem.Mirror != null)
 						this.addItemToQueue(DownloadItem);
+					else //Add the item to the failure queue
+						this.onDownloadFailure(DownloadItem);
 				}
 				else
 				{
