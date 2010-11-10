@@ -31,14 +31,14 @@ namespace Demoder.Common.Hash
 	/// <summary>
 	/// Represents a single SHA1 checksum
 	/// </summary>
-	public class SHA1Checksum : ICheckSum, IEquatable<ICheckSum>
+	public class SHA1Checksum : ICheckSum
 	{
 		#region Members
 		private ICheckSum _checkSumStore;
 		#endregion
 		#region Constructors
 		public SHA1Checksum(byte[] Bytes) : this() { this._checkSumStore = new ChecksumHexStore(Bytes); }
-		public SHA1Checksum(string Hex) : this() { this._checkSumStore = new ChecksumHexStore(String); }
+		public SHA1Checksum(string Hex) : this() { this._checkSumStore = new ChecksumHexStore(Hex); }
 		public SHA1Checksum() { this._checkSumStore = null; }
 		#endregion
 		#region Interfaces
@@ -83,9 +83,15 @@ namespace Demoder.Common.Hash
 		}
 		#endregion
 		#region IEquatable<ICheckSum> Members
-		public bool Equals(ICheckSum Other)
+		public override bool Equals(object Other)
 		{
-			if (this.Bytes.Equals(Other.Bytes))
+			ICheckSum other;
+			try
+			{
+				other = (ICheckSum)Other;
+			}
+			catch { return false; }
+			if (this.String == other.String)
 				return true;
 			else
 				return false;
