@@ -48,7 +48,7 @@ namespace Demoder.Common.Net
 		/// <summary>
 		/// Max connections per IP
 		/// </summary>
-		private int _clMaxPerIp = 1;
+		private int _clMaxPerIp = 3;
 
 		/// <summary>
 		/// UserAgent reported to remote web server.
