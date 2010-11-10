@@ -314,9 +314,10 @@ namespace Demoder.Common.Net
 				mirrors.Add(uri.ToString());
 			foreach (Uri uri in this._failedMirrors)
 				mirrors.Add(uri.ToString());
-			return String.Format("bytes: {0}, md5: {1}, mirrors: {2}",
+			return String.Format("bytes: {0}, md5: {1} / {2}, mirrors: {3}",
 				bytecount,
 				this._downloadedMD5,
+				this._expectedMD5,
 				string.Join(", ", mirrors.ToArray()));
 		}
 		#endregion

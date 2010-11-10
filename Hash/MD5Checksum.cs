@@ -33,14 +33,14 @@ namespace Demoder.Common.Hash
 	/// <summary>
 	/// Represents a single MD5 Checksum
 	/// </summary>
-	public class MD5Checksum : ICheckSum, IEquatable<ICheckSum>
+	public class MD5Checksum : ICheckSum
 	{
 		#region Members
 		private ICheckSum _checkSumStore;
 		#endregion
 		#region Constructors
 		public MD5Checksum(byte[] Bytes) : this() { this._checkSumStore = new ChecksumHexStore(Bytes); }
-		public MD5Checksum(string Hex) : this() { this._checkSumStore = new ChecksumHexStore(String); }
+		public MD5Checksum(string Hex) : this() { this._checkSumStore = new ChecksumHexStore(Hex); }
 		public MD5Checksum() { this._checkSumStore = null; }
 		#endregion
 		#region Interfaces
@@ -85,12 +85,22 @@ namespace Demoder.Common.Hash
 		}
 		#endregion
 		#region IEquatable<ICheckSum> Members
-		public bool Equals(ICheckSum Other)
+		public override bool Equals(object Other)
 		{
-			if (this.Bytes.Equals(Other.Bytes))
+			ICheckSum other;
+			try
+			{
+				other = (ICheckSum)Other;
+			}
+			catch { return false; }
+			if (this.String == other.String)
 				return true;
 			else
 				return false;
+		}
+		public override int GetHashCode()
+		{
+			return this.String.GetHashCode();
 		}
 		#endregion
 		#endregion Interfaces
@@ -133,7 +143,7 @@ namespace Demoder.Common.Hash
 			if (cs1_isnull == false && cs2_isnull == true)
 				return false;
 			//Done checking null
-			if (CS1.Bytes.Equals(CS2.Bytes))
+			if (CS1.String == CS2.String)
 				return true;
 			else
 				return false;
@@ -164,13 +174,13 @@ namespace Demoder.Common.Hash
 			catch (Exception ex) { }
 
 			if (cs1_isnull == true && cs2_isnull == true)
-				return true;
+				return false;
 			if (cs1_isnull == true && cs2_isnull == false)
-				return false;
+				return true;
 			if (cs1_isnull == false && cs2_isnull == true)
-				return false;
+				return true;
 			//Done checking null
-			if (!CS1.Bytes.Equals(CS2.Bytes))
+			if (CS1.String != CS2.String)
 				return true;
 			else
 				return false;

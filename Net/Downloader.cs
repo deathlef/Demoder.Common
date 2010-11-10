@@ -80,10 +80,7 @@ namespace Demoder.Common.Net
 		{
 			get
 			{
-				if (this._disposed)
-					return false;
-				else
-					return true;
+				return this._disposed;
 			}
 		}
 
