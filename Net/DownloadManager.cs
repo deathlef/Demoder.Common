@@ -48,7 +48,7 @@ namespace Demoder.Common.Net
 		/// <summary>
 		/// Max connections per IP
 		/// </summary>
-		private int _clMaxPerIp = 3;
+		private int _clMaxPerIp = 6;
 
 		/// <summary>
 		/// UserAgent reported to remote web server.
@@ -429,5 +429,10 @@ namespace Demoder.Common.Net
 		}
 
 		#endregion
+
+		public override string ToString()
+		{
+			return "DownloadManager";
+		}
 	}
 }
