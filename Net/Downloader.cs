@@ -206,7 +206,10 @@ namespace Demoder.Common.Net
 					DownloadItem.SuccessfullDownload(File.ReadAllBytes(DownloadItem.SaveAs.FullName));
 				}
 				else
-					DownloadItem.SuccessfullDownload(this._webClient.DownloadData(DownloadItem.Mirror));
+				{
+					byte[] bytes = this._webClient.DownloadData(DownloadItem.Mirror);
+					DownloadItem.SuccessfullDownload(bytes);
+				}
 			}
 			catch (Exception ex)
 			{

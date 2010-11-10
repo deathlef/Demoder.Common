@@ -126,10 +126,10 @@ namespace Demoder.Common.Net
 		{
 			get
 			{
+				if (this._bytes == null)
+					return false;
 				lock (this._downloadedMD5)
 				{
-					if (this._bytes == null) //Don't have data. Assume the download failed.
-						return false;
 					if (this._expectedMD5==null) //Since we have data, and no expected MD5, assume the download manager verified the server-reported MD5.
 						return true;
 					if (this._expectedMD5 == this._downloadedMD5) //Integrity ok
@@ -278,6 +278,7 @@ namespace Demoder.Common.Net
 							dieh = this._downloadFailureDelegate;
 					if (dieh != null)
 						dieh(this);
+					this._downloadMre.Set();
 					return false;
 				}
 			}
