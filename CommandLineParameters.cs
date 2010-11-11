@@ -39,12 +39,29 @@ namespace Demoder.Common
 		/// <param name="args"></param>
 		public CommandLineParameters(string[] Args)
 		{
-			Regex rx_flags = new Regex("[^-]-([\\w]*)"); // -flag_to_set
-			Regex rx_args = new Regex("--([\\w]*)=\"([^\"]+)\""); //--setting="value"
-            Regex rx_longflags = new Regex("--([\\w]*)[^=]"); //--setting
+			string args = " " + string.Join(" ", Args) + " ";
+			//OK
+			Regex rx_longflags = new Regex("[\\s]+[-]{2}([^-][^=\\s]+)[\\s]+"); //--setting
+			Regex rx_flags = new Regex("[\\s]+[-]{1}([^-][\\S]+)[\\s]+"); // -flag_to_set
+			Regex rx_args = new Regex("[\\s]+[-]{2}([\\S^=]+)=\"([^\"]+)\""); //--setting="value"
 
 			
-			Match mc = rx_flags.Match(" "+string.Join(" ", Args));
+			Match mc;
+			//Look for arguments
+			mc = rx_args.Match(args);
+			do
+			{
+				string arg = mc.Groups[1].Value;
+				if (String.IsNullOrEmpty(arg))
+					continue;
+				string val = mc.Groups[2].Value;
+				if (!this._arguments.ContainsKey(arg))
+					this._arguments.Add(arg, val);
+				mc = mc.NextMatch();
+			} while (mc.Success);
+
+			//Look for flags
+			mc = rx_flags.Match(args);
 			do
 			{
 				string flag = mc.Groups[1].Value;
@@ -57,22 +74,12 @@ namespace Demoder.Common
 				}
 				mc = mc.NextMatch();
 			} while (mc.Success);
-
-			mc = rx_args.Match(string.Join(" ", Args));
-			do
-			{
-				string arg = mc.Groups[1].Value;
-				string val = mc.Groups[2].Value;
-				if (!this._arguments.ContainsKey(arg))
-					this._arguments.Add(arg, val);
-				mc = mc.NextMatch();
-			} while (mc.Success);
-
-            mc = rx_longflags.Match(string.Join(" ", Args));
+			
+			//Look for longflags
+            mc = rx_longflags.Match(args);
             do
             {
                 string flag = mc.Groups[1].Value;
-                string val = mc.Groups[2].Value;
                 if (!this._longflags.ContainsKey(flag))
                     this._longflags.Add(flag, 1);
                 else
