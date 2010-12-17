@@ -1,6 +1,6 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual C# Express 2008
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual C# Express 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Demoder.Common", "Demoder.Common.csproj", "{AC7BB3A1-A0E3-4931-9661-2BA4DB418B6F}"
 EndProject
 Global
