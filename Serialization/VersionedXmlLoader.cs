@@ -188,13 +188,9 @@ namespace Demoder.Common.Serialization
 		#endregion Static Methods
 
 		#region Internal
-		[XmlIgnore]
 		private string _name;
-		[XmlIgnore]
 		private int _version;
-		[XmlIgnore]
 		private bool _canUpgrade;
-		[XmlIgnore]
 		private Type _type;
 
 		protected VersionedXmlLoader(string name, int version, bool canUpgrade, Type type)
