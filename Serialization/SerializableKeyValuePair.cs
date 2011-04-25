@@ -27,97 +27,100 @@ using System.Xml.Serialization;
 
 namespace Demoder.Common.Serialization
 {
-	public class SerializableKeyValuePair<TKey, TValue>
-	{
-		#region Members
-		private TKey _key;
-		private TValue _value;
-		#endregion
+    public class SerializableKeyValuePair<TKey, TValue>
+    {
+        #region Members
+        private TKey _key;
+        private TValue _value;
+        #endregion
 
-		#region Public accessors
-		public TKey Key
-		{
-			get { return this._key; }
-			set
-			{
-				lock (this)
-					this._key = value;
-			}
-		}
-		public TValue Value { 
-			get { return this._value; }
-			set {
-				lock (this)
-					this._value = value;
-			}
-		}
-		#endregion
+        #region Public accessors
+        public TKey Key
+        {
+            get { return this._key; }
+            set
+            {
+                lock (this)
+                    this._key = value;
+            }
+        }
+        public TValue Value
+        {
+            get { return this._value; }
+            set
+            {
+                lock (this)
+                    this._value = value;
+            }
+        }
+        #endregion
 
-		public SerializableKeyValuePair() 
-		{
-			try
-			{
-				XmlSerializer serializer = new XmlSerializer(typeof(TKey));
-			}
-			catch
-			{
-				throw new ArgumentException("Key type is not serializable");
-			}
+        public SerializableKeyValuePair()
+        {
+            try
+            {
+                XmlSerializer serializer = new XmlSerializer(typeof(TKey));
+            }
+            catch
+            {
+                throw new ArgumentException("Key type is not serializable");
+            }
 
-			try
-			{
-				XmlSerializer serializer = new XmlSerializer(typeof(TValue));
-			}
-			catch
-			{
-				throw new ArgumentException("Value type is not serializable");
-			}
-		}
-		public SerializableKeyValuePair(TKey Key, TValue Value) : this()
-		{ 
-			KeyValuePair<string,string>test = new KeyValuePair<string,string>();
-			this._key = Key; 
-			this._value = Value; 
-		}
-		public override string ToString()
-		{
-			return String.Format("[{0}, {1}]", this._key, this._value);
-		}
+            try
+            {
+                XmlSerializer serializer = new XmlSerializer(typeof(TValue));
+            }
+            catch
+            {
+                throw new ArgumentException("Value type is not serializable");
+            }
+        }
+        public SerializableKeyValuePair(TKey Key, TValue Value)
+            : this()
+        {
+            KeyValuePair<string, string> test = new KeyValuePair<string, string>();
+            this._key = Key;
+            this._value = Value;
+        }
+        public override string ToString()
+        {
+            return String.Format("[{0}, {1}]", this._key, this._value);
+        }
 
-		#region Operators
-		public static bool operator ==(SerializableKeyValuePair<TKey, TValue> SKVP1, SerializableKeyValuePair<TKey,TValue> SKVP2)
-		{
-			if (!SKVP1.Key.Equals(SKVP2.Key))
-				return false;
-			if (!SKVP1.Value.Equals(SKVP2.Value))
-				return false;
-			return true;
-		}
+        #region Operators
+        public static bool operator ==(SerializableKeyValuePair<TKey, TValue> SKVP1, SerializableKeyValuePair<TKey, TValue> SKVP2)
+        {
+            if (!SKVP1.Key.Equals(SKVP2.Key))
+                return false;
+            if (!SKVP1.Value.Equals(SKVP2.Value))
+                return false;
+            return true;
+        }
 
-		public static bool operator !=(SerializableKeyValuePair<TKey, TValue> SKVP1, SerializableKeyValuePair<TKey, TValue> SKVP2)
-		{
-			if (SKVP1.Key.Equals(SKVP2.Key))
-				return false;
-			if (SKVP1.Value.Equals(SKVP2.Value))
-				return false;
-			return true;
-		}
-		#endregion
-		public bool Equals(SerializableKeyValuePair<TKey, TValue> obj)
-		{
-			if (!this._key.Equals(obj.Key))
-				return false;
-			if (!this._value.Equals(obj.Value))
-				return false;
-			return true;
-		}
-		public bool Equals(KeyValuePair<TKey, TValue> obj)
-		{
-			if (!this._key.Equals(obj.Key))
-				return false;
-			if (!this._value.Equals(obj.Value))
-				return false;
-			return true;
-		}
-	}
+        public static bool operator !=(SerializableKeyValuePair<TKey, TValue> SKVP1, SerializableKeyValuePair<TKey, TValue> SKVP2)
+        {
+            if (SKVP1.Key.Equals(SKVP2.Key))
+                return false;
+            if (SKVP1.Value.Equals(SKVP2.Value))
+                return false;
+            return true;
+        }
+        #endregion
+        public bool Equals(SerializableKeyValuePair<TKey, TValue> obj)
+        {
+            if (!this._key.Equals(obj.Key))
+                return false;
+            if (!this._value.Equals(obj.Value))
+                return false;
+            return true;
+        }
+        public bool Equals(KeyValuePair<TKey, TValue> obj)
+        {
+            if (!this._key.Equals(obj.Key))
+                return false;
+            if (!this._value.Equals(obj.Value))
+                return false;
+            return true;
+        }
+    }
 }

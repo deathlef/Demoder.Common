@@ -27,17 +27,17 @@ using System.Text.RegularExpressions;
 
 namespace Demoder.Common
 {
-	public class FormatString
-	{
-		#region members
-		private Dictionary<string, object> _dictionary;
-		#endregion
+    public class FormatString
+    {
+        #region members
+        private Dictionary<string, object> _dictionary;
+        #endregion
 
-		#region constructors
-		/// <summary>
+        #region constructors
+        /// <summary>
         /// Initialize without any pre-defined parameters 
         /// </summary>
-        public FormatString() 
+        public FormatString()
         {
             this._dictionary = null;
         }
@@ -47,13 +47,13 @@ namespace Demoder.Common
         /// </summary>
         /// <param name="dict"></param>
         public FormatString(Dictionary<string, object> Dictionary)
-		{
-			this._dictionary = Dictionary;
-		}
-		#endregion
+        {
+            this._dictionary = Dictionary;
+        }
+        #endregion
 
-		#region methods
-		/// <summary>
+        #region methods
+        /// <summary>
         /// Format a string using the provided parameters
         /// </summary>
         /// <param name="ToFormat"></param>
@@ -75,8 +75,8 @@ namespace Demoder.Common
         /// </summary>
         /// <param name="ToFormat"></param>
         /// <returns>formatted string</returns>
-		public string Format(string ToFormat)
-		{
+        public string Format(string ToFormat)
+        {
             lock (this)
             {
                 if (this._dictionary == null)
@@ -86,36 +86,36 @@ namespace Demoder.Common
                 outstring = re.Replace(outstring, doFormatString);
                 return outstring;
             }
-		}
+        }
 
-		/// <summary>
-		/// Formats a string using the provided parameters
-		/// </summary>
-		/// <param name="ToFormat">String which needs formatting</param>
-		/// <param name="param">string[] { tag, value }</param>
-		/// <returns>formatted string</returns>
-		public string Format(string ToFormat, params KeyValuePair<string, object>[] Parameters)
-		{
-			Dictionary<string, object> dict = new Dictionary<string, object>();
-			foreach (KeyValuePair<string, object> kvp in Parameters)
-				if (!dict.ContainsKey(kvp.Key))
-					dict.Add(kvp.Key, kvp.Value);
-			return this.Format(ToFormat, dict);
-		}
-		
+        /// <summary>
+        /// Formats a string using the provided parameters
+        /// </summary>
+        /// <param name="ToFormat">String which needs formatting</param>
+        /// <param name="param">string[] { tag, value }</param>
+        /// <returns>formatted string</returns>
+        public string Format(string ToFormat, params KeyValuePair<string, object>[] Parameters)
+        {
+            Dictionary<string, object> dict = new Dictionary<string, object>();
+            foreach (KeyValuePair<string, object> kvp in Parameters)
+                if (!dict.ContainsKey(kvp.Key))
+                    dict.Add(kvp.Key, kvp.Value);
+            return this.Format(ToFormat, dict);
+        }
+
         /// <summary>
         /// Method used by the regex replace
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
         private string doFormatString(Match Input)
-		{
-			string matchkey = Input.Value.Substring(1, Input.Value.Length - 2).ToLower();
-			if (this._dictionary.ContainsKey(matchkey))
-				return this._dictionary[matchkey].ToString();
-			else
-				return string.Empty;
-		}
-		#endregion
-	}
+        {
+            string matchkey = Input.Value.Substring(1, Input.Value.Length - 2).ToLower();
+            if (this._dictionary.ContainsKey(matchkey))
+                return this._dictionary[matchkey].ToString();
+            else
+                return string.Empty;
+        }
+        #endregion
+    }
 }

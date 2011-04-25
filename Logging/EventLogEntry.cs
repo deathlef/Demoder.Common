@@ -26,85 +26,85 @@ using System.Text;
 
 namespace Demoder.Common.Logging
 {
-	/// <summary>
-	/// Represents an EventLog entry
-	/// </summary>
-	public class EventLogEntry<LogItemType> : IEventLogEntry
-	{
-		#region members
-		private readonly EventLogLevel _logLevel;
-		private readonly DateTime _time;
-		private readonly LogItemType _logitem;
-		#endregion
-		#region Constructors
-		/// <summary>
-		/// Create a log entry
-		/// </summary>
-		/// <param name="LogLevel"></param>
-		/// <param name="Source"></param>
-		/// <param name="Message"></param>
-		public EventLogEntry(EventLogLevel LogLevel, LogItemType LogItem) :
-			this(LogLevel, LogItem, DateTime.Now) { }
+    /// <summary>
+    /// Represents an EventLog entry
+    /// </summary>
+    public class EventLogEntry<LogItemType> : IEventLogEntry
+    {
+        #region members
+        private readonly EventLogLevel _logLevel;
+        private readonly DateTime _time;
+        private readonly LogItemType _logitem;
+        #endregion
+        #region Constructors
+        /// <summary>
+        /// Create a log entry
+        /// </summary>
+        /// <param name="LogLevel"></param>
+        /// <param name="Source"></param>
+        /// <param name="Message"></param>
+        public EventLogEntry(EventLogLevel LogLevel, LogItemType LogItem) :
+            this(LogLevel, LogItem, DateTime.Now) { }
 
-		/// <summary>
-		/// Create a log entry with custom timestamp
-		/// </summary>
-		/// <param name="LogLevel"></param>
-		/// <param name="Source"></param>
-		/// <param name="Message"></param>
-		/// <param name="Time"></param>
-		public EventLogEntry(EventLogLevel LogLevel, LogItemType LogItem, DateTime Time)
-		{
-			this._logLevel = LogLevel;
-			this._time = Time;
-			this._logitem = LogItem;
-		}
+        /// <summary>
+        /// Create a log entry with custom timestamp
+        /// </summary>
+        /// <param name="LogLevel"></param>
+        /// <param name="Source"></param>
+        /// <param name="Message"></param>
+        /// <param name="Time"></param>
+        public EventLogEntry(EventLogLevel LogLevel, LogItemType LogItem, DateTime Time)
+        {
+            this._logLevel = LogLevel;
+            this._time = Time;
+            this._logitem = LogItem;
+        }
 
-		#endregion
+        #endregion
 
-		#region Public accessors
-		/// <summary>
-		/// How long ago did the event happen?
-		/// </summary>
-		public TimeSpan TimeSpan
-		{
-			get
-			{
-				return (DateTime.Now - this._time);
-			}
-		}
-		#endregion
+        #region Public accessors
+        /// <summary>
+        /// How long ago did the event happen?
+        /// </summary>
+        public TimeSpan TimeSpan
+        {
+            get
+            {
+                return (DateTime.Now - this._time);
+            }
+        }
+        #endregion
 
-		#region Overrides
-		public override string ToString()
-		{
-			return String.Format("[{0} {1}] [{2}] {3}",
-				this._time.ToShortDateString(),
-				this._time.ToLongTimeString(),
-				this._logLevel.ToString(),
-				this._logitem);
-		}
-		#endregion
+        #region Overrides
+        public override string ToString()
+        {
+            return String.Format("[{0} {1}] [{2}] {3}",
+                this._time.ToShortDateString(),
+                this._time.ToLongTimeString(),
+                this._logLevel.ToString(),
+                this._logitem);
+        }
+        #endregion
 
-		#region IEventLogEntry Members
+        #region IEventLogEntry Members
 
-		DateTime IEventLogEntry.TimeStamp
-		{
-			get { return this._time; }
-		}
+        DateTime IEventLogEntry.TimeStamp
+        {
+            get { return this._time; }
+        }
 
-		string IEventLogEntry.Message
-		{
-			get { return this._logitem.ToString(); }
-		}
-		EventLogLevel IEventLogEntry.LogLevel
-		{
-			get { return this._logLevel; }
-		}
-		object IEventLogEntry.LoggedObject
-		{
-			get { return this._logitem; }
-		}
-		#endregion
-	}
+        string IEventLogEntry.Message
+        {
+            get { return this._logitem.ToString(); }
+        }
+        EventLogLevel IEventLogEntry.LogLevel
+        {
+            get { return this._logLevel; }
+        }
+        object IEventLogEntry.LoggedObject
+        {
+            get { return this._logitem; }
+        }
+        #endregion
+    }
 }

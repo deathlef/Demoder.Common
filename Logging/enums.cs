@@ -25,22 +25,22 @@ using System;
 
 namespace Demoder.Common.Logging
 {
-	public enum EventLogLevel
-	{
-		Critical = 0x01,
-		Serious = 0x02,
-		Error = 0x04,
-		Warning = 0x08,
-		Notice = 0x10,
-		Debug = 0x20
-	}
+    public enum EventLogLevel
+    {
+        Critical = 0x01,
+        Serious = 0x02,
+        Error = 0x04,
+        Warning = 0x08,
+        Notice = 0x10,
+        Debug = 0x20
+    }
 
-	/// <summary>
-	/// Which log entries to read?
-	/// </summary>
-	public enum EventLogRead
-	{
-		First,
-		Last
-	}
+    /// <summary>
+    /// Which log entries to read?
+    /// </summary>
+    public enum EventLogRead
+    {
+        First,
+        Last
+    }
 }

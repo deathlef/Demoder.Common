@@ -26,16 +26,16 @@ using System.Text;
 
 namespace Demoder.Common.Hash
 {
-	public interface ICheckSum
-	{
-		/// <summary>
-		/// Byte array representing the checksum.
-		/// </summary>
-		byte[] Bytes { get; set; }
-		
-		/// <summary>
-		/// String representing the checksum
-		/// </summary>
-		string String { get; set; }
-	}
+    public interface ICheckSum
+    {
+        /// <summary>
+        /// Byte array representing the checksum.
+        /// </summary>
+        byte[] Bytes { get; set; }
+
+        /// <summary>
+        /// String representing the checksum
+        /// </summary>
+        string String { get; set; }
+    }
 }

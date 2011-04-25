@@ -28,12 +28,12 @@ using System.Collections;
 
 namespace Demoder.Common.Serialization
 {
-	public class SerializableDictionary<TKey, TValue> : ICollection<KeyValuePair<TKey, TValue>>, IEnumerable<KeyValuePair<TKey, TValue>>, IEnumerable
+    public class SerializableDictionary<TKey, TValue> : ICollection<KeyValuePair<TKey, TValue>>, IEnumerable<KeyValuePair<TKey, TValue>>, IEnumerable
     {
         //private List<SerializableKeyValuePair<TKey, TValue>> _items = new List<SerializableKeyValuePair<TKey,TValue>>();
-		//private Dictionary<int, List<SerializableKeyValuePair<TKey, TValue>>> _hashedList = new Dictionary<int,List<SerializableKeyValuePair<TKey,TValue>>>();
-		private Dictionary<TKey, TValue> _items = new Dictionary<TKey, TValue>();
-		private int _count = 0;
+        //private Dictionary<int, List<SerializableKeyValuePair<TKey, TValue>>> _hashedList = new Dictionary<int,List<SerializableKeyValuePair<TKey,TValue>>>();
+        private Dictionary<TKey, TValue> _items = new Dictionary<TKey, TValue>();
+        private int _count = 0;
         //adding value: add to Keys and Values.
         //Retrieving value: Find key in Keys list, fetch same index number from Values list
         //Constructor: Ensure that T1 and T2 are serializable
@@ -41,8 +41,8 @@ namespace Demoder.Common.Serialization
         public SerializableDictionary()
         {
 
-			this._items = new Dictionary<TKey, TValue>();
-			try
+            this._items = new Dictionary<TKey, TValue>();
+            try
             {
                 XmlSerializer serializer = new XmlSerializer(typeof(TKey));
             }
@@ -59,21 +59,21 @@ namespace Demoder.Common.Serialization
             {
                 throw new ArgumentException("Value type is not serializable");
             }
-		}
-		
-		public SerializableDictionary(int InitialSize)
-		{
-			this._items = new Dictionary<TKey, TValue>(InitialSize);
-		}
+        }
 
-         /// <summary>
+        public SerializableDictionary(int InitialSize)
+        {
+            this._items = new Dictionary<TKey, TValue>(InitialSize);
+        }
+
+        /// <summary>
         /// Retrieve Keys associated value.
         /// </summary>
         /// <param name="Key"></param>
         /// <returns></returns>
         public TValue Get(TKey Key)
         {
-			return this._items[Key];
+            return this._items[Key];
         }
         public TValue this[TKey Key]
         {
@@ -83,151 +83,152 @@ namespace Demoder.Common.Serialization
             }
             set
             {
-				this._items[Key] = value;
+                this._items[Key] = value;
             }
         }
-		
-		#region IDictionary<TKey,TValue> Members
-		public void Add(TKey key, TValue value)
-		{
-			lock (this)
-			{
-				this._items.Add(key, value);
-			}
-		}
-		public bool ContainsKey(TKey key)
-		{
-			return this._items.ContainsKey(key);
-		}
-		[XmlIgnore]
-		ICollection<TKey> Keys
-		{
-			get
-			{
-				return this._items.Keys;
-			}
-		}
-		[XmlIgnore]
-		public ICollection<TValue> Values
-		{
-			get
-			{
-				return this._items.Values;
-			}
-		}
-		public bool Remove(TKey key)
-		{
-			lock (this)
-			{
-				return this._items.Remove(key);
-			}
-		}
-		public bool TryGetValue(TKey key, out TValue value)
-		{
-			lock (this)
-			{
-				if (!this.ContainsKey(key))
-				{
-					value = default(TValue);
-					return false;
-				}
-				else
-				{
-					value = this[key];
-					return true;
-				}
-			}
-		}
-		#endregion
 
-		#region ICollection<SerializableKeyValuePair<TKey,TValue>> Members
-		public void Add(KeyValuePair<TKey, TValue> item)
-		{
-			this.Add(item.Key, item.Value);
-		}
-		public void Add(SerializableKeyValuePair<TKey, TValue> item)
-		{
-			this.Add(item.Key, item.Value);
-		}
-		public void Clear()
-		{
-			lock (this)
-			{
-				this._items = new Dictionary<TKey, TValue>();
-				
-			}
-		}
-		public int Count
-		{
-			get {
-				return this._items.Count;
-			}
-		}
-		public bool IsReadOnly
-		{
-			get { return false; }
-		}
-		public bool Remove(KeyValuePair<TKey, TValue> item)
-		{
-			lock (this)
-			{
-				return this._items.Remove(item.Key);
-			}
-		}
-		#endregion
+        #region IDictionary<TKey,TValue> Members
+        public void Add(TKey key, TValue value)
+        {
+            lock (this)
+            {
+                this._items.Add(key, value);
+            }
+        }
+        public bool ContainsKey(TKey key)
+        {
+            return this._items.ContainsKey(key);
+        }
+        [XmlIgnore]
+        ICollection<TKey> Keys
+        {
+            get
+            {
+                return this._items.Keys;
+            }
+        }
+        [XmlIgnore]
+        public ICollection<TValue> Values
+        {
+            get
+            {
+                return this._items.Values;
+            }
+        }
+        public bool Remove(TKey key)
+        {
+            lock (this)
+            {
+                return this._items.Remove(key);
+            }
+        }
+        public bool TryGetValue(TKey key, out TValue value)
+        {
+            lock (this)
+            {
+                if (!this.ContainsKey(key))
+                {
+                    value = default(TValue);
+                    return false;
+                }
+                else
+                {
+                    value = this[key];
+                    return true;
+                }
+            }
+        }
+        #endregion
 
-		#region IEnumerable<SerializableKeyValuePair<TKey,TValue>> Members
-		public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
-		{
-			return this._items.GetEnumerator();
-		}
-		#endregion
+        #region ICollection<SerializableKeyValuePair<TKey,TValue>> Members
+        public void Add(KeyValuePair<TKey, TValue> item)
+        {
+            this.Add(item.Key, item.Value);
+        }
+        public void Add(SerializableKeyValuePair<TKey, TValue> item)
+        {
+            this.Add(item.Key, item.Value);
+        }
+        public void Clear()
+        {
+            lock (this)
+            {
+                this._items = new Dictionary<TKey, TValue>();
 
-		#region IEnumerable Members
+            }
+        }
+        public int Count
+        {
+            get
+            {
+                return this._items.Count;
+            }
+        }
+        public bool IsReadOnly
+        {
+            get { return false; }
+        }
+        public bool Remove(KeyValuePair<TKey, TValue> item)
+        {
+            lock (this)
+            {
+                return this._items.Remove(item.Key);
+            }
+        }
+        #endregion
 
-		IEnumerator IEnumerable.GetEnumerator()
-		{
-			return (IEnumerator)this.GetEnumerator();
-		}
+        #region IEnumerable<SerializableKeyValuePair<TKey,TValue>> Members
+        public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
+        {
+            return this._items.GetEnumerator();
+        }
+        #endregion
 
-		#endregion
+        #region IEnumerable Members
 
-		#region Serialization
-		[XmlArray("Items")]
-		[XmlArrayItem("Item")]
-		public List<SerializableKeyValuePair<TKey, TValue>> SerializableKeyValuePairs
-		{
-			get
-			{
-				List<SerializableKeyValuePair<TKey, TValue>> skvps = new List<SerializableKeyValuePair<TKey,TValue>>(this._count);
-				foreach (KeyValuePair<TKey, TValue> kvp in this._items)
-				{
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return (IEnumerator)this.GetEnumerator();
+        }
 
-					skvps.Add(new SerializableKeyValuePair<TKey, TValue>(kvp.Key, kvp.Value));
-				}
-				return skvps;
-			}
-			set
-			{
-				foreach (SerializableKeyValuePair<TKey, TValue> skvp in value)
-					this.Add(skvp);
-			}
-		}
-		#endregion
+        #endregion
 
-		#region ICollection<KeyValuePair<TKey,TValue>> Members
+        #region Serialization
+        [XmlArray("Items")]
+        [XmlArrayItem("Item")]
+        public List<SerializableKeyValuePair<TKey, TValue>> SerializableKeyValuePairs
+        {
+            get
+            {
+                List<SerializableKeyValuePair<TKey, TValue>> skvps = new List<SerializableKeyValuePair<TKey, TValue>>(this._count);
+                foreach (KeyValuePair<TKey, TValue> kvp in this._items)
+                {
+
+                    skvps.Add(new SerializableKeyValuePair<TKey, TValue>(kvp.Key, kvp.Value));
+                }
+                return skvps;
+            }
+            set
+            {
+                foreach (SerializableKeyValuePair<TKey, TValue> skvp in value)
+                    this.Add(skvp);
+            }
+        }
+        #endregion
+
+        #region ICollection<KeyValuePair<TKey,TValue>> Members
 
 
-		public bool Contains(KeyValuePair<TKey, TValue> item)
-		{
-			throw new NotImplementedException();
-		}
+        public bool Contains(KeyValuePair<TKey, TValue> item)
+        {
+            throw new NotImplementedException();
+        }
 
-		public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
-		{
-			throw new NotImplementedException();
-		}
+        public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
+        {
+            throw new NotImplementedException();
+        }
 
-		#endregion
-	}
+        #endregion
+    }
 }

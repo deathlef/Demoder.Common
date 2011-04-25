@@ -27,66 +27,66 @@ using System.Text;
 
 namespace Demoder.Common.Cache
 {
-	public class XmlCacheWrapper
-	{
-		#region Members
-		private DirectoryInfo _rootDirectory;
-		/// <summary>
-		/// Minutes to hold items in cache.
-		/// </summary>
-		private int _cacheTime = 1440;
-		/// <summary>
-		/// Timeout for HTTP connections in milliseconds
-		/// </summary>
-		private int _fetchTimeout = 2000;
-		private Dictionary<Type, Object> _xmlCache = new Dictionary<Type, Object>();
-		#endregion
-		#region Constructors
-		/// <summary>
-		/// Initializes the cache wrapper
-		/// </summary>
-		/// <param name="CacheRootDirectory">Root directory to store cache in</param>
-		public XmlCacheWrapper(DirectoryInfo CacheRootDirectory)
-		{
-			this._rootDirectory = CacheRootDirectory;
-		}
+    public class XmlCacheWrapper
+    {
+        #region Members
+        private DirectoryInfo _rootDirectory;
+        /// <summary>
+        /// Minutes to hold items in cache.
+        /// </summary>
+        private int _cacheTime = 1440;
+        /// <summary>
+        /// Timeout for HTTP connections in milliseconds
+        /// </summary>
+        private int _fetchTimeout = 2000;
+        private Dictionary<Type, Object> _xmlCache = new Dictionary<Type, Object>();
+        #endregion
+        #region Constructors
+        /// <summary>
+        /// Initializes the cache wrapper
+        /// </summary>
+        /// <param name="CacheRootDirectory">Root directory to store cache in</param>
+        public XmlCacheWrapper(DirectoryInfo CacheRootDirectory)
+        {
+            this._rootDirectory = CacheRootDirectory;
+        }
 
-		/// <summary>
-		/// Get an instance of XMLCache. If it doesn't exist, it will be created.
-		/// </summary>
-		/// <typeparam name="T">Class the XMLCache object is caching</typeparam>
-		/// <returns></returns>
-		public XMLCache<T> Get<T>() where T : class
-		{
-			if (!this._xmlCache.ContainsKey(typeof(T)))
-				return this.Create<T>(this._cacheTime, this._fetchTimeout);
-			else
-				return (XMLCache<T>)this._xmlCache[typeof(T)];
-		}
+        /// <summary>
+        /// Get an instance of XMLCache. If it doesn't exist, it will be created.
+        /// </summary>
+        /// <typeparam name="T">Class the XMLCache object is caching</typeparam>
+        /// <returns></returns>
+        public XMLCache<T> Get<T>() where T : class
+        {
+            if (!this._xmlCache.ContainsKey(typeof(T)))
+                return this.Create<T>(this._cacheTime, this._fetchTimeout);
+            else
+                return (XMLCache<T>)this._xmlCache[typeof(T)];
+        }
 
-		/// <summary>
-		/// Creates an instance of XMLCache for this type.
-		/// </summary>
-		/// <typeparam name="T">Class the XMLCache object is caching</typeparam>
-		/// <param name="CacheTime">Time in minutes to keep items in cache</param>
-		/// <param name="FetchTimeout">Timeout for HTTP connections, in milliseconds</param>
-		/// <returns></returns>
-		public XMLCache<T> Create<T>(int CacheTime, int FetchTimeout) where T : class
-		{
-			if (this._xmlCache.ContainsKey(typeof(T)))
-				return this.Get<T>();
-			lock (this._xmlCache)
-			{
-				XMLCache<T> ret = new XMLCache<T>(string.Format("{0}{1}{2}",
-					this._rootDirectory.FullName,
-					Path.DirectorySeparatorChar,
-					typeof(T).GUID), CacheTime, FetchTimeout);
-				//If typeof(t).GUID doesn't work as expected, use: GenerateHash.md5(typeof(T).Assembly.FullName + typeof(T).FullName)
+        /// <summary>
+        /// Creates an instance of XMLCache for this type.
+        /// </summary>
+        /// <typeparam name="T">Class the XMLCache object is caching</typeparam>
+        /// <param name="CacheTime">Time in minutes to keep items in cache</param>
+        /// <param name="FetchTimeout">Timeout for HTTP connections, in milliseconds</param>
+        /// <returns></returns>
+        public XMLCache<T> Create<T>(int CacheTime, int FetchTimeout) where T : class
+        {
+            if (this._xmlCache.ContainsKey(typeof(T)))
+                return this.Get<T>();
+            lock (this._xmlCache)
+            {
+                XMLCache<T> ret = new XMLCache<T>(string.Format("{0}{1}{2}",
+                    this._rootDirectory.FullName,
+                    Path.DirectorySeparatorChar,
+                    typeof(T).GUID), CacheTime, FetchTimeout);
+                //If typeof(t).GUID doesn't work as expected, use: GenerateHash.md5(typeof(T).Assembly.FullName + typeof(T).FullName)
 
-				this._xmlCache.Add(typeof(T), ret); //Add to internal list.
-				return ret;
-			}
-		}
-		#endregion
-	}
+                this._xmlCache.Add(typeof(T), ret); //Add to internal list.
+                return ret;
+            }
+        }
+        #endregion
+    }
 }

@@ -29,16 +29,16 @@ using Demoder.Common.Net;
 
 namespace Demoder.Common
 {
-	/// <summary>
-	/// Used to pass DownloadItem between methods.
-	/// </summary>
-	/// <param name="DownloadItem"></param>
-	public delegate void DownloadItemEventHandler(IDownloadItem DownloadItem);
+    /// <summary>
+    /// Used to pass DownloadItem between methods.
+    /// </summary>
+    /// <param name="DownloadItem"></param>
+    public delegate void DownloadItemEventHandler(IDownloadItem DownloadItem);
 
-	/// <summary>
-	/// Used to pass data between Downloader in slave mode and the calling application.
-	/// </summary>
-	/// <param name="DownloaderInstance"></param>
-	/// <param name="DownloadItem"></param>
-	public delegate void DownloaderSlaveEventHandler(Downloader DownloaderInstance, IDownloadItem DownloadItem);
+    /// <summary>
+    /// Used to pass data between Downloader in slave mode and the calling application.
+    /// </summary>
+    /// <param name="DownloaderInstance"></param>
+    /// <param name="DownloadItem"></param>
+    public delegate void DownloaderSlaveEventHandler(Downloader DownloaderInstance, IDownloadItem DownloadItem);
 }
