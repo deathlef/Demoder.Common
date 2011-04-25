@@ -33,176 +33,176 @@ using Demoder.Common.Serialization;
 
 namespace Demoder.Common.Cache
 {
-	public class FileCache
-	{
-		#region members
-		/// <summary>
-		/// This is an index of all the cached data
-		/// </summary>
-		private Dictionary<string, CacheInfo> _cacheIndex = new Dictionary<string, CacheInfo>();
-		/// <summary>
-		/// Monitors the cache directory for changes
-		/// </summary>
-		private FileSystemWatcher _fsWatcher;
+    public class FileCache
+    {
+        #region members
+        /// <summary>
+        /// This is an index of all the cached data
+        /// </summary>
+        private Dictionary<string, CacheInfo> _cacheIndex = new Dictionary<string, CacheInfo>();
+        /// <summary>
+        /// Monitors the cache directory for changes
+        /// </summary>
+        private FileSystemWatcher _fsWatcher;
 
-		private DirectoryInfo _cacheRootDirectory;
-		private DirectoryInfo _cacheIndexDirectory;
-		private DirectoryInfo _cacheDataDirectory;
-		#endregion
-		#region Constructors
-		/// <summary>
-		/// Initializes the URL cache
-		/// </summary>
-		/// <param name="RootDirectory">Directory used for storage</param>
-		public FileCache(DirectoryInfo RootDirectory)
-		{
-			//Define cache directories
-			this._cacheRootDirectory = RootDirectory;
-			this._cacheIndexDirectory = new DirectoryInfo(RootDirectory.FullName + Path.DirectorySeparatorChar + "Index");
-			this._cacheDataDirectory = new DirectoryInfo(RootDirectory.FullName + Path.DirectorySeparatorChar + "Data");
-			//Check if cache directories exist
-			if (!this._cacheRootDirectory.Exists)
-				this._cacheRootDirectory.Create();
-			if (!this._cacheIndexDirectory.Exists)
-				this._cacheIndexDirectory.Create();
-			if (!this._cacheDataDirectory.Exists)
-				this._cacheDataDirectory.Create();
-			
-			//initialize the fsWatcher
-			this._fsWatcher = new FileSystemWatcher(RootDirectory.FullName);
-		}
-		#endregion
-		#region fsWatcher implementation
+        private DirectoryInfo _cacheRootDirectory;
+        private DirectoryInfo _cacheIndexDirectory;
+        private DirectoryInfo _cacheDataDirectory;
+        #endregion
+        #region Constructors
+        /// <summary>
+        /// Initializes the URL cache
+        /// </summary>
+        /// <param name="RootDirectory">Directory used for storage</param>
+        public FileCache(DirectoryInfo RootDirectory)
+        {
+            //Define cache directories
+            this._cacheRootDirectory = RootDirectory;
+            this._cacheIndexDirectory = new DirectoryInfo(RootDirectory.FullName + Path.DirectorySeparatorChar + "Index");
+            this._cacheDataDirectory = new DirectoryInfo(RootDirectory.FullName + Path.DirectorySeparatorChar + "Data");
+            //Check if cache directories exist
+            if (!this._cacheRootDirectory.Exists)
+                this._cacheRootDirectory.Create();
+            if (!this._cacheIndexDirectory.Exists)
+                this._cacheIndexDirectory.Create();
+            if (!this._cacheDataDirectory.Exists)
+                this._cacheDataDirectory.Create();
 
-		#endregion
+            //initialize the fsWatcher
+            this._fsWatcher = new FileSystemWatcher(RootDirectory.FullName);
+        }
+        #endregion
+        #region fsWatcher implementation
 
-		#region Methods
-		public void Cache(string Key, byte[] Data)
-		{
-			lock (this._cacheIndex)
-			{
-				string md5 = MD5Checksum.Generate(Data).String;
-				//Is this data the same as the old?
-				if (this._cacheIndex.ContainsKey(Key))
-					if (this._cacheIndex[Key].Hash == md5)
-						return;
+        #endregion
 
-				//If we made it here, it's a change to the old value.
-				CacheInfo ci = new CacheInfo(Key, md5);
-				FileInfo dataFile = new FileInfo(this._getDataFileName(Key));
-				FileInfo indexFile = new FileInfo(this._getIndexFileName(Key));
-				try
-				{
-					//Update the cache.
-					File.WriteAllBytes(dataFile.FullName, Data); //Write the data
-					Xml.Serialize<CacheInfo>(indexFile, ci, false); //Write the index
-					this._cacheIndex[Key] = ci; //Store index in memory
-				}
-				catch
-				{
-					//If something fails with the caching, remove the cache entry.
-					if (this._cacheIndex.ContainsKey(Key))
-					{
-						this._cacheIndex.Remove(Key);
-					}
-					try
-					{
-						indexFile.Delete();
-						dataFile.Delete();
-					}
-					catch { return; }
-					return;
-				}
-			}
-		}
+        #region Methods
+        public void Cache(string Key, byte[] Data)
+        {
+            lock (this._cacheIndex)
+            {
+                string md5 = MD5Checksum.Generate(Data).String;
+                //Is this data the same as the old?
+                if (this._cacheIndex.ContainsKey(Key))
+                    if (this._cacheIndex[Key].Hash == md5)
+                        return;
 
-		/// <summary>
-		/// Reads a file from cache.
-		/// </summary>
-		/// <param name="Key">ID of file to read</param>
-		/// <returns></returns>
-		public byte[] Read(string Key)
-		{
-			lock (this._cacheIndex)
-			{
-				if (!this._cacheIndex.ContainsKey(Key))
-					return null;
-				else
-				{
-					byte[] bytes = File.ReadAllBytes(this._getDataFileName(Key));
-					//Ensure the index is up to date.
-					string md5 = MD5Checksum.Generate(bytes).String;
-					if (md5 != this._cacheIndex[Key].Hash)
-						this.Cache(Key, bytes);
-					return bytes;
-				}
-			}
-		}
+                //If we made it here, it's a change to the old value.
+                CacheInfo ci = new CacheInfo(Key, md5);
+                FileInfo dataFile = new FileInfo(this._getDataFileName(Key));
+                FileInfo indexFile = new FileInfo(this._getIndexFileName(Key));
+                try
+                {
+                    //Update the cache.
+                    File.WriteAllBytes(dataFile.FullName, Data); //Write the data
+                    Xml.Serialize<CacheInfo>(indexFile, ci, false); //Write the index
+                    this._cacheIndex[Key] = ci; //Store index in memory
+                }
+                catch
+                {
+                    //If something fails with the caching, remove the cache entry.
+                    if (this._cacheIndex.ContainsKey(Key))
+                    {
+                        this._cacheIndex.Remove(Key);
+                    }
+                    try
+                    {
+                        indexFile.Delete();
+                        dataFile.Delete();
+                    }
+                    catch { return; }
+                    return;
+                }
+            }
+        }
 
-		public DateTime Time(string Key)
-		{
-			lock (this._cacheIndex)
-			{
-				if (this._cacheIndex.ContainsKey(Key))
-					return new FileInfo(this._getDataFileName(Key)).LastWriteTime;
-				else
-					return default(DateTime);
-			}
-		}
+        /// <summary>
+        /// Reads a file from cache.
+        /// </summary>
+        /// <param name="Key">ID of file to read</param>
+        /// <returns></returns>
+        public byte[] Read(string Key)
+        {
+            lock (this._cacheIndex)
+            {
+                if (!this._cacheIndex.ContainsKey(Key))
+                    return null;
+                else
+                {
+                    byte[] bytes = File.ReadAllBytes(this._getDataFileName(Key));
+                    //Ensure the index is up to date.
+                    string md5 = MD5Checksum.Generate(bytes).String;
+                    if (md5 != this._cacheIndex[Key].Hash)
+                        this.Cache(Key, bytes);
+                    return bytes;
+                }
+            }
+        }
 
-		private string _getIndexFileName(string Key) 
-		{
-			return this._cacheIndexDirectory.FullName + Path.DirectorySeparatorChar + MD5Checksum.Generate(Key) + ".xml";
-		}
-		private string _getDataFileName(string Key)
-		{
-			return this._cacheDataDirectory.FullName + Path.DirectorySeparatorChar + MD5Checksum.Generate(Key) + ".data";
-		}
-		#endregion
+        public DateTime Time(string Key)
+        {
+            lock (this._cacheIndex)
+            {
+                if (this._cacheIndex.ContainsKey(Key))
+                    return new FileInfo(this._getDataFileName(Key)).LastWriteTime;
+                else
+                    return default(DateTime);
+            }
+        }
 
-		#region data classes
-		public class CacheInfo
-		{
-			#region members
-			private string _key = default(string);
-			private string _hash = default(string);
-			#endregion
-			#region constructors
-			public CacheInfo()
-			{
-			}
-			public CacheInfo(string Key, string MD5Hash)
-			{
-				this._key = Key;
-				this._hash = MD5Hash;
-			}
-			#endregion
-			#region accessors
-			/// <summary>
-			/// Unique key of the data
-			/// </summary>
-			public string Key
-			{
-				get { return this._key; }
-				set
-				{
-					if (this._key == default(string))
-						this._key = value;
-					else
-						throw new InvalidOperationException("Key may not be changed after initialization of object.");
-				}
-			}
+        private string _getIndexFileName(string Key)
+        {
+            return this._cacheIndexDirectory.FullName + Path.DirectorySeparatorChar + MD5Checksum.Generate(Key) + ".xml";
+        }
+        private string _getDataFileName(string Key)
+        {
+            return this._cacheDataDirectory.FullName + Path.DirectorySeparatorChar + MD5Checksum.Generate(Key) + ".data";
+        }
+        #endregion
 
-			/// <summary>
-			/// Hash value of the data
-			/// </summary>
-			public string Hash
-			{
-				get { return this._hash; }
-				set { this._hash = value; }
-			}
-			#endregion
-		}
-		#endregion
-	}
+        #region data classes
+        public class CacheInfo
+        {
+            #region members
+            private string _key = default(string);
+            private string _hash = default(string);
+            #endregion
+            #region constructors
+            public CacheInfo()
+            {
+            }
+            public CacheInfo(string Key, string MD5Hash)
+            {
+                this._key = Key;
+                this._hash = MD5Hash;
+            }
+            #endregion
+            #region accessors
+            /// <summary>
+            /// Unique key of the data
+            /// </summary>
+            public string Key
+            {
+                get { return this._key; }
+                set
+                {
+                    if (this._key == default(string))
+                        this._key = value;
+                    else
+                        throw new InvalidOperationException("Key may not be changed after initialization of object.");
+                }
+            }
+
+            /// <summary>
+            /// Hash value of the data
+            /// </summary>
+            public string Hash
+            {
+                get { return this._hash; }
+                set { this._hash = value; }
+            }
+            #endregion
+        }
+        #endregion
+    }
 }

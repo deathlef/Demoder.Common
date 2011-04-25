@@ -26,23 +26,23 @@ using System.Text;
 
 namespace Demoder.Common.Logging
 {
-	public interface IEventLogEntry
-	{
-		/// <summary>
-		/// The time the logged event happened
-		/// </summary>
-		/// <returns></returns>
-		DateTime TimeStamp { get; }
-		/// <summary>
-		/// String representation of event
-		/// </summary>
-		/// <returns></returns>
-		string Message { get; }
-		/// <summary>
-		/// An object representing the logged event
-		/// </summary>
-		/// <returns></returns>
-		object LoggedObject { get; }
-		EventLogLevel LogLevel { get; }
-	}
+    public interface IEventLogEntry
+    {
+        /// <summary>
+        /// The time the logged event happened
+        /// </summary>
+        /// <returns></returns>
+        DateTime TimeStamp { get; }
+        /// <summary>
+        /// String representation of event
+        /// </summary>
+        /// <returns></returns>
+        string Message { get; }
+        /// <summary>
+        /// An object representing the logged event
+        /// </summary>
+        /// <returns></returns>
+        object LoggedObject { get; }
+        EventLogLevel LogLevel { get; }
+    }
 }

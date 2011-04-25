@@ -24,16 +24,16 @@ using System;
 
 namespace Demoder.Common.Logging
 {
-	/// <summary>
-	/// Dummy implementation of ILogWriter. Does nothing.
-	/// </summary>
-	public class VoidLogWriter : ILogWriter
-	{
-		#region ILogWriter Members
-		bool ILogWriter.Write(IEventLogEntry EventLog)
-		{
-			return true;
-		}
-		#endregion
-	}
+    /// <summary>
+    /// Dummy implementation of ILogWriter. Does nothing.
+    /// </summary>
+    public class VoidLogWriter : ILogWriter
+    {
+        #region ILogWriter Members
+        bool ILogWriter.Write(IEventLogEntry EventLog)
+        {
+            return true;
+        }
+        #endregion
+    }
 }

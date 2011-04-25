@@ -24,15 +24,15 @@ using System;
 
 namespace Demoder.Common.Logging
 {
-	/// <summary>
-	/// Interface for writing event logs to various destinations
-	/// </summary>
-	public interface ILogWriter
-	{
-		/// <summary>
-		/// Writes a log entry
-		/// </summary>
-		/// <returns></returns>
-		bool Write(IEventLogEntry EventLog);
-	}
+    /// <summary>
+    /// Interface for writing event logs to various destinations
+    /// </summary>
+    public interface ILogWriter
+    {
+        /// <summary>
+        /// Writes a log entry
+        /// </summary>
+        /// <returns></returns>
+        bool Write(IEventLogEntry EventLog);
+    }
 }

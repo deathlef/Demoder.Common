@@ -27,110 +27,110 @@ using System.IO;
 
 namespace Demoder.Common
 {
-	public static class Misc
-	{
-		#region FindPos
-		/// <summary>
-		/// Try to find Needle in HayStack
-		/// </summary>
-		/// <param name="HayStack"></param>
-		/// <param name="Needle"></param>
-		/// <returns></returns>
-		public static int FindPos(List<byte> HayStack, List<byte> Needle)
-		{
-			return FindPos(HayStack, Needle, 0, HayStack.Count);
-		}
-		/// <summary>
-		/// Try to find Needle in HayStack
-		/// </summary>
-		/// <param name="HayStack"></param>
-		/// <param name="Needle"></param>
-		/// <param name="Offset"></param>
-		/// <returns></returns>
-		public static int FindPos(List<byte> HayStack, List<byte> Needle, int Offset)
-		{
-			return FindPos(HayStack, Needle, Offset, HayStack.Count -1);
-		}
+    public static class Misc
+    {
+        #region FindPos
+        /// <summary>
+        /// Try to find Needle in HayStack
+        /// </summary>
+        /// <param name="HayStack"></param>
+        /// <param name="Needle"></param>
+        /// <returns></returns>
+        public static int FindPos(List<byte> HayStack, List<byte> Needle)
+        {
+            return FindPos(HayStack, Needle, 0, HayStack.Count);
+        }
+        /// <summary>
+        /// Try to find Needle in HayStack
+        /// </summary>
+        /// <param name="HayStack"></param>
+        /// <param name="Needle"></param>
+        /// <param name="Offset"></param>
+        /// <returns></returns>
+        public static int FindPos(List<byte> HayStack, List<byte> Needle, int Offset)
+        {
+            return FindPos(HayStack, Needle, Offset, HayStack.Count - 1);
+        }
 
-		/// <summary>
-		/// Tries to find Needle in Haystack
-		/// </summary>
-		/// <param name="HayStack"></param>
-		/// <param name="Needle"></param>
-		/// <param name="Offset"></param>
-		/// <param name="StopAt"></param>
-		/// <returns></returns>
-		public static int FindPos(List<byte> HayStack, List<byte> Needle, int Offset, int StopAt)
-		{
-			#region exceptions
-			if (HayStack == null) throw new ArgumentNullException("HayStack");
-			if (Needle == null) throw new ArgumentNullException("Needle");
+        /// <summary>
+        /// Tries to find Needle in Haystack
+        /// </summary>
+        /// <param name="HayStack"></param>
+        /// <param name="Needle"></param>
+        /// <param name="Offset"></param>
+        /// <param name="StopAt"></param>
+        /// <returns></returns>
+        public static int FindPos(List<byte> HayStack, List<byte> Needle, int Offset, int StopAt)
+        {
+            #region exceptions
+            if (HayStack == null) throw new ArgumentNullException("HayStack");
+            if (Needle == null) throw new ArgumentNullException("Needle");
 
-			if (StopAt >= HayStack.Count) throw new ArgumentOutOfRangeException("StopAt", StopAt, "StopAt must be less than the final byte pos.");
-			if (StopAt < 0) throw new ArgumentOutOfRangeException("StopAt", StopAt, "StopAt must be >=0.");
-			if (StopAt <= Offset + Needle.Count) throw new ArgumentOutOfRangeException("StopAt", StopAt, "StopAt must be >= bytepos of Offset+Needle length.");
+            if (StopAt >= HayStack.Count) throw new ArgumentOutOfRangeException("StopAt", StopAt, "StopAt must be less than the final byte pos.");
+            if (StopAt < 0) throw new ArgumentOutOfRangeException("StopAt", StopAt, "StopAt must be >=0.");
+            if (StopAt <= Offset + Needle.Count) throw new ArgumentOutOfRangeException("StopAt", StopAt, "StopAt must be >= bytepos of Offset+Needle length.");
 
-			if (Offset >= (HayStack.Count - Needle.Count)) throw new ArgumentOutOfRangeException("Offset", Offset, "Offset must be less than the final byte pos minus Needle length.");
-			if (Offset < 0) throw new ArgumentOutOfRangeException("Offset", Offset, "Offset must be >=0.");
-			#endregion
+            if (Offset >= (HayStack.Count - Needle.Count)) throw new ArgumentOutOfRangeException("Offset", Offset, "Offset must be less than the final byte pos minus Needle length.");
+            if (Offset < 0) throw new ArgumentOutOfRangeException("Offset", Offset, "Offset must be >=0.");
+            #endregion
 
-			//Bytepos that Needle starts at.
-			int needleBytePos = 0;
-			int needleMatchIndex = 0;
-			for (int curBytePos = Offset; curBytePos < StopAt; curBytePos++)
-			{
-				if (Needle[needleMatchIndex] == HayStack[curBytePos])
-				{
-					if (needleMatchIndex == 0) needleBytePos = curBytePos;
-					needleMatchIndex++;
-				}
-				else if (needleMatchIndex != 0)
-				{
-					needleMatchIndex = 0;
-					curBytePos = needleBytePos; //Start 1byte in front of where we started looking last time. The for loop will add 1 to this at the next loop.
-				}
-				else { /*Nothing to do*/ }
-				if (needleMatchIndex == Needle.Count) return needleBytePos;
-				if (curBytePos >= StopAt) throw new Exception("Needle not found in haystack.");
-			}
-			throw new Exception("Needle not found in haystack.");
-		}
-		#endregion
+            //Bytepos that Needle starts at.
+            int needleBytePos = 0;
+            int needleMatchIndex = 0;
+            for (int curBytePos = Offset; curBytePos < StopAt; curBytePos++)
+            {
+                if (Needle[needleMatchIndex] == HayStack[curBytePos])
+                {
+                    if (needleMatchIndex == 0) needleBytePos = curBytePos;
+                    needleMatchIndex++;
+                }
+                else if (needleMatchIndex != 0)
+                {
+                    needleMatchIndex = 0;
+                    curBytePos = needleBytePos; //Start 1byte in front of where we started looking last time. The for loop will add 1 to this at the next loop.
+                }
+                else { /*Nothing to do*/ }
+                if (needleMatchIndex == Needle.Count) return needleBytePos;
+                if (curBytePos >= StopAt) throw new Exception("Needle not found in haystack.");
+            }
+            throw new Exception("Needle not found in haystack.");
+        }
+        #endregion
 
-		/// <summary>
-		/// Get unixtime representing NOW
-		/// </summary>
-		/// <returns></returns>
-		public static Int64 Unixtime()
-		{
-			DateTime dt = new DateTime(1970, 1, 1);
-			return Unixtime(DateTime.UtcNow);
-		}
+        /// <summary>
+        /// Get unixtime representing NOW
+        /// </summary>
+        /// <returns></returns>
+        public static Int64 Unixtime()
+        {
+            DateTime dt = new DateTime(1970, 1, 1);
+            return Unixtime(DateTime.UtcNow);
+        }
 
-		public static Int64 Unixtime(DateTime DateTime)
-		{
-			DateTime dt = new DateTime(1970, 1, 1);
-			TimeSpan ts = (DateTime.ToUniversalTime() - dt);
-			return (Int64)Math.Floor(ts.TotalSeconds);
-		}
-		/// <summary>
-		/// Get a DateTime object representing the local time defined by the provided unixtime
-		/// </summary>
-		/// <param name="UnixTime"></param>
-		/// <returns></returns>
-		public static DateTime Unixtime(Int64 UnixTime)
-		{
-			DateTime dt = new DateTime(1970, 1, 1);
-			return dt.AddSeconds(UnixTime).ToLocalTime();
-		}
+        public static Int64 Unixtime(DateTime DateTime)
+        {
+            DateTime dt = new DateTime(1970, 1, 1);
+            TimeSpan ts = (DateTime.ToUniversalTime() - dt);
+            return (Int64)Math.Floor(ts.TotalSeconds);
+        }
+        /// <summary>
+        /// Get a DateTime object representing the local time defined by the provided unixtime
+        /// </summary>
+        /// <param name="UnixTime"></param>
+        /// <returns></returns>
+        public static DateTime Unixtime(Int64 UnixTime)
+        {
+            DateTime dt = new DateTime(1970, 1, 1);
+            return dt.AddSeconds(UnixTime).ToLocalTime();
+        }
 
-		public static void PadMemoryStream(ref MemoryStream MemoryStream, int Length, byte PadByte)
-		{
-			while (MemoryStream.Length < Length)
-				MemoryStream.WriteByte(PadByte);
-				//If slice will be larger than the padding
-			if (MemoryStream.Length > Length)
-				throw new Exception("Padding: MemoryStream is larger than defined static length!");
-		}
-	}
+        public static void PadMemoryStream(ref MemoryStream MemoryStream, int Length, byte PadByte)
+        {
+            while (MemoryStream.Length < Length)
+                MemoryStream.WriteByte(PadByte);
+            //If slice will be larger than the padding
+            if (MemoryStream.Length > Length)
+                throw new Exception("Padding: MemoryStream is larger than defined static length!");
+        }
+    }
 }
