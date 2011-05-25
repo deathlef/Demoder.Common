@@ -33,12 +33,12 @@ namespace Demoder.Common
     /// Used to pass DownloadItem between methods.
     /// </summary>
     /// <param name="DownloadItem"></param>
-    public delegate void DownloadItemEventHandler(IDownloadItem DownloadItem);
+    public delegate void DownloadItemEventHandler(IDownloadItem downloadItem);
 
     /// <summary>
     /// Used to pass data between Downloader in slave mode and the calling application.
     /// </summary>
     /// <param name="DownloaderInstance"></param>
     /// <param name="DownloadItem"></param>
-    public delegate void DownloaderSlaveEventHandler(Downloader DownloaderInstance, IDownloadItem DownloadItem);
+    public delegate void DownloaderSlaveEventHandler(Downloader downloaderInstance, IDownloadItem downloadItem);
 }

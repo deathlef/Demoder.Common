@@ -41,54 +41,54 @@ namespace Demoder.Common.Logging
         /// <summary>
         /// Directory to store log files in
         /// </summary>
-        private DirectoryInfo _logDirectory;
+        private DirectoryInfo logDirectory;
         /// <summary>
         /// This logs name
         /// </summary>
-        private string _logName = null;
+        private string logName = null;
         /// <summary>
         /// Length of logfile.
         /// </summary>
-        private FileStream _logStream = null;
+        private FileStream logStream = null;
 
-        private LogRotater _logRotate;
+        private LogRotater logRotate;
         #endregion
-        private ManualResetEvent _writeMRE = new ManualResetEvent(false);
+        private ManualResetEvent writeMRE = new ManualResetEvent(false);
 
         #region All members within here are only accessed after locking _messageQueue
         /// <summary>
         /// Queue containing the to-be-written text
         /// </summary>
-        private Queue<IEventLogEntry> _messageQueue = new Queue<IEventLogEntry>(64);
+        private Queue<IEventLogEntry> messageQueue = new Queue<IEventLogEntry>(64);
 
         /// <summary>
         /// Timer which should trigger the _writeMRE to make the threaded writer start writing.
         /// </summary>
-        private Timer _writeTimer = null;
+        private Timer writeTimer = null;
         /// <summary>
         /// How many times have the timer been bumped?
         /// </summary>
-        private DateTime _firstBump = DateTime.Now;
-        private bool _bumped = false;
+        private DateTime firstBump = DateTime.Now;
+        private bool bumped = false;
         #endregion
 
         private Thread _writerThread;
         /// <summary>
         /// Abort the thread?
         /// </summary>
-        private bool _abort = false;
-        private bool _disposed = false;
+        private bool abort = false;
+        private bool disposed = false;
         #endregion Members
 
         #region Constructors
-        public RotateLogWriter(LogRotater LogRotater)
+        public RotateLogWriter(LogRotater logRotater)
         {
-            this._logRotate = LogRotater;
+            this.logRotate = logRotater;
 
-            this._writeTimer = new Timer(new TimerCallback(this.timerTriggerWriterThread), true, Timeout.Infinite, Timeout.Infinite);
+            this.writeTimer = new Timer(new TimerCallback(this.timerTriggerWriterThread), true, Timeout.Infinite, Timeout.Infinite);
             this._writerThread = new Thread(new ThreadStart(this.writeLog));
             this._writerThread.IsBackground = true;
-            this._writerThread.Name = "LogRotateWriter: " + LogRotater.LogDir.FullName + "\\" + LogRotater.LogName;
+            this._writerThread.Name = "LogRotateWriter: " + logRotater.LogDir.FullName + "\\" + logRotater.LogName;
             this._writerThread.Start();
         }
 
@@ -100,39 +100,39 @@ namespace Demoder.Common.Logging
         /// </summary>
         private void writeLog()
         {
-            while (!this._abort)
+            while (!this.abort)
             {
-                this._logRotate.Rotate(ref this._logStream);
-                this._writeMRE.WaitOne();
-                lock (this._messageQueue)
+                this.logRotate.Rotate(ref this.logStream);
+                this.writeMRE.WaitOne();
+                lock (this.messageQueue)
                 {
                     //Cycle until we have emptied the queue.
-                    while (this._messageQueue.Count > 0)
+                    while (this.messageQueue.Count > 0)
                     {
                         byte writtenEntries = 0;
                         string message = string.Empty;
                         long maxSize;
-                        if (this._logRotate.LogMaxSize > 0)
-                            maxSize = this._logRotate.LogMaxSize - this._logStream.Position;
+                        if (this.logRotate.LogMaxSize > 0)
+                            maxSize = this.logRotate.LogMaxSize - this.logStream.Position;
                         else
                             maxSize = long.MaxValue;
                         if (maxSize <= 0)
-                            this._logRotate.Rotate(ref this._logStream);
+                            this.logRotate.Rotate(ref this.logStream);
                         //Fetch up to byte.MaxValue logentries & make one string for one big write.
-                        while (this._messageQueue.Count > 0 && writtenEntries < byte.MaxValue && message.Length <= maxSize)
+                        while (this.messageQueue.Count > 0 && writtenEntries < byte.MaxValue && message.Length <= maxSize)
                         {
-                            IEventLogEntry iele = this._messageQueue.Dequeue();
+                            IEventLogEntry iele = this.messageQueue.Dequeue();
                             message += EventLog.CreateLogString(iele.TimeStamp, iele.LogLevel, iele.Message);
                             writtenEntries++;
                         }
                         //Write all the entries to the logfile.
                         byte[] bytes = ASCIIEncoding.ASCII.GetBytes(message);
-                        this._logStream.Write(bytes, 0, bytes.Length);
+                        this.logStream.Write(bytes, 0, bytes.Length);
                     }
                     //Reset the timer
-                    this._bumped = false;
-                    this._writeMRE.Reset();
-                    this._writeTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                    this.bumped = false;
+                    this.writeMRE.Reset();
+                    this.writeTimer.Change(Timeout.Infinite, Timeout.Infinite);
                 }
             }
         }
@@ -141,32 +141,32 @@ namespace Demoder.Common.Logging
         /// <summary>
         /// Timed delegate for setting the writer MRE.
         /// </summary>
-        /// <param name="Obj"></param>
-        private void timerTriggerWriterThread(object Obj)
+        /// <param name="obj"></param>
+        private void timerTriggerWriterThread(object obj)
         {
-            this._writeMRE.Set();
+            this.writeMRE.Set();
         }
 
         #region Interfaces
         #region ILogWriter Members
-        bool ILogWriter.Write(IEventLogEntry LogEntry)
+        bool ILogWriter.Write(IEventLogEntry logEntry)
         {
-            if (this._disposed)
+            if (this.disposed)
                 throw new ObjectDisposedException("");
-            lock (this._messageQueue)
+            lock (this.messageQueue)
             {
-                this._messageQueue.Enqueue(LogEntry);
+                this.messageQueue.Enqueue(logEntry);
                 bool setTimer = true;
                 //Is this the first bump since last write?
-                if (!this._bumped)
+                if (!this.bumped)
                 {
                     setTimer = true;
-                    this._firstBump = DateTime.Now;
-                    this._bumped = true;
+                    this.firstBump = DateTime.Now;
+                    this.bumped = true;
                 }
 #warning This hardcoded value should be configurable
                 //If we haven't written anything for 20s, don't postpone timer any more
-                else if ((DateTime.Now - this._firstBump).TotalSeconds >= 20)
+                else if ((DateTime.Now - this.firstBump).TotalSeconds >= 20)
                     setTimer = false;
                 //Otherwise, postpone timer.
                 else
@@ -175,11 +175,11 @@ namespace Demoder.Common.Logging
                 {
 #warning This hardcoded value should be configurable
                     int timerTime;
-                    if (this._messageQueue.Count >= 64)
+                    if (this.messageQueue.Count >= 64)
                         timerTime = 0;
                     else
                         timerTime = 2000;
-                    this._writeTimer.Change(timerTime, Timeout.Infinite);
+                    this.writeTimer.Change(timerTime, Timeout.Infinite);
                 }
             }
             return true;
@@ -191,28 +191,28 @@ namespace Demoder.Common.Logging
         {
             lock (this)
             {
-                if (!this._disposed)
+                if (!this.disposed)
                 {
-                    this._disposed = true; //Set disposed flag
-                    this._abort = true; //Tell writerthread to stop on next loop
+                    this.disposed = true; //Set disposed flag
+                    this.abort = true; //Tell writerthread to stop on next loop
                     //Add "we're disposing" to logfile, and trigger the thread immediately.
-                    lock (this._messageQueue)
+                    lock (this.messageQueue)
                     {
                         EventLogEntry<string> el = new EventLogEntry<string>(EventLogLevel.Notice, String.Format("{0} {1}: LogRotateWriter: Disposing.", DateTime.Now.ToShortDateString(), DateTime.Now.ToShortTimeString()));
-                        this._messageQueue.Enqueue(el);
-                        this._writeTimer.Change(0, Timeout.Infinite);
+                        this.messageQueue.Enqueue(el);
+                        this.writeTimer.Change(0, Timeout.Infinite);
                     }
                     this._writerThread.Join(2500); //Wait max 2.5s for thread to exit.
                     if (this._writerThread.IsAlive)
                     {
                         throw new Exception("Failed to terminate writer thread within the defined timeframe");
                     }
-                    this._writeTimer = null;
+                    this.writeTimer = null;
                     this._writerThread = null;
-                    this._writeMRE = null;
-                    this._messageQueue = null;
-                    this._logName = null;
-                    this._logDirectory = null;
+                    this.writeMRE = null;
+                    this.messageQueue = null;
+                    this.logName = null;
+                    this.logDirectory = null;
                 }
             }
         }

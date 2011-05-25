@@ -38,35 +38,35 @@ namespace Demoder.Common.Logging
         /// <summary>
         /// Directory to store log files in
         /// </summary>
-        private DirectoryInfo _logDirectory;
+        private DirectoryInfo logDirectory;
         /// <summary>
         /// This logs name
         /// </summary>
-        private string _logName = null;
+        private string logName = null;
 
         //Logfile restrictions
         /// <summary>
         /// Logfile size in bytes
         /// </summary>
-        private long _logMaxSize = 0;
+        private long logMaxSize = 0;
         /// <summary>
         /// Logfile age in seconds
         /// </summary>
-        private TimeSpan _logMaxAge = new TimeSpan(30, 0, 0, 0);
+        private TimeSpan logMaxAge = new TimeSpan(30, 0, 0, 0);
         /// <summary>
         /// Number of uncompressed log iterations to keep. (logname.X)
         /// </summary>
-        private byte _logIterationsUncompressed = 1;
+        private byte logIterationsUncompressed = 1;
         /// <summary>
         /// Number of compressed iterations to keep. (logname.X.gz)
         /// </summary>
-        private byte _logIterationsCompressed = 3;
+        private byte logIterationsCompressed = 3;
 
         //Misc log settings
         /// <summary>
         /// Are we disposed?
         /// </summary>
-        private bool _disposed = false;
+        private bool disposed = false;
         #endregion
 
         #region Public accessors
@@ -77,9 +77,9 @@ namespace Demoder.Common.Logging
         {
             get
             {
-                if (this._disposed)
+                if (this.disposed)
                     throw new ObjectDisposedException("");
-                return this._logDirectory;
+                return this.logDirectory;
             }
         }
         /// <summary>
@@ -89,9 +89,9 @@ namespace Demoder.Common.Logging
         {
             get
             {
-                if (this._disposed)
+                if (this.disposed)
                     throw new ObjectDisposedException("");
-                return this._logName;
+                return this.logName;
             }
         }
         /// <summary>
@@ -101,9 +101,9 @@ namespace Demoder.Common.Logging
         {
             get
             {
-                if (this._disposed)
+                if (this.disposed)
                     throw new ObjectDisposedException("");
-                return this._logMaxSize;
+                return this.logMaxSize;
             }
         }
         /// <summary>
@@ -113,9 +113,9 @@ namespace Demoder.Common.Logging
         {
             get
             {
-                if (this._disposed)
+                if (this.disposed)
                     throw new ObjectDisposedException("");
-                return this._logMaxAge;
+                return this.logMaxAge;
             }
         }
 
@@ -126,12 +126,12 @@ namespace Demoder.Common.Logging
         {
             get
             {
-                if (this._disposed)
+                if (this.disposed)
                     throw new ObjectDisposedException("");
                 return new FileInfo(String.Format("{1}{0}{2}",
                     Path.DirectorySeparatorChar,
-                    this._logDirectory,
-                    this._logName));
+                    this.logDirectory,
+                    this.logName));
             }
         }
         #endregion
@@ -145,9 +145,9 @@ namespace Demoder.Common.Logging
         /// UncompressedIterations: 1
         /// CompressedIterations: 3]]>
         /// </summary>
-        /// <param name="LogDir">Directory to store logs in</param>
-        /// <param name="LogName">Name of this log file</param>
-        public LogRotater(DirectoryInfo LogDir, string LogName) : this(LogDir, LogName, 10240, new TimeSpan(0), 1, 3) { }
+        /// <param name="logDir">Directory to store logs in</param>
+        /// <param name="logName">Name of this log file</param>
+        public LogRotater(DirectoryInfo logDir, string logName) : this(logDir, logName, 10240, new TimeSpan(0), 1, 3) { }
         /// <summary>
         /// <![CDATA[Handles rotating of a single logfile using provided parameters
         /// Initializes with default limits. No rotation by age.
@@ -155,39 +155,39 @@ namespace Demoder.Common.Logging
         /// UncompressedIterations: 1
         /// CompressedIterations: 3]]>
         /// </summary>
-        /// <param name="LogDir">Directory to store logs in</param>
-        /// <param name="LogName">Name of this log file</param>
-        /// <param name="MaxSize">Custom maxmimum log size in bytes</param>
-        /// <param name="MaxAge">Custom maximum log age</param>
-        public LogRotater(DirectoryInfo LogDir, string LogName, long MaxSize, TimeSpan MaxAge) : this(LogDir, LogName, MaxSize, MaxAge, 1, 3) { }
+        /// <param name="logDir">Directory to store logs in</param>
+        /// <param name="logName">Name of this log file</param>
+        /// <param name="maxSize">Custom maxmimum log size in bytes</param>
+        /// <param name="maxAge">Custom maximum log age</param>
+        public LogRotater(DirectoryInfo logDir, string logName, long maxSize, TimeSpan maxAge) : this(logDir, logName, maxSize, maxAge, 1, 3) { }
         /// <summary>
         /// <![CDATA[Handles rotating of a single logfile using provided parameters
         /// Initialized with default limits. No rotation by age.
         /// UncompressedIterations: 1
         /// CompressedIterations: 3]]>
         /// </summary>
-        /// <param name="LogDir">Directory to store logs in</param>
-        /// <param name="LogName">Name of this log file</param>
+        /// <param name="logDir">Directory to store logs in</param>
+        /// <param name="logName">Name of this log file</param>
         /// <param name="MaxSize"></param>
-        public LogRotater(DirectoryInfo LogDir, string LogName, long MaxSize) : this(LogDir, LogName, MaxSize, new TimeSpan(0), 1, 3) { }
+        public LogRotater(DirectoryInfo logDir, string logName, long MaxSize) : this(logDir, logName, MaxSize, new TimeSpan(0), 1, 3) { }
         /// <summary>
         /// Handles rotating of a single logfile using provided parameters
         /// </summary>
-        /// <param name="LogDir">Directory to store logs in</param>
-        /// <param name="LogName">Name of this log file</param>
-        /// <param name="MaxSize">Maximum size of logfile in bytes before it's rotated. Set to 0 to disable</param>
-        /// <param name="MaxAge">Maximum age of logfile before it's rotated. Set to 0 ticks to disable</param>
-        /// <param name="UncompressedIterations">Maximum number of uncompressed rotations of the logfile to keep</param>
-        /// <param name="CompressedIterations">Maximum number of compressed rotations of the logfile to keep</param>
-        public LogRotater(DirectoryInfo LogDir, string LogName, long MaxSize, TimeSpan MaxAge, byte UncompressedIterations, byte CompressedIterations)
+        /// <param name="logDir">Directory to store logs in</param>
+        /// <param name="logName">Name of this log file</param>
+        /// <param name="maxSize">Maximum size of logfile in bytes before it's rotated. Set to 0 to disable</param>
+        /// <param name="maxAge">Maximum age of logfile before it's rotated. Set to 0 ticks to disable</param>
+        /// <param name="uncompressedIterations">Maximum number of uncompressed rotations of the logfile to keep</param>
+        /// <param name="compressedIterations">Maximum number of compressed rotations of the logfile to keep</param>
+        public LogRotater(DirectoryInfo logDir, string logName, long maxSize, TimeSpan maxAge, byte uncompressedIterations, byte compressedIterations)
         {
-            this._logDirectory = LogDir;
-            this._logName = LogName;
-            this._logMaxSize = MaxSize;
-            this._logMaxAge = MaxAge;
+            this.logDirectory = logDir;
+            this.logName = logName;
+            this.logMaxSize = maxSize;
+            this.logMaxAge = maxAge;
 
-            this._logIterationsUncompressed = UncompressedIterations;
-            this._logIterationsCompressed = CompressedIterations;
+            this.logIterationsUncompressed = uncompressedIterations;
+            this.logIterationsCompressed = compressedIterations;
         }
         #endregion
 
@@ -195,19 +195,19 @@ namespace Demoder.Common.Logging
         /// <summary>
         /// Rotates the predefined log if necessary. Use LogStream as reference to current log.
         /// </summary>
-        /// <param name="LogStream">Referenec to current log</param>
-        public void Rotate(ref FileStream LogStream)
+        /// <param name="logStream">Referenec to current log</param>
+        public void Rotate(ref FileStream logStream)
         {
-            if (this._disposed)
+            if (this.disposed)
                 throw new ObjectDisposedException("");
             lock (this)
             {
                 bool doRotate = false;
-                if (LogStream == null)
+                if (logStream == null)
                     doRotate = false;
-                else if (this._logMaxSize != 0 && LogStream.Position > this._logMaxSize)
+                else if (this.logMaxSize != 0 && logStream.Position > this.logMaxSize)
                     doRotate = true;
-                else if ((this._logMaxAge.TotalSeconds != 0) && ((DateTime.UtcNow - this.LogFile.CreationTimeUtc) >= this._logMaxAge))
+                else if ((this.logMaxAge.TotalSeconds != 0) && ((DateTime.UtcNow - this.LogFile.CreationTimeUtc) >= this.logMaxAge))
                     //If MaxAge is enabled
                     doRotate = true;
                 else
@@ -219,19 +219,19 @@ namespace Demoder.Common.Logging
                 {
                     case true:
                         //We should rotate.
-                        LogStream.Dispose();
-                        LogStream = this.rotateLog(doRotate);
+                        logStream.Dispose();
+                        logStream = this.rotateLog(doRotate);
                         break;
                     case false:
                         //If FileStream isn't writeable, dispose & set to null, so it will be recreated later.
-                        if (LogStream != null && !LogStream.CanWrite)
+                        if (logStream != null && !logStream.CanWrite)
                         {
-                            LogStream.Dispose();
-                            LogStream = null;
+                            logStream.Dispose();
+                            logStream = null;
                         }
                         //We shouldn't rotate. Only reopen FileStream if it's null.
-                        if (LogStream == null)
-                            LogStream = this.rotateLog(doRotate);
+                        if (logStream == null)
+                            logStream = this.rotateLog(doRotate);
                         break;
                 }
             }
@@ -244,11 +244,11 @@ namespace Demoder.Common.Logging
         /// If Rotate is true, will rotate the log.
         /// Will always return a FileStream handle to the new log.
         /// </summary>
-        /// <param name="Rotate"></param>
+        /// <param name="rotate"></param>
         /// <returns></returns>
-        private FileStream rotateLog(bool Rotate)
+        private FileStream rotateLog(bool rotate)
         {
-            if (Rotate)
+            if (rotate)
             {
                 //Do stuff to rotate
                 this.rotateLog(this.LogFile, 0);
@@ -266,7 +266,7 @@ namespace Demoder.Common.Logging
                 Console.WriteLine(ex);
             }
 
-            if (Rotate && fs != null)
+            if (rotate && fs != null)
             {
                 //Add notice to the new file that we rotated the file
                 byte[] bytes = ASCIIEncoding.ASCII.GetBytes(EventLog.CreateLogString(DateTime.Now, EventLogLevel.Notice, "LogRotateWriter: Log was rotated."));
@@ -275,47 +275,47 @@ namespace Demoder.Common.Logging
             return fs;
         }
 
-        private void rotateLog(FileInfo LogFile, uint Iteration)
+        private void rotateLog(FileInfo logFile, uint iteration)
         {
             FileInfo newLogFile = null;
             FileInfo curLogFile = null;
             bool compress = false;
 
             //If iteration is 0, current logfile has no suffix.
-            if (Iteration == 0)
-                curLogFile = new FileInfo(LogFile.FullName);
+            if (iteration == 0)
+                curLogFile = new FileInfo(logFile.FullName);
 
-            if ((Iteration < this._logIterationsUncompressed))
+            if ((iteration < this.logIterationsUncompressed))
             {
-                if (Iteration != 0)
-                    curLogFile = new FileInfo(String.Format("{0}.{1}", LogFile.FullName, Iteration));
-                newLogFile = new FileInfo(String.Format("{0}.{1}", LogFile.FullName, Iteration + 1));
+                if (iteration != 0)
+                    curLogFile = new FileInfo(String.Format("{0}.{1}", logFile.FullName, iteration));
+                newLogFile = new FileInfo(String.Format("{0}.{1}", logFile.FullName, iteration + 1));
                 compress = false; //We need to move, but not compress, since we haven't hit the cap of uncompressed files yet.
             }
-            else if ((this._logIterationsCompressed > 0) && (Iteration == this._logIterationsUncompressed))
+            else if ((this.logIterationsCompressed > 0) && (iteration == this.logIterationsUncompressed))
             {
                 //We're rotating a log which isn't compressed, but will be.
-                if (Iteration != 0)
-                    curLogFile = new FileInfo(String.Format("{0}.{1}", LogFile.FullName, Iteration));
-                newLogFile = new FileInfo(String.Format("{0}.{1}.gz", LogFile.FullName, Iteration + 1));
+                if (iteration != 0)
+                    curLogFile = new FileInfo(String.Format("{0}.{1}", logFile.FullName, iteration));
+                newLogFile = new FileInfo(String.Format("{0}.{1}.gz", logFile.FullName, iteration + 1));
                 compress = true; //We need to move & compress.
             }
-            else if ((this._logIterationsCompressed > 0) && ((Iteration - this._logIterationsUncompressed) <= this._logIterationsCompressed))
+            else if ((this.logIterationsCompressed > 0) && ((iteration - this.logIterationsUncompressed) <= this.logIterationsCompressed))
             {
                 //We're iterating an already compressed log
-                if (Iteration != 0)
-                    curLogFile = new FileInfo(String.Format("{0}.{1}.gz", LogFile.FullName, Iteration));
-                newLogFile = new FileInfo(String.Format("{0}.{1}.gz", LogFile.FullName, Iteration + 1));
+                if (iteration != 0)
+                    curLogFile = new FileInfo(String.Format("{0}.{1}.gz", logFile.FullName, iteration));
+                newLogFile = new FileInfo(String.Format("{0}.{1}.gz", logFile.FullName, iteration + 1));
                 compress = false; //Already compressed
             }
             else
                 return;
             //Check if the new logfile already exist.
             if (newLogFile != null && newLogFile.Exists)
-                this.rotateLog(LogFile, Iteration + 1);
+                this.rotateLog(logFile, iteration + 1);
 
             //The current iteration > than max iterations. Don't rotate file, but delete it.
-            if (Iteration >= (this._logIterationsCompressed + this._logIterationsUncompressed))
+            if (iteration >= (this.logIterationsCompressed + this.logIterationsUncompressed))
             {
                 curLogFile.Delete();
             }
@@ -347,11 +347,11 @@ namespace Demoder.Common.Logging
         {
             lock (this)
             {
-                if (!this._disposed)
+                if (!this.disposed)
                 {
-                    this._disposed = true;
-                    this._logName = null;
-                    this._logDirectory = null;
+                    this.disposed = true;
+                    this.logName = null;
+                    this.logDirectory = null;
                 }
             }
         }

@@ -30,7 +30,7 @@ namespace Demoder.Common.Logging
     public class VoidLogWriter : ILogWriter
     {
         #region ILogWriter Members
-        bool ILogWriter.Write(IEventLogEntry EventLog)
+        bool ILogWriter.Write(IEventLogEntry eventLog)
         {
             return true;
         }

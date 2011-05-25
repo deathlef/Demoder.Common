@@ -31,10 +31,10 @@ namespace Demoder.Common.Logging
     public class TraceLogWriter : ILogWriter
     {
         #region ILogWriter Members
-        bool ILogWriter.Write(IEventLogEntry EventLog)
+        bool ILogWriter.Write(IEventLogEntry eventLog)
         {
 #if TRACE
-            Trace.WriteLine(EventLog);
+            Trace.WriteLine(eventLog);
 #endif
             return true;
 

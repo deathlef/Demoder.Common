@@ -27,30 +27,30 @@ using System.Xml.Serialization;
 
 namespace Demoder.Common.Serialization
 {
-    public class SerializableKeyValuePair<TKey, TValue>
+    public class SerializableKeyValuePair<T1, T2>
     {
         #region Members
-        private TKey _key;
-        private TValue _value;
+        private T1 key;
+        private T2 value;
         #endregion
 
         #region Public accessors
-        public TKey Key
+        public T1 Key
         {
-            get { return this._key; }
+            get { return this.key; }
             set
             {
                 lock (this)
-                    this._key = value;
+                    this.key = value;
             }
         }
-        public TValue Value
+        public T2 Value
         {
-            get { return this._value; }
+            get { return this.value; }
             set
             {
                 lock (this)
-                    this._value = value;
+                    this.value = value;
             }
         }
         #endregion
@@ -59,7 +59,7 @@ namespace Demoder.Common.Serialization
         {
             try
             {
-                XmlSerializer serializer = new XmlSerializer(typeof(TKey));
+                XmlSerializer serializer = new XmlSerializer(typeof(T1));
             }
             catch
             {
@@ -68,57 +68,57 @@ namespace Demoder.Common.Serialization
 
             try
             {
-                XmlSerializer serializer = new XmlSerializer(typeof(TValue));
+                XmlSerializer serializer = new XmlSerializer(typeof(T2));
             }
             catch
             {
                 throw new ArgumentException("Value type is not serializable");
             }
         }
-        public SerializableKeyValuePair(TKey Key, TValue Value)
+        public SerializableKeyValuePair(T1 key, T2 value)
             : this()
         {
             KeyValuePair<string, string> test = new KeyValuePair<string, string>();
-            this._key = Key;
-            this._value = Value;
+            this.key = key;
+            this.value = value;
         }
         public override string ToString()
         {
-            return String.Format("[{0}, {1}]", this._key, this._value);
+            return String.Format("[{0}, {1}]", this.key, this.value);
         }
 
         #region Operators
-        public static bool operator ==(SerializableKeyValuePair<TKey, TValue> SKVP1, SerializableKeyValuePair<TKey, TValue> SKVP2)
+        public static bool operator ==(SerializableKeyValuePair<T1, T2> obj1, SerializableKeyValuePair<T1, T2> obj2)
         {
-            if (!SKVP1.Key.Equals(SKVP2.Key))
+            if (!obj1.Key.Equals(obj2.Key))
                 return false;
-            if (!SKVP1.Value.Equals(SKVP2.Value))
+            if (!obj1.Value.Equals(obj2.Value))
                 return false;
             return true;
         }
 
-        public static bool operator !=(SerializableKeyValuePair<TKey, TValue> SKVP1, SerializableKeyValuePair<TKey, TValue> SKVP2)
+        public static bool operator !=(SerializableKeyValuePair<T1, T2> obj1, SerializableKeyValuePair<T1, T2> obj2)
         {
-            if (SKVP1.Key.Equals(SKVP2.Key))
+            if (obj1.Key.Equals(obj2.Key))
                 return false;
-            if (SKVP1.Value.Equals(SKVP2.Value))
+            if (obj1.Value.Equals(obj2.Value))
                 return false;
             return true;
         }
         #endregion
-        public bool Equals(SerializableKeyValuePair<TKey, TValue> obj)
+        public bool Equals(SerializableKeyValuePair<T1, T2> obj)
         {
-            if (!this._key.Equals(obj.Key))
+            if (!this.key.Equals(obj.Key))
                 return false;
-            if (!this._value.Equals(obj.Value))
+            if (!this.value.Equals(obj.Value))
                 return false;
             return true;
         }
-        public bool Equals(KeyValuePair<TKey, TValue> obj)
+        public bool Equals(KeyValuePair<T1, T2> obj)
         {
-            if (!this._key.Equals(obj.Key))
+            if (!this.key.Equals(obj.Key))
                 return false;
-            if (!this._value.Equals(obj.Value))
+            if (!this.value.Equals(obj.Value))
                 return false;
             return true;
         }

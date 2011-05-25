@@ -32,32 +32,32 @@ namespace Demoder.Common.Logging
     public class EventLogEntry<LogItemType> : IEventLogEntry
     {
         #region members
-        private readonly EventLogLevel _logLevel;
-        private readonly DateTime _time;
-        private readonly LogItemType _logitem;
+        private readonly EventLogLevel logLevel;
+        private readonly DateTime time;
+        private readonly LogItemType logitem;
         #endregion
         #region Constructors
         /// <summary>
         /// Create a log entry
         /// </summary>
-        /// <param name="LogLevel"></param>
+        /// <param name="logLevel"></param>
         /// <param name="Source"></param>
         /// <param name="Message"></param>
-        public EventLogEntry(EventLogLevel LogLevel, LogItemType LogItem) :
-            this(LogLevel, LogItem, DateTime.Now) { }
+        public EventLogEntry(EventLogLevel logLevel, LogItemType logItem) :
+            this(logLevel, logItem, DateTime.Now) { }
 
         /// <summary>
         /// Create a log entry with custom timestamp
         /// </summary>
-        /// <param name="LogLevel"></param>
+        /// <param name="logLevel"></param>
         /// <param name="Source"></param>
         /// <param name="Message"></param>
-        /// <param name="Time"></param>
-        public EventLogEntry(EventLogLevel LogLevel, LogItemType LogItem, DateTime Time)
+        /// <param name="time"></param>
+        public EventLogEntry(EventLogLevel logLevel, LogItemType logItem, DateTime time)
         {
-            this._logLevel = LogLevel;
-            this._time = Time;
-            this._logitem = LogItem;
+            this.logLevel = logLevel;
+            this.time = time;
+            this.logitem = logItem;
         }
 
         #endregion
@@ -70,7 +70,7 @@ namespace Demoder.Common.Logging
         {
             get
             {
-                return (DateTime.Now - this._time);
+                return (DateTime.Now - this.time);
             }
         }
         #endregion
@@ -79,10 +79,10 @@ namespace Demoder.Common.Logging
         public override string ToString()
         {
             return String.Format("[{0} {1}] [{2}] {3}",
-                this._time.ToShortDateString(),
-                this._time.ToLongTimeString(),
-                this._logLevel.ToString(),
-                this._logitem);
+                this.time.ToShortDateString(),
+                this.time.ToLongTimeString(),
+                this.logLevel.ToString(),
+                this.logitem);
         }
         #endregion
 
@@ -90,20 +90,20 @@ namespace Demoder.Common.Logging
 
         DateTime IEventLogEntry.TimeStamp
         {
-            get { return this._time; }
+            get { return this.time; }
         }
 
         string IEventLogEntry.Message
         {
-            get { return this._logitem.ToString(); }
+            get { return this.logitem.ToString(); }
         }
         EventLogLevel IEventLogEntry.LogLevel
         {
-            get { return this._logLevel; }
+            get { return this.logLevel; }
         }
         object IEventLogEntry.LoggedObject
         {
-            get { return this._logitem; }
+            get { return this.logitem; }
         }
         #endregion
     }

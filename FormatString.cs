@@ -30,7 +30,7 @@ namespace Demoder.Common
     public class FormatString
     {
         #region members
-        private Dictionary<string, object> _dictionary;
+        private Dictionary<string, object> dictionary;
         #endregion
 
         #region constructors
@@ -39,16 +39,16 @@ namespace Demoder.Common
         /// </summary>
         public FormatString()
         {
-            this._dictionary = null;
+            this.dictionary = null;
         }
 
         /// <summary>
         /// Initialize with a pre-defined set of parameters
         /// </summary>
         /// <param name="dict"></param>
-        public FormatString(Dictionary<string, object> Dictionary)
+        public FormatString(Dictionary<string, object> dictionary)
         {
-            this._dictionary = Dictionary;
+            this.dictionary = dictionary;
         }
         #endregion
 
@@ -56,32 +56,32 @@ namespace Demoder.Common
         /// <summary>
         /// Format a string using the provided parameters
         /// </summary>
-        /// <param name="ToFormat"></param>
+        /// <param name="toFormat"></param>
         /// <param name="dict"></param>
         /// <returns></returns>
-        public string Format(string ToFormat, Dictionary<string, object> Dictionary)
+        public string Format(string toFormat, Dictionary<string, object> dictionary)
         {
             lock (this)
             {
-                if (Dictionary == null)
+                if (dictionary == null)
                     throw new ArgumentException("Argument cannot be null", "dict");
-                this._dictionary = Dictionary;
-                return this.Format(ToFormat);
+                this.dictionary = dictionary;
+                return this.Format(toFormat);
             }
         }
 
         /// <summary>
         /// Format a string using the previously provided parameters
         /// </summary>
-        /// <param name="ToFormat"></param>
+        /// <param name="toFormat"></param>
         /// <returns>formatted string</returns>
-        public string Format(string ToFormat)
+        public string Format(string toFormat)
         {
             lock (this)
             {
-                if (this._dictionary == null)
+                if (this.dictionary == null)
                     throw new InvalidOperationException("Dictioanry not provided upon instance creation. Therefore, it must be provided upon string formatting.");
-                string outstring = ToFormat;
+                string outstring = toFormat;
                 Regex re = new Regex(@"\{[^}]*\}");
                 outstring = re.Replace(outstring, doFormatString);
                 return outstring;
@@ -91,16 +91,16 @@ namespace Demoder.Common
         /// <summary>
         /// Formats a string using the provided parameters
         /// </summary>
-        /// <param name="ToFormat">String which needs formatting</param>
+        /// <param name="toFormat">String which needs formatting</param>
         /// <param name="param">string[] { tag, value }</param>
         /// <returns>formatted string</returns>
-        public string Format(string ToFormat, params KeyValuePair<string, object>[] Parameters)
+        public string Format(string toFormat, params KeyValuePair<string, object>[] Parameters)
         {
             Dictionary<string, object> dict = new Dictionary<string, object>();
             foreach (KeyValuePair<string, object> kvp in Parameters)
                 if (!dict.ContainsKey(kvp.Key))
                     dict.Add(kvp.Key, kvp.Value);
-            return this.Format(ToFormat, dict);
+            return this.Format(toFormat, dict);
         }
 
         /// <summary>
@@ -108,11 +108,11 @@ namespace Demoder.Common
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        private string doFormatString(Match Input)
+        private string doFormatString(Match input)
         {
-            string matchkey = Input.Value.Substring(1, Input.Value.Length - 2).ToLower();
-            if (this._dictionary.ContainsKey(matchkey))
-                return this._dictionary[matchkey].ToString();
+            string matchkey = input.Value.Substring(1, input.Value.Length - 2).ToLower();
+            if (this.dictionary.ContainsKey(matchkey))
+                return this.dictionary[matchkey].ToString();
             else
                 return string.Empty;
         }

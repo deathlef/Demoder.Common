@@ -30,9 +30,9 @@ namespace Demoder.Common
     //Processes commandline arguments, and make a unix-like flag/argument system out of it.
     public class CommandLineParameters
     {
-        private Dictionary<string, string> _arguments = new Dictionary<string, string>();
-        private Dictionary<string, uint> _flags = new Dictionary<string, uint>();
-        private Dictionary<string, uint> _longflags = new Dictionary<string, uint>();
+        private Dictionary<string, string> arguments = new Dictionary<string, string>();
+        private Dictionary<string, uint> flags = new Dictionary<string, uint>();
+        private Dictionary<string, uint> longflags = new Dictionary<string, uint>();
         /// <summary>
         /// Process provided commandline arguments.
         /// </summary>
@@ -55,8 +55,8 @@ namespace Demoder.Common
                 if (String.IsNullOrEmpty(arg))
                     continue;
                 string val = mc.Groups[2].Value;
-                if (!this._arguments.ContainsKey(arg))
-                    this._arguments.Add(arg, val);
+                if (!this.arguments.ContainsKey(arg))
+                    this.arguments.Add(arg, val);
                 mc = mc.NextMatch();
             } while (mc.Success);
 
@@ -67,10 +67,10 @@ namespace Demoder.Common
                 string flag = mc.Groups[1].Value;
                 if (flag.Length > 0)
                 {
-                    if (!this._flags.ContainsKey(flag))
-                        this._flags.Add(flag, 1);
+                    if (!this.flags.ContainsKey(flag))
+                        this.flags.Add(flag, 1);
                     else
-                        this._flags[flag]++;
+                        this.flags[flag]++;
                 }
                 mc = mc.NextMatch();
             } while (mc.Success);
@@ -80,44 +80,48 @@ namespace Demoder.Common
             do
             {
                 string flag = mc.Groups[1].Value;
-                if (!this._longflags.ContainsKey(flag))
-                    this._longflags.Add(flag, 1);
+                if (!this.longflags.ContainsKey(flag))
+                    this.longflags.Add(flag, 1);
                 else
-                    this._longflags[flag]++;
+                    this.longflags[flag]++;
                 mc = mc.NextMatch();
             } while (mc.Success);
         }
         /// <summary>
-        /// Check if Flag is set.
+        /// Check if Flag is set. (-flag)
         /// </summary>
         /// <param name="Flag">CMD: -v   flag: v</param>
         /// <returns></returns>
         public uint Flag(string FlagName)
         {
-            if (this._flags.ContainsKey(FlagName))
-                return this._flags[FlagName];
+            if (this.flags.ContainsKey(FlagName))
+                return this.flags[FlagName];
             else
                 return 0;
         }
 
         /// <summary>
-        /// Check if LongFlag is set.
+        /// Check if LongFlag is set. --flag
         /// </summary>
         /// <param name="LongFlag">CMD: --v   longflag: v</param>
         /// <returns></returns>
         public uint LongFlag(string LongFlagName)
         {
-            if (this._longflags.ContainsKey(LongFlagName))
-                return this._longflags[LongFlagName];
+            if (this.longflags.ContainsKey(LongFlagName))
+                return this.longflags[LongFlagName];
             else
                 return 0;
         }
 
-        //Retrieve the value of ArgumentName. Returns null if no value was provided.
+        /// <summary>
+        /// Retrieve the value of ArgumentName. Returns null if no value was provided. (--key=&quot;value&quot;)
+        /// </summary>
+        /// <param name="ArgumentName"></param>
+        /// <returns></returns>
         public string Argument(string ArgumentName)
         {
-            if (this._arguments.ContainsKey(ArgumentName))
-                return this._arguments[ArgumentName];
+            if (this.arguments.ContainsKey(ArgumentName))
+                return this.arguments[ArgumentName];
             else
                 return null;
         }

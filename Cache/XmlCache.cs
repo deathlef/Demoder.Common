@@ -83,9 +83,9 @@ namespace Demoder.Common.Cache
     public class XMLCache<T>
         where T : class
     {
-        public string Path { get { return this._path; } }
-        public int Duration { get { return this._duration; } }
-        public int Timeout { get { return this._timeout; } }
+        public string Path { get { return this.path; } }
+        public int Duration { get { return this.duration; } }
+        public int Timeout { get { return this.timeout; } }
 
         /// <summary>
         /// Initializes a new XMLCache object
@@ -95,9 +95,9 @@ namespace Demoder.Common.Cache
         /// <param name="timeout">The timeout of connecting to the web in miliseconds</param>
         public XMLCache(string path, int duration, int timeout)
         {
-            this._path = path;
-            this._duration = duration;
-            this._timeout = timeout;
+            this.path = path;
+            this.duration = duration;
+            this.timeout = timeout;
         }
 
         public T Request(string url, params string[] args)
@@ -193,10 +193,10 @@ namespace Demoder.Common.Cache
         public string GetPath(params string[] args)
         {
             StringBuilder path = new StringBuilder();
-            if (string.IsNullOrEmpty(this._path))
+            if (string.IsNullOrEmpty(this.path))
                 path.Append(".");
             else
-                path.Append(this._path);
+                path.Append(this.path);
             path.Append(System.IO.Path.DirectorySeparatorChar);
             path.Append(string.Join(System.IO.Path.DirectorySeparatorChar.ToString(), args, 0, args.Length - 1));
             if (args.Length > 1)
@@ -214,8 +214,8 @@ namespace Demoder.Common.Cache
             return this.GetPath(args) + this.GetFile(args);
         }
 
-        private string _path;
-        private int _duration;
-        private int _timeout;
+        private string path;
+        private int duration;
+        private int timeout;
     }
 }

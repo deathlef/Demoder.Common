@@ -36,13 +36,13 @@ namespace Demoder.Common
     {
         #region members
         public BackgroundWorker BackgroundWorker = new BackgroundWorker();
-        private ManualResetEvent _bgwMRE = new ManualResetEvent(false);
-        private Queue<object> _queue = new Queue<object>(16);
+        private ManualResetEvent bgwMRE = new ManualResetEvent(false);
+        private Queue<object> queue = new Queue<object>(16);
 
         /// <summary>
         /// How many items are in queue?
         /// </summary>
-        protected int _queueCount { get { return this._queue.Count; } }
+        protected int queueCount { get { return this.queue.Count; } }
         #endregion
 
         #region Events
@@ -54,10 +54,10 @@ namespace Demoder.Common
         #endregion
 
         #region constructors
-        public BackgroundWorkerInputQueue(bool ReportProgress, bool SupportsCancellation)
+        public BackgroundWorkerInputQueue(bool reportProgress, bool supportsCancellation)
         {
-            this.BackgroundWorker.WorkerReportsProgress = ReportProgress;
-            this.BackgroundWorker.WorkerSupportsCancellation = SupportsCancellation;
+            this.BackgroundWorker.WorkerReportsProgress = reportProgress;
+            this.BackgroundWorker.WorkerSupportsCancellation = supportsCancellation;
             this.BackgroundWorker.DoWork += new DoWorkEventHandler(this.worker_PullQueue);
             this.BackgroundWorker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(worker_WorkCompleted);
         }
@@ -76,11 +76,11 @@ namespace Demoder.Common
         /// Add an item to the worker queue
         /// </summary>
         /// <param name="obj"></param>
-        protected void enqueue(object Obj)
+        protected void enqueue(object obj)
         {
-            lock (this._queue)
-                this._queue.Enqueue(Obj);
-            this._bgwMRE.Set();
+            lock (this.queue)
+                this.queue.Enqueue(obj);
+            this.bgwMRE.Set();
             if (!this.BackgroundWorker.IsBusy)
                 this.BackgroundWorker.RunWorkerAsync();
         }
@@ -90,29 +90,29 @@ namespace Demoder.Common
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void worker_PullQueue(object Sender, DoWorkEventArgs E)
+        private void worker_PullQueue(object sender, DoWorkEventArgs e)
         {
-            while (!E.Cancel)
+            while (!e.Cancel)
             {
-                if (this._queue.Count == 0)
+                if (this.queue.Count == 0)
                 {
-                    this._bgwMRE.Reset();
+                    this.bgwMRE.Reset();
                     //Signal that the queue is empty.
                     EventHandler eh = this.QueueEmpty;
                     if (eh != null)
                         lock (eh)
                             eh(this, new EventArgs());
 
-                    this._bgwMRE.WaitOne(); //Wait till we get signaled.
+                    this.bgwMRE.WaitOne(); //Wait till we get signaled.
                     continue;
                 }
                 else
                 {
                     Object worktask = null;
-                    lock (this._queue)
-                        worktask = this._queue.Dequeue();
+                    lock (this.queue)
+                        worktask = this.queue.Dequeue();
                     //Submit work task to the DoWork event. WORK TASK IS STORED AS SENDER!
-                    this.myWorker(this, E, worktask);
+                    this.myWorker(this, e, worktask);
                     return;
                 }
             }
@@ -123,14 +123,14 @@ namespace Demoder.Common
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void worker_WorkCompleted(object Sender, RunWorkerCompletedEventArgs E)
+        private void worker_WorkCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             RunWorkerCompletedEventHandler rwceh = this.WorkComplete;
             if (rwceh != null)
                 lock (rwceh)
-                    rwceh(Sender, E);
+                    rwceh(sender, e);
             //Start the worker again.
-            if (!E.Cancelled)
+            if (!e.Cancelled)
                 this.BackgroundWorker.RunWorkerAsync();
         }
         #endregion
@@ -142,7 +142,7 @@ namespace Demoder.Common
         /// <param name="sender">Object performing this action</param>
         /// <param name="e">Original DoWorkEventArgs provided by the background worker</param>
         /// <param name="QueueItem">Work item provided by the queue manager</param>
-        protected abstract void myWorker(object Sender, DoWorkEventArgs E, object QueueItem);
+        protected abstract void myWorker(object sender, DoWorkEventArgs e, object queueItem);
         #endregion
     }
 }

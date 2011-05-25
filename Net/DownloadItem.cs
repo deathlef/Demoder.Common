@@ -36,85 +36,85 @@ namespace Demoder.Common.Net
     {
         #region Members
         //Describing the download task
-        private readonly object _tag;
-        private readonly MD5Checksum _expectedMD5;
-        private Queue<Uri> _mirrors;
-        private List<object> _mirrorTags = new List<object>();
+        private readonly object tag;
+        private readonly MD5Checksum expectedMD5;
+        private Queue<Uri> mirrors;
+        private List<object> mirrorTags = new List<object>();
 
-        private List<Uri> _failedMirrors;
-        private ManualResetEvent _downloadMre = new ManualResetEvent(false);
+        private List<Uri> failedMirrors;
+        private ManualResetEvent downloadMre = new ManualResetEvent(false);
 
         //Describing the download data
-        private byte[] _bytes = null;
-        private object _httpStatusCode = null;
-        private MD5Checksum _downloadedMD5 = null;
-        private FileInfo _saveAs = null;
+        private byte[] bytes = null;
+        private object httpStatusCode = null;
+        private MD5Checksum downloadedMD5 = null;
+        private FileInfo saveAs = null;
         //Delegates
         /// <summary>
         /// Signaled when the download succeeds.
         /// </summary>
-        private readonly DownloadItemEventHandler _downloadSuccessDelegate;
+        private readonly DownloadItemEventHandler downloadSuccessDelegate;
         /// <summary>
         /// Signalted when the download fails.
         /// </summary>
-        private readonly DownloadItemEventHandler _downloadFailureDelegate;
+        private readonly DownloadItemEventHandler downloadFailureDelegate;
         #endregion
 
         #region Constructors
         /// <summary>
         /// Initialize a DownloadItem
         /// </summary>
-        /// <param name="Tag">Userdefined tag of this download</param>
-        /// <param name="Uri">Uri to download from</param>
-        public DownloadItem(object Tag,
-            Uri Uri,
-            DownloadItemEventHandler DownloadSuccessDelegate,
-            DownloadItemEventHandler DownloadFailureDelegate) :
-            this(Tag, new List<Uri>(new Uri[] { Uri }), DownloadSuccessDelegate, DownloadFailureDelegate) { }
+        /// <param name="tag">Userdefined tag of this download</param>
+        /// <param name="uri">Uri to download from</param>
+        public DownloadItem(object tag,
+            Uri uri,
+            DownloadItemEventHandler downloadSuccessDelegate,
+            DownloadItemEventHandler downloadFailureDelegate) :
+            this(tag, new List<Uri>(new Uri[] { uri }), downloadSuccessDelegate, downloadFailureDelegate) { }
 
         /// <summary>
         /// Initialize a DownloadItem
         /// </summary>
-        /// <param name="Tag">Uerdefined tag for this download</param>
-        /// <param name="Mirrors">URIs to download from</param>
+        /// <param name="tag">Uerdefined tag for this download</param>
+        /// <param name="mirrors">URIs to download from</param>
         public DownloadItem(
-            object Tag,
-            IEnumerable<Uri> Mirrors,
-            DownloadItemEventHandler DownloadSuccessDelegate,
-            DownloadItemEventHandler DownloadFailureDelegate) :
-            this(Tag, Mirrors, DownloadSuccessDelegate, DownloadFailureDelegate, null) { }
+            object tag,
+            IEnumerable<Uri> mirrors,
+            DownloadItemEventHandler downloadSuccessDelegate,
+            DownloadItemEventHandler downloadFailureDelegate) :
+            this(tag, mirrors, downloadSuccessDelegate, downloadFailureDelegate, null) { }
 
 
-        public DownloadItem(object Tag,
-            IEnumerable<Uri> Mirrors,
-            DownloadItemEventHandler DownloadSuccessDelegate,
-            DownloadItemEventHandler DownloadFailureDelegate,
+        public DownloadItem(object tag,
+            IEnumerable<Uri> mirrors,
+            DownloadItemEventHandler downloadSuccessDelegate,
+            DownloadItemEventHandler downloadFailureDelegate,
             MD5Checksum ExcpectedMD5,
             FileInfo SaveAs)
-            : this(Tag, Mirrors, DownloadSuccessDelegate, DownloadFailureDelegate, ExcpectedMD5)
+            : this(Tag, mirrors, downloadSuccessDelegate, downloadFailureDelegate, ExcpectedMD5)
         {
-            this._saveAs = SaveAs;
+            this.saveAs = SaveAs;
         }
 
         /// <summary>
         /// Initialize a DownloadItem
         /// </summary>
         /// <param name="Tag">Userdefined tag for this download</param>
-        /// <param name="Mirrors">URIs to download from</param>
+        /// <param name="mirrors">URIs to download from</param>
         /// <param name="ExpectedMD5">The file should have this MD5 hash to be considered a successfull download</param>
         public DownloadItem(
-            object Tag,
-            IEnumerable<Uri> Mirrors,
-            DownloadItemEventHandler DownloadSuccessDelegate,
-            DownloadItemEventHandler DownloadFailureDelegate,
+            object tag,
+            IEnumerable<Uri> mirrors,
+            DownloadItemEventHandler downloadSuccessDelegate,
+            DownloadItemEventHandler downloadFailureDelegate,
             MD5Checksum ExpectedMD5)
         {
-            this._tag = Tag;
-            this._mirrors = new Queue<Uri>(Mirrors);
-            this._failedMirrors = new List<Uri>(this._mirrors.Count);
-            this._downloadSuccessDelegate = DownloadSuccessDelegate;
-            this._downloadFailureDelegate = DownloadFailureDelegate;
-            this._expectedMD5 = ExpectedMD5;
+            this.tag = Tag;
+            this.mirrors = new Queue<Uri>(mirrors);
+            this.failedMirrors = new List<Uri>(this.mirrors.Count);
+            this.downloadSuccessDelegate = downloadSuccessDelegate;
+            this.downloadFailureDelegate = downloadFailureDelegate;
+            this.expectedMD5 = ExpectedMD5;
         }
         #endregion
 
@@ -126,13 +126,13 @@ namespace Demoder.Common.Net
         {
             get
             {
-                if (this._bytes == null)
+                if (this.bytes == null)
                     return false;
-                lock (this._downloadedMD5)
+                lock (this.downloadedMD5)
                 {
-                    if (this._expectedMD5 == null) //Since we have data, and no expected MD5, assume the download manager verified the server-reported MD5.
+                    if (this.expectedMD5 == null) //Since we have data, and no expected MD5, assume the download manager verified the server-reported MD5.
                         return true;
-                    if (this._expectedMD5 == this._downloadedMD5) //Integrity ok
+                    if (this.expectedMD5 == this.downloadedMD5) //Integrity ok
                         return true;
                 }
                 return false; //All other scenarios, download integrity is not ok.
@@ -142,11 +142,11 @@ namespace Demoder.Common.Net
         /// <summary>
         /// Retrieves the datas actual MD5 checksum
         /// </summary>
-        public MD5Checksum MD5 { get { return this._downloadedMD5; } }
+        public MD5Checksum MD5 { get { return this.downloadedMD5; } }
         /// <summary>
         /// Retrieves the wanted MD5 checksum
         /// </summary>
-        public MD5Checksum WantedMD5 { get { return this._expectedMD5; } }
+        public MD5Checksum WantedMD5 { get { return this.expectedMD5; } }
 
         /// <summary>
         /// The downloaded data
@@ -155,29 +155,29 @@ namespace Demoder.Common.Net
         {
             get
             {
-                if (this._bytes == null && this._saveAs != null)
+                if (this.bytes == null && this.saveAs != null)
                 {
                     //Get the binary data from file, cache it in this object, then return it.
                     try
                     {
-                        this.storeBytes(File.ReadAllBytes(this._saveAs.FullName));
+                        this.storeBytes(File.ReadAllBytes(this.saveAs.FullName));
                     }
                     catch { }
-                    return this._bytes;
+                    return this.bytes;
                 }
-                return this._bytes;
+                return this.bytes;
             }
         }
-        public FileInfo SaveAs { get { return this._saveAs; } }
+        public FileInfo SaveAs { get { return this.saveAs; } }
 
         /// <summary>
         /// Userdefined tag
         /// </summary>
-        public object Tag { get { return this._tag; } }
+        public object Tag { get { return this.tag; } }
         /// <summary>
         /// Retrieve a list of failed mirrors.
         /// </summary>
-        public Uri[] FailedMirrors { get { return this._failedMirrors.ToArray(); } }
+        public Uri[] FailedMirrors { get { return this.failedMirrors.ToArray(); } }
 
         /// <summary>
         /// Retrieve the top mirror from the queue.
@@ -188,12 +188,12 @@ namespace Demoder.Common.Net
             {
                 lock (this)
                 {
-                    if (this._mirrors.Count == 0)
+                    if (this.mirrors.Count == 0)
                     {
                         return null;
                     }
                     else
-                        return this._mirrors.Peek();
+                        return this.mirrors.Peek();
                 }
             }
         }
@@ -201,7 +201,7 @@ namespace Demoder.Common.Net
         /// <summary>
         /// A list of tags for this mirror. Will be reset when cycling mirrors.
         /// </summary>
-        public List<object> MirrorTags { get { return this._mirrorTags; } }
+        public List<object> MirrorTags { get { return this.mirrorTags; } }
 
         /// <summary>
         /// Retrieves scheme://host:port representing the top mirror.
@@ -227,10 +227,10 @@ namespace Demoder.Common.Net
         #endregion
 
         #region Private Methods
-        private void storeBytes(byte[] Bytes)
+        private void storeBytes(byte[] bytes)
         {
-            this._bytes = Bytes;
-            this._downloadedMD5 = MD5Checksum.Generate(Bytes);
+            this.bytes = bytes;
+            this.downloadedMD5 = MD5Checksum.Generate(bytes);
         }
         #endregion
 
@@ -238,17 +238,17 @@ namespace Demoder.Common.Net
         /// <summary>
         /// This method will call the DownloadSuccessDelegate.
         /// </summary>
-        public bool SuccessfullDownload(byte[] Bytes)
+        public bool SuccessfullDownload(byte[] bytes)
         {
             lock (this)
             {
-                this.storeBytes(Bytes);
+                this.storeBytes(bytes);
                 if (this.IntegrityOK)
                 {
-                    if (this._downloadSuccessDelegate != null)
-                        lock (this._downloadSuccessDelegate)
-                            this._downloadSuccessDelegate(this);
-                    this._downloadMre.Set();
+                    if (this.downloadSuccessDelegate != null)
+                        lock (this.downloadSuccessDelegate)
+                            this.downloadSuccessDelegate(this);
+                    this.downloadMre.Set();
                 }
                 return (this.IntegrityOK);
             }
@@ -257,28 +257,28 @@ namespace Demoder.Common.Net
         /// <summary>
         /// Download failed. Move the mirror to the failed queue. If there are no more mirrors, call the DownloadFailed delegate and return false.
         /// </summary>
-        /// <param name="FailMirror">Should we mark the mirror as failed</param>
+        /// <param name="failMirror">Should we mark the mirror as failed</param>
         /// <returns>true if we have more mirrors in queue, false otherwise.</returns>
-        public bool FailedDownload(bool FailMirror)
+        public bool FailedDownload(bool failMirror)
         {
             lock (this)
             {
-                if (FailMirror)
+                if (failMirror)
                 {
-                    Uri uri = this._mirrors.Dequeue();
-                    this._failedMirrors.Add(uri);
+                    Uri uri = this.mirrors.Dequeue();
+                    this.failedMirrors.Add(uri);
                     //Clear mirror tags for previous mirror.
-                    this._mirrorTags.Clear();
+                    this.mirrorTags.Clear();
                 }
-                if (this._mirrors.Count == 0)
+                if (this.mirrors.Count == 0)
                 {
                     DownloadItemEventHandler dieh = null;
-                    if (this._downloadFailureDelegate != null)
-                        lock (this._downloadFailureDelegate)
-                            dieh = this._downloadFailureDelegate;
+                    if (this.downloadFailureDelegate != null)
+                        lock (this.downloadFailureDelegate)
+                            dieh = this.downloadFailureDelegate;
                     if (dieh != null)
                         dieh(this);
-                    this._downloadMre.Set();
+                    this.downloadMre.Set();
                     return false;
                 }
             }
@@ -290,15 +290,15 @@ namespace Demoder.Common.Net
         /// </summary>
         public void Wait()
         {
-            this._downloadMre.WaitOne();
+            this.downloadMre.WaitOne();
         }
         /// <summary>
         /// Wait for download to finish.
         /// </summary>
-        /// <param name="Timeout">Timeout in milliseconds</param>
-        public void Wait(int Timeout)
+        /// <param name="timeout">Timeout in milliseconds</param>
+        public void Wait(int timeout)
         {
-            this._downloadMre.WaitOne(Timeout);
+            this.downloadMre.WaitOne(timeout);
         }
         #endregion Public Methods
 
@@ -306,18 +306,18 @@ namespace Demoder.Common.Net
         public override string ToString()
         {
             int bytecount = 0;
-            if (this._bytes != null)
-                bytecount = this._bytes.Length;
+            if (this.bytes != null)
+                bytecount = this.bytes.Length;
 
             List<string> mirrors = new List<string>();
-            foreach (Uri uri in this._mirrors)
+            foreach (Uri uri in this.mirrors)
                 mirrors.Add(uri.ToString());
-            foreach (Uri uri in this._failedMirrors)
+            foreach (Uri uri in this.failedMirrors)
                 mirrors.Add(uri.ToString());
             return String.Format("bytes: {0}, md5: {1} / {2}, mirrors: {3}",
                 bytecount,
-                this._downloadedMD5,
-                this._expectedMD5,
+                this.downloadedMD5,
+                this.expectedMD5,
                 string.Join(", ", mirrors.ToArray()));
         }
         #endregion
