@@ -49,11 +49,11 @@
     <Compile Include="Cache\XmlCache.cs" />
     <Compile Include="Cache\XmlCacheWrapper.cs" />
     <Compile Include="CommandLineParameters.cs" />
-    <Compile Include="Extensions\TraceExtension.cs" />
     <Compile Include="Hash\ICheckSum.cs" />
     <Compile Include="Logging\IEventLogEntry.cs" />
     <Compile Include="Logging\LogRotater.cs" />
     <Compile Include="Logging\RotateLogWriter.cs" />
+    <Compile Include="Logging\TraceLogWriter.cs" />
     <Compile Include="Logging\VoidLogWriter.cs" />
     <Compile Include="Logging\enums.cs" />
     <Compile Include="Logging\EventLog.cs" />
@@ -82,6 +82,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Debug\" />
+    <Folder Include="Extensions\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
