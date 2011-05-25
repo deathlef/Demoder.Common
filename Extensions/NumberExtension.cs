@@ -22,27 +22,33 @@ THE SOFTWARE.
 */
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
-using Demoder.Common.Extensions;
 
-namespace Demoder.Common
+namespace Demoder.Common.Extensions
 {
-    public static class Maths
+    public static class NumberExtension
     {
-        public static int Percent(int MaxValue, int CurrentValue)
+        /// <summary>
+        /// How many % is this instances value of the provided value?
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <param name="value">Represents 100%</param>
+        /// <returns></returns>
+        public static double PercentOf(this int obj, int value)
         {
-            return (int)System.Math.Round(MaxValue.Percent(CurrentValue), 0);
+            return (((double)value) / ((double)obj)) * 100;
         }
 
         /// <summary>
-        /// Determines how much of 'full' the provided 'percent' means.
+        /// How many % is the provided value of this instances value?
         /// </summary>
-        /// <param name="MaxValue">Number of units</param>
-        /// <param name="Percent">Percent</param>
+        /// <param name="obj"></param>
+        /// <param name="value">Represents ?%</param>
         /// <returns></returns>
-        public static int DePercent(int MaxValue, int Percent)
+        public static double Percent(this int obj, int value)
         {
-            return (int)Math.Round(Percent * ((double)MaxValue / 100), 0);
+            return (((double)obj)/((double)value)) * 100;
         }
     }
 }

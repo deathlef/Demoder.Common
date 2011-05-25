@@ -22,27 +22,24 @@ THE SOFTWARE.
 */
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
-using Demoder.Common.Extensions;
 
-namespace Demoder.Common
+namespace Demoder.Common.Extensions
 {
-    public static class Maths
+    public static class DateTimeExtension
     {
-        public static int Percent(int MaxValue, int CurrentValue)
+        /// <summary>
+        /// Returns a representation of this instance in UnixTime (seconds since 1st jan, 1970)
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        public static long UnixTime(this DateTime obj)
         {
-            return (int)System.Math.Round(MaxValue.Percent(CurrentValue), 0);
+            DateTime dt = new DateTime(1970, 1, 1);
+            TimeSpan ts = (obj.ToUniversalTime() - dt);
+            return (long)Math.Floor(ts.TotalSeconds);
         }
 
-        /// <summary>
-        /// Determines how much of 'full' the provided 'percent' means.
-        /// </summary>
-        /// <param name="MaxValue">Number of units</param>
-        /// <param name="Percent">Percent</param>
-        /// <returns></returns>
-        public static int DePercent(int MaxValue, int Percent)
-        {
-            return (int)Math.Round(Percent * ((double)MaxValue / 100), 0);
-        }
     }
 }
