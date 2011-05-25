@@ -38,37 +38,37 @@ namespace Demoder.Common.Net
         /// <summary>
         /// Have we been told to abort/dispose?
         /// </summary>
-        private bool _disposed = false;
+        private bool disposed = false;
         /// <summary>
         /// Key: Hostname.  Value: [Key: IP Endpoint. Value: Downloader]
         /// </summary>
-        private Dictionary<string, List<Downloader>> _connections;
+        private Dictionary<string, List<Downloader>> connections;
 
         //Connection limits.
         /// <summary>
         /// Max connections per IP
         /// </summary>
-        private int _clMaxPerIp = 6;
+        private int clMaxPerIp = 6;
 
         /// <summary>
         /// UserAgent reported to remote web server.
         /// </summary>
         public string UserAgent = "Demoder.Common DownloadManager";
 
-        private WebProxy _proxySettings;
+        private WebProxy proxySettings;
 
         /// <summary>
         /// Queue with successfull downloads to fire
         /// </summary>
-        private Queue<IDownloadItem> _successfullDownloads = new Queue<IDownloadItem>();
+        private Queue<IDownloadItem> successfullDownloads = new Queue<IDownloadItem>();
         /// <summary>
         /// Queue with failed downloads to fire
         /// </summary>
-        private Queue<IDownloadItem> _failedDownloads = new Queue<IDownloadItem>();
+        private Queue<IDownloadItem> failedDownloads = new Queue<IDownloadItem>();
         #endregion
         #region Threads
-        private Thread _eventQueueProcesserThread;
-        private ManualResetEvent _eventQueueProcesserMRE = new ManualResetEvent(false);
+        private Thread eventQueueProcesserThread;
+        private ManualResetEvent eventQueueProcesserMRE = new ManualResetEvent(false);
         #endregion
 
         #region Events
@@ -91,15 +91,15 @@ namespace Demoder.Common.Net
         /// <summary>
         /// Initializes the DownloadManager, telling it to use a proxy.
         /// </summary>
-        /// <param name="ProxySettings"></param>
-        public DownloadManager(WebProxy ProxySettings)
+        /// <param name="proxySettings"></param>
+        public DownloadManager(WebProxy proxySettings)
         {
-            this._proxySettings = ProxySettings;
-            this._connections = new Dictionary<string, List<Downloader>>(32);
-            this._eventQueueProcesserThread = new Thread(new ThreadStart(this.eventQueueProcesser));
-            this._eventQueueProcesserThread.IsBackground = true;
-            this._eventQueueProcesserThread.Name = "DownloadManager Event Firer";
-            this._eventQueueProcesserThread.Start();
+            this.proxySettings = proxySettings;
+            this.connections = new Dictionary<string, List<Downloader>>(32);
+            this.eventQueueProcesserThread = new Thread(new ThreadStart(this.eventQueueProcesser));
+            this.eventQueueProcesserThread.IsBackground = true;
+            this.eventQueueProcesserThread.Name = "DownloadManager Event Firer";
+            this.eventQueueProcesserThread.Start();
         }
         #endregion
 
@@ -107,18 +107,18 @@ namespace Demoder.Common.Net
         /// <summary>
         /// Add a single item to the download queue
         /// </summary>
-        /// <param name="DownloadItem"></param>
-        public void Download(IDownloadItem DownloadItem)
+        /// <param name="downloadItem"></param>
+        public void Download(IDownloadItem downloadItem)
         {
-            this.addItemToQueue(DownloadItem);
+            this.addItemToQueue(downloadItem);
         }
         /// <summary>
         /// Add multiple items to the download queue
         /// </summary>
-        /// <param name="DownloadItems"></param>
-        public void Download(IEnumerable<IDownloadItem> DownloadItems)
+        /// <param name="downloadItems"></param>
+        public void Download(IEnumerable<IDownloadItem> downloadItems)
         {
-            foreach (IDownloadItem idi in DownloadItems)
+            foreach (IDownloadItem idi in downloadItems)
                 this.addItemToQueue(idi);
         }
         #endregion
@@ -127,27 +127,27 @@ namespace Demoder.Common.Net
         /// <summary>
         /// Download a single Uri
         /// </summary>
-        /// <param name="Uri">Uri to download</param>
-        /// <param name="Timeout">Timeout in milliseconds</param>
+        /// <param name="uri">Uri to download</param>
+        /// <param name="timeout">Timeout in milliseconds</param>
         /// <returns></returns>
-        public static byte[] GetBinaryData(Uri Uri, int Timeout)
+        public static byte[] GetBinaryData(Uri uri, int timeout)
         {
-            DownloadItem di = new DownloadItem(null, Uri, null, null);
-            return GetBinaryData(di, Timeout);
+            DownloadItem di = new DownloadItem(null, uri, null, null);
+            return GetBinaryData(di, timeout);
         }
         /// <summary>
         /// Download data from the provided DownloadItem
         /// </summary>
-        /// <param name="DownloadItem">Time to wait in milliseconds. int.MaxValue for infinite.</param>
+        /// <param name="downloadItem">Time to wait in milliseconds. int.MaxValue for infinite.</param>
         /// <returns></returns>
-        public static byte[] GetBinaryData(IDownloadItem DownloadItem, int Timeout)
+        public static byte[] GetBinaryData(IDownloadItem downloadItem, int timeout)
         {
-            DownloadManager.StaticDLM.Download(DownloadItem);
-            if (Timeout == int.MaxValue)
-                DownloadItem.Wait();
+            DownloadManager.StaticDLM.Download(downloadItem);
+            if (timeout == int.MaxValue)
+                downloadItem.Wait();
             else
-                DownloadItem.Wait(Timeout);
-            return DownloadItem.Data;
+                downloadItem.Wait(timeout);
+            return downloadItem.Data;
         }
         #endregion
 
@@ -155,44 +155,44 @@ namespace Demoder.Common.Net
         /// <summary>
         /// Adds a download item to queue.
         /// </summary>
-        /// <param name="DownloadItem"></param>
-        private void addItemToQueue(IDownloadItem DownloadItem)
+        /// <param name="downloadItem"></param>
+        private void addItemToQueue(IDownloadItem downloadItem)
         {
             //Initial check if the next mirror is null.
-            if (DownloadItem.Mirror == null)
+            if (downloadItem.Mirror == null)
             {
                 //No more mirrors to try.
-                this.onDownloadFailure(DownloadItem);
+                this.onDownloadFailure(downloadItem);
                 return;
             }
 
-            string connectionKey = DownloadItem.MirrorConnectionString;
-            lock (this._connections)
+            string connectionKey = downloadItem.MirrorConnectionString;
+            lock (this.connections)
             {
-                if (!this._connections.ContainsKey(connectionKey))
-                    this.createDownloaders(DownloadItem.Mirror, connectionKey);
+                if (!this.connections.ContainsKey(connectionKey))
+                    this.createDownloaders(downloadItem.Mirror, connectionKey);
                 //Check if we have any available downloaders.
-                if (this._connections[connectionKey].Count == 0)
+                if (this.connections[connectionKey].Count == 0)
                 {
                     //All mirrors for that host/port have been marked as bad.
-                    DownloadItem.FailedDownload(true);
+                    downloadItem.FailedDownload(true);
                 }
-                if (DownloadItem.Mirror == null)
+                if (downloadItem.Mirror == null)
                 {
                     //No more mirrors to try.
-                    this.onDownloadFailure(DownloadItem);
+                    this.onDownloadFailure(downloadItem);
                     return;
                 }
                 int queuelength = int.MaxValue;
                 Downloader lowestEntry = null;
 
                 //Find the one with the shortest queue.
-                foreach (Downloader dl in this._connections[connectionKey])
+                foreach (Downloader dl in this.connections[connectionKey])
                 {
                     if (dl.QueueCount < queuelength)
                     {
                         //If we haven't tried downloading from this IP endpoint yet
-                        if (!DownloadItem.MirrorTags.Contains(dl.IPEndPoint))
+                        if (!downloadItem.MirrorTags.Contains(dl.IPEndPoint))
                         {
                             queuelength = dl.QueueCount;
                             lowestEntry = dl;
@@ -204,16 +204,16 @@ namespace Demoder.Common.Net
                 if (lowestEntry == null)
                 {
                     //Cycle mirror.
-                    DownloadItem.FailedDownload(true);
+                    downloadItem.FailedDownload(true);
                     //If there's a mirror
-                    if (DownloadItem.Mirror != null)
-                        this.addItemToQueue(DownloadItem);
+                    if (downloadItem.Mirror != null)
+                        this.addItemToQueue(downloadItem);
                     else //Add the item to the failure queue
-                        this.onDownloadFailure(DownloadItem);
+                        this.onDownloadFailure(downloadItem);
                 }
                 else
                 {
-                    lowestEntry.DownloadData(DownloadItem);
+                    lowestEntry.DownloadData(downloadItem);
                 }
             }
         }
@@ -223,93 +223,93 @@ namespace Demoder.Common.Net
         /// </summary>
         /// <param name="Uri"></param>
         /// <param name="Key"></param>
-        private void createDownloaders(Uri Uri, string Key)
+        private void createDownloaders(Uri uri, string Key)
         {
 
             IPAddress[] ips;
             // DNS lookup
-            if (this._proxySettings == null || this._proxySettings.IsBypassed(Uri))
-                ips = Dns.GetHostAddresses(Uri.Host); //Not using proxy
+            if (this.proxySettings == null || this.proxySettings.IsBypassed(Uri))
+                ips = Dns.GetHostAddresses(uri.Host); //Not using proxy
             else
-                ips = Dns.GetHostAddresses(this._proxySettings.Address.Host); //Using proxy
+                ips = Dns.GetHostAddresses(this.proxySettings.Address.Host); //Using proxy
 
             // Spawn 3 downloaders per IP
-            List<Downloader> downloaders = new List<Downloader>((int)Math.Round(((double)this._clMaxPerIp * (double)ips.Length), 0));
+            List<Downloader> downloaders = new List<Downloader>((int)Math.Round(((double)this.clMaxPerIp * (double)ips.Length), 0));
             // Mix the destination IPs throughout the list for better load balancing.
-            for (int i = 0; i < this._clMaxPerIp; i++)
+            for (int i = 0; i < this.clMaxPerIp; i++)
             {
                 foreach (IPAddress ip in ips)
                 {
-                    Downloader downloader = new Downloader(new IPEndPoint(ip, Uri.Port), Uri.Host, this.UserAgent);
+                    Downloader downloader = new Downloader(new IPEndPoint(ip, uri.Port), uri.Host, this.UserAgent);
                     downloader.MasterDelegate = new DownloaderSlaveEventHandler(this.dseHandler);
                     downloaders.Add(downloader);
                 }
             }
-            lock (this._connections)
-                if (!this._connections.ContainsKey(Key))
-                    this._connections.Add(Key, downloaders);
+            lock (this.connections)
+                if (!this.connections.ContainsKey(Key))
+                    this.connections.Add(Key, downloaders);
         }
 
         /// <summary>
         /// Signaled when a download is complete.
         /// </summary>
-        /// <param name="Sender"></param>
-        /// <param name="DownloadItem"></param>
-        private void dseHandler(Downloader Sender, IDownloadItem DownloadItem)
+        /// <param name="sender"></param>
+        /// <param name="downloadItem"></param>
+        private void dseHandler(Downloader sender, IDownloadItem downloadItem)
         {
             // Check if it was successful or not.
-            if (DownloadItem.Data == null)
+            if (downloadItem.Data == null)
             {
                 // Download failed
-                this.dseDownloadFailed(Sender, DownloadItem);
+                this.dseDownloadFailed(sender, downloadItem);
             }
             else
             {
-                if (DownloadItem.IntegrityOK)
+                if (downloadItem.IntegrityOK)
                 {
                     //Toss it to our event.
-                    this.onDownloadSuccess(DownloadItem);
+                    this.onDownloadSuccess(downloadItem);
                     return;
                 }
                 else
-                    this.dseDownloadFailed(Sender, DownloadItem);
+                    this.dseDownloadFailed(sender, downloadItem);
             }
         }
         /// <summary>
         /// Signaled when a download failed
         /// </summary>
-        /// <param name="Sender"></param>
-        /// <param name="DownloadItem"></param>
-        private void dseDownloadFailed(Downloader Sender, IDownloadItem DownloadItem)
+        /// <param name="sender"></param>
+        /// <param name="downloadItem"></param>
+        private void dseDownloadFailed(Downloader sender, IDownloadItem downloadItem)
         {
             // Check if we should remove this downloader from the list or not.
             // If we do, we should redistribute its queue as well.
             bool shouldRedistributeQueue = false;
 
-            DownloadItem.MirrorTags.Add(Sender.IPEndPoint); //Add the IPEndpoint to our "internal" fail list.
+            downloadItem.MirrorTags.Add(sender.IPEndPoint); //Add the IPEndpoint to our "internal" fail list.
 
-            if (Sender.HaveCancelled)
+            if (sender.HaveCancelled)
                 shouldRedistributeQueue = false;
-            else if (Sender.FailedDownloads > 20 && ((double)Sender.FailedDownloads / (double)Sender.SuccessfullDownloads > 1.2))
+            else if (sender.FailedDownloads > 20 && ((double)sender.FailedDownloads / (double)sender.SuccessfullDownloads > 1.2))
                 shouldRedistributeQueue = true;
             List<IDownloadItem> downloadItems = new List<IDownloadItem>();
 
             //Should stop this particular mirror from being used.
             if (shouldRedistributeQueue)
             {
-                lock (this._connections)
+                lock (this.connections)
                 {
                     while (true)
                     {
-                        if (!this._connections.ContainsKey(DownloadItem.MirrorConnectionString))
+                        if (!this.connections.ContainsKey(downloadItem.MirrorConnectionString))
                             break;
-                        List<Downloader> connections = this._connections[DownloadItem.MirrorConnectionString];
+                        List<Downloader> connections = this.connections[downloadItem.MirrorConnectionString];
                         //Walk through each downloader and check it has already been used by this DownloadItem.
                         foreach (Downloader dloader in connections)
                         {
-                            if (dloader.IPEndPoint == Sender.IPEndPoint)
+                            if (dloader.IPEndPoint == sender.IPEndPoint)
                             {
-                                this._connections[DownloadItem.MirrorConnectionString.ToLower()].Remove(dloader);
+                                this.connections[downloadItem.MirrorConnectionString.ToLower()].Remove(dloader);
                                 downloadItems.AddRange(dloader.Stop()); //Add each and every ones download lists to our list.
                                 continue;
                             }
@@ -319,14 +319,14 @@ namespace Demoder.Common.Net
                 }
             }
             //Check if there are more mirrors for this host. If not, move to the next host.
-            if (this._connections.ContainsKey(DownloadItem.MirrorConnectionString))
+            if (this.connections.ContainsKey(downloadItem.MirrorConnectionString))
             {
-                if (this._connections[DownloadItem.MirrorConnectionString].Count == 0)
+                if (this.connections[downloadItem.MirrorConnectionString].Count == 0)
                 {
-                    DownloadItem.FailedDownload(true);
+                    downloadItem.FailedDownload(true);
                 }
             }
-            downloadItems.Add(DownloadItem);
+            downloadItems.Add(downloadItem);
 
             //Add each and every item to the queue.
             foreach (IDownloadItem di in downloadItems)
@@ -336,24 +336,24 @@ namespace Demoder.Common.Net
 
         private void eventQueueProcesser()
         {
-            while (!this._disposed)
+            while (!this.disposed)
             {
-                this._eventQueueProcesserMRE.WaitOne();
+                this.eventQueueProcesserMRE.WaitOne();
                 //Always wait 1s, to allow sending multiple items.
                 Thread.Sleep(1000);
                 //Reset the event once we start working.
-                this._eventQueueProcesserMRE.Reset();
+                this.eventQueueProcesserMRE.Reset();
                 //Fetch failed downloads
                 List<IDownloadItem> failedDownloads = new List<IDownloadItem>();
-                lock (this._failedDownloads)
-                    while (this._failedDownloads.Count > 0)
-                        failedDownloads.Add(this._failedDownloads.Dequeue());
+                lock (this.failedDownloads)
+                    while (this.failedDownloads.Count > 0)
+                        failedDownloads.Add(this.failedDownloads.Dequeue());
 
                 //Fetch successfull downloads
                 List<IDownloadItem> successDownloads = new List<IDownloadItem>();
-                lock (this._successfullDownloads)
-                    while (this._successfullDownloads.Count > 0)
-                        successDownloads.Add(this._successfullDownloads.Dequeue());
+                lock (this.successfullDownloads)
+                    while (this.successfullDownloads.Count > 0)
+                        successDownloads.Add(this.successfullDownloads.Dequeue());
 
 
                 //Trigger failure event handler.
@@ -384,11 +384,11 @@ namespace Demoder.Common.Net
 
 
         #region Event firers
-        private void onDownloadFailure(IDownloadItem DownloadItem)
+        private void onDownloadFailure(IDownloadItem downloadItem)
         {
-            lock (this._failedDownloads)
+            lock (this.failedDownloads)
             {
-                this._failedDownloads.Enqueue(DownloadItem);
+                this.failedDownloads.Enqueue(downloadItem);
             }
             DownloadItemEventHandler df = null;
             if (this.DownloadFailure != null)
@@ -396,15 +396,15 @@ namespace Demoder.Common.Net
                     df = this.DownloadFailure;
 
             if (df != null)
-                df(DownloadItem);
+                df(downloadItem);
         }
 
-        private void onDownloadSuccess(IDownloadItem DownloadItem)
+        private void onDownloadSuccess(IDownloadItem downloadItem)
         {
             DownloadItemEventHandler ds = this.DownloadSuccess;
             if (ds != null)
                 lock (ds)
-                    ds(DownloadItem);
+                    ds(downloadItem);
         }
         #endregion
 
@@ -412,17 +412,17 @@ namespace Demoder.Common.Net
 
         void IDisposable.Dispose()
         {
-            if (!this._disposed)
+            if (!this.disposed)
             {
-                this._disposed = true;
-                foreach (List<Downloader> ldl in this._connections.Values)
+                this.disposed = true;
+                foreach (List<Downloader> ldl in this.connections.Values)
                     foreach (Downloader dl in ldl)
                         ((IDisposable)dl).Dispose();
-                this._connections = null;
-                this._eventQueueProcesserMRE = null;
-                this._eventQueueProcesserThread = null;
-                this._failedDownloads = null;
-                this._successfullDownloads = null;
+                this.connections = null;
+                this.eventQueueProcesserMRE = null;
+                this.eventQueueProcesserThread = null;
+                this.failedDownloads = null;
+                this.successfullDownloads = null;
                 this.DownloadFailure = null;
                 this.DownloadSuccess = null;
                 GC.SuppressFinalize(this);

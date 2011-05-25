@@ -32,6 +32,7 @@ namespace Demoder.Common
         {
             return (int)System.Math.Round((double)(CurrentValue * 100 / MaxValue), 0);
         }
+
         /// <summary>
         /// Determines how much of 'full' the provided 'percent' means.
         /// </summary>

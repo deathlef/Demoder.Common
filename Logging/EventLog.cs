@@ -33,13 +33,13 @@ namespace Demoder.Common.Logging
     public class EventLog
     {
         #region members
-        private List<IEventLogEntry> _events = new List<IEventLogEntry>();
-        private EventLogRead _defaultLimitInclude = EventLogRead.Last;
-        private ILogWriter _logWriter = null;
+        private List<IEventLogEntry> events = new List<IEventLogEntry>();
+        private EventLogRead defaultLimitInclude = EventLogRead.Last;
+        private ILogWriter logWriter = null;
         /// <summary>
         /// Store log entries in memory
         /// </summary>
-        private bool _storeInMemory = true;
+        private bool storeInMemory = true;
         #endregion
 
         #region constructors
@@ -48,42 +48,42 @@ namespace Demoder.Common.Logging
         /// </summary>
         public EventLog()
         {
-            this._logWriter = null;
-            this._storeInMemory = true;
+            this.logWriter = null;
+            this.storeInMemory = true;
         }
 
         /// <summary>
         /// Pass log entries to the provided LogWriter, don't keep entries in memory
         /// </summary>
-        /// <param name="LogWriter"></param>
-        public EventLog(ILogWriter LogWriter) : this(LogWriter, false) { }
+        /// <param name="logWriter"></param>
+        public EventLog(ILogWriter logWriter) : this(logWriter, false) { }
 
         /// <summary>
         /// Pass log entries to the provided LogWriter.
         /// </summary>
-        /// <param name="LogWriter"></param>
-        /// <param name="StoreInMemory">Should log entries be stored in memory?</param>
-        public EventLog(ILogWriter LogWriter, bool StoreInMemory)
+        /// <param name="logWriter"></param>
+        /// <param name="storeInMemory">Should log entries be stored in memory?</param>
+        public EventLog(ILogWriter logWriter, bool storeInMemory)
         {
-            this._logWriter = LogWriter;
-            this._storeInMemory = StoreInMemory;
+            this.logWriter = logWriter;
+            this.storeInMemory = storeInMemory;
         }
         #endregion
         #region Methods
         /// <summary>
         /// Log a message.
         /// </summary>
-        /// <param name="LogEntry"></param>
-        public void Log(IEventLogEntry LogEntry)
+        /// <param name="logEntry"></param>
+        public void Log(IEventLogEntry logEntry)
         {
             //Store to memory
-            if (this._storeInMemory)
-                lock (this._events)
-                    this._events.Add(LogEntry);
+            if (this.storeInMemory)
+                lock (this.events)
+                    this.events.Add(logEntry);
             //Pass to writer
-            if (this._logWriter != null)
-                lock (this._logWriter)
-                    this._logWriter.Write(LogEntry);
+            if (this.logWriter != null)
+                lock (this.logWriter)
+                    this.logWriter.Write(logEntry);
         }
 
         #region ReadLog
@@ -93,47 +93,47 @@ namespace Demoder.Common.Logging
         /// <returns></returns>
         public IEventLogEntry[] ReadLog()
         {
-            return this.ReadLog(0, this._defaultLimitInclude);
+            return this.ReadLog(0, this.defaultLimitInclude);
         }
         /// <summary>
         /// Read a limited number of log entries
         /// </summary>
-        /// <param name="NumEntries">Number of log entrie to read</param>
+        /// <param name="numEntries">Number of log entrie to read</param>
         /// <returns></returns>
-        public IEventLogEntry[] ReadLog(int NumEntries)
+        public IEventLogEntry[] ReadLog(int numEntries)
         {
-            return this.ReadLog(NumEntries, this._defaultLimitInclude);
+            return this.ReadLog(numEntries, this.defaultLimitInclude);
         }
 
         /// <summary>
         /// Read the [first|last] log entries.
         /// </summary>
-        /// <param name="NumEntries"></param>
-        /// <param name="LimitInclude">Should we read the first or the last log entries?</param>
+        /// <param name="numEntries"></param>
+        /// <param name="limitInclude">Should we read the first or the last log entries?</param>
         /// <returns></returns>
-        public IEventLogEntry[] ReadLog(int NumEntries, EventLogRead LimitInclude)
+        public IEventLogEntry[] ReadLog(int numEntries, EventLogRead limitInclude)
         {
-            if (NumEntries < 1)
-                return this._events.ToArray();
+            if (numEntries < 1)
+                return this.events.ToArray();
 
-            IEventLogEntry[] returnVal = new IEventLogEntry[NumEntries];
+            IEventLogEntry[] returnVal = new IEventLogEntry[numEntries];
 
-            lock (this._events)
+            lock (this.events)
             {
                 //Ensure we don't read beyond the range of the list
-                if (NumEntries > this._events.Count)
-                    NumEntries = this._events.Count;
+                if (numEntries > this.events.Count)
+                    numEntries = this.events.Count;
 
-                switch (LimitInclude)
+                switch (limitInclude)
                 {
                     case EventLogRead.First:
                         //Get the # first entries
-                        this._events.CopyTo(0, returnVal, 0, NumEntries);
+                        this.events.CopyTo(0, returnVal, 0, numEntries);
                         break;
                     case EventLogRead.Last:
                         //Get the # last entries
-                        int startIndex = this._events.Count - NumEntries - 1;
-                        this._events.CopyTo(startIndex, returnVal, 0, NumEntries);
+                        int startIndex = this.events.Count - numEntries - 1;
+                        this.events.CopyTo(startIndex, returnVal, 0, numEntries);
                         break;
                 }
             }
@@ -146,34 +146,34 @@ namespace Demoder.Common.Logging
         /// <summary>
         /// Creates a new log line. Appends \\r\\n to end of message.
         /// </summary>
-        /// <param name="Time">Time the event occured</param>
-        /// <param name="LogLevel"></param>
-        /// <param name="Message"></param>
+        /// <param name="time">Time the event occured</param>
+        /// <param name="logLevel"></param>
+        /// <param name="message"></param>
         /// <returns></returns>
-        public static string CreateLogString(DateTime Time, EventLogLevel LogLevel, string Message)
+        public static string CreateLogString(DateTime time, EventLogLevel logLevel, string message)
         {
-            return CreateLogString(Time, LogLevel, Message, "\r\n");
+            return CreateLogString(time, logLevel, message, "\r\n");
         }
 
         /// <summary>
         /// Creates a new log line.
         /// </summary>
-        /// <param name="Time">Time the event occured</param>
-        /// <param name="LogLevel"></param>
-        /// <param name="Message"></param>
-        /// <param name="LineEnd">String to append to the end of line, or null</param>
+        /// <param name="time">Time the event occured</param>
+        /// <param name="logLevel"></param>
+        /// <param name="message"></param>
+        /// <param name="lineEnd">String to append to the end of line, or null</param>
         /// <returns></returns>
-        public static string CreateLogString(DateTime Time, EventLogLevel LogLevel, string Message, string LineEnd)
+        public static string CreateLogString(DateTime time, EventLogLevel logLevel, string message, string lineEnd)
         {
-            if (LineEnd == null)
-                LineEnd = string.Empty;
+            if (lineEnd == null)
+                lineEnd = string.Empty;
 
             return String.Format("[{0} {1}] [{2}]: {3}{4}",
-                Time.ToShortDateString(),
-                Time.ToShortTimeString(),
-                LogLevel.ToString(),
-                Message,
-                LineEnd);
+                time.ToShortDateString(),
+                time.ToShortTimeString(),
+                logLevel.ToString(),
+                message,
+                lineEnd);
         }
         #endregion
     }

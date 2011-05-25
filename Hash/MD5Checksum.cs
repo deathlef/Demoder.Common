@@ -36,12 +36,12 @@ namespace Demoder.Common.Hash
     public class MD5Checksum : ICheckSum
     {
         #region Members
-        private ICheckSum _checkSumStore;
+        private ICheckSum checkSumStore;
         #endregion
         #region Constructors
-        public MD5Checksum(byte[] Bytes) : this() { this._checkSumStore = new ChecksumHexStore(Bytes); }
-        public MD5Checksum(string Hex) : this() { this._checkSumStore = new ChecksumHexStore(Hex); }
-        public MD5Checksum() { this._checkSumStore = null; }
+        public MD5Checksum(byte[] bytes) : this() { this.checkSumStore = new ChecksumHexStore(bytes); }
+        public MD5Checksum(string hex) : this() { this.checkSumStore = new ChecksumHexStore(hex); }
+        public MD5Checksum() { this.checkSumStore = null; }
         #endregion
         #region Interfaces
         #region ICheckSum Members
@@ -52,16 +52,16 @@ namespace Demoder.Common.Hash
         {
             get
             {
-                if (this._checkSumStore == null)
+                if (this.checkSumStore == null)
                     return null;
-                return this._checkSumStore.Bytes;
+                return this.checkSumStore.Bytes;
             }
             set
             {
-                if (this._checkSumStore == null)
-                    this._checkSumStore = new ChecksumHexStore(value);
+                if (this.checkSumStore == null)
+                    this.checkSumStore = new ChecksumHexStore(value);
                 else
-                    this._checkSumStore.Bytes = value;
+                    this.checkSumStore.Bytes = value;
             }
         }
         /// <summary>
@@ -71,26 +71,26 @@ namespace Demoder.Common.Hash
         {
             get
             {
-                if (this._checkSumStore == null)
+                if (this.checkSumStore == null)
                     return String.Empty;
-                return this._checkSumStore.String;
+                return this.checkSumStore.String;
             }
             set
             {
-                if (this._checkSumStore == null)
-                    this._checkSumStore = new ChecksumHexStore(value);
+                if (this.checkSumStore == null)
+                    this.checkSumStore = new ChecksumHexStore(value);
                 else
-                    this._checkSumStore.String = value;
+                    this.checkSumStore.String = value;
             }
         }
         #endregion
         #region IEquatable<ICheckSum> Members
-        public override bool Equals(object Other)
+        public override bool Equals(object other)
         {
             ICheckSum other;
             try
             {
-                other = (ICheckSum)Other;
+                other = (ICheckSum)other;
             }
             catch { return false; }
             if (this.String == other.String)
@@ -111,13 +111,13 @@ namespace Demoder.Common.Hash
         }
 
         #region static operators
-        public static bool operator ==(MD5Checksum CS1, MD5Checksum CS2)
+        public static bool operator ==(MD5Checksum cs1, MD5Checksum cs2)
         {
             //Check for null.
             bool cs1_isnull = false;
             try
             {
-                CS1.ToString();
+                cs1.ToString();
             }
             catch (NullReferenceException ex)
             {
@@ -128,7 +128,7 @@ namespace Demoder.Common.Hash
             bool cs2_isnull = false;
             try
             {
-                CS2.ToString();
+                cs2.ToString();
             }
             catch (NullReferenceException ex)
             {
@@ -143,18 +143,18 @@ namespace Demoder.Common.Hash
             if (cs1_isnull == false && cs2_isnull == true)
                 return false;
             //Done checking null
-            if (CS1.String == CS2.String)
+            if (cs1.String == cs2.String)
                 return true;
             else
                 return false;
         }
-        public static bool operator !=(MD5Checksum CS1, MD5Checksum CS2)
+        public static bool operator !=(MD5Checksum cs1, MD5Checksum cs2)
         {
             //Check for null.
             bool cs1_isnull = false;
             try
             {
-                CS1.ToString();
+                cs1.ToString();
             }
             catch (NullReferenceException ex)
             {
@@ -165,7 +165,7 @@ namespace Demoder.Common.Hash
             bool cs2_isnull = false;
             try
             {
-                CS2.ToString();
+                cs2.ToString();
             }
             catch (NullReferenceException ex)
             {
@@ -180,7 +180,7 @@ namespace Demoder.Common.Hash
             if (cs1_isnull == false && cs2_isnull == true)
                 return true;
             //Done checking null
-            if (CS1.String != CS2.String)
+            if (cs1.String != cs2.String)
                 return true;
             else
                 return false;
@@ -191,34 +191,34 @@ namespace Demoder.Common.Hash
         /// <summary>
         /// Generates a hexadecimal string representing the MD5 hash of the provided data.
         /// </summary>
-        /// <param name="Input">byte[] array representing data</param>
+        /// <param name="input">byte[] array representing data</param>
         /// <returns>a hexadecimal string of 32 characters representing the MD5 hash of the provided data</returns>
-        public static MD5Checksum Generate(byte[] Input)
+        public static MD5Checksum Generate(byte[] input)
         {
             MD5 _md5 = System.Security.Cryptography.MD5.Create();
-            byte[] hash = _md5.ComputeHash(Input);
+            byte[] hash = _md5.ComputeHash(input);
             return new MD5Checksum(hash);
         }
 
         /// <summary>
         /// Generates a hexadecimal string representing the MD5 hash of the provided data.
         /// </summary>
-        /// <param name="Input">stream input</param>
+        /// <param name="input">stream input</param>
         /// <returns>a hexadecimal string of 32 characters representing the MD5 hash of the provided data</returns>
-        public static MD5Checksum Generate(Stream Input)
+        public static MD5Checksum Generate(Stream input)
         {
             MD5 _md5 = System.Security.Cryptography.MD5.Create();
-            byte[] hash = _md5.ComputeHash(Input);
+            byte[] hash = _md5.ComputeHash(input);
             return new MD5Checksum(hash);
         }
         /// <summary>
         /// Generates a hexadecimal string representing the MD5 hash of the provided data
         /// </summary>
-        /// <param name="Input">MemoryStream input</param>
+        /// <param name="input">MemoryStream input</param>
         /// <returns>a hexadecimal string of 32 characters representing the MD5 hash of the provided data</returns>
-        public static MD5Checksum Generate(MemoryStream Input)
+        public static MD5Checksum Generate(MemoryStream input)
         {
-            return Generate(Input.ToArray());
+            return Generate(input.ToArray());
         }
 
         /// <summary>
@@ -226,13 +226,13 @@ namespace Demoder.Common.Hash
         /// </summary>
         /// <param name="input">char[] array representing data</param>
         /// <returns>a hexadecimal string of 32 characters representing the MD5 hash of the provided data</returns>
-        public static MD5Checksum Generate(char[] Input)
+        public static MD5Checksum Generate(char[] input)
         {
             //Convert the char array to a byte array
-            byte[] b = new byte[Input.Length];
-            for (int i = 0; i < Input.Length; i++)
+            byte[] b = new byte[input.Length];
+            for (int i = 0; i < input.Length; i++)
             {
-                b[i] = byte.Parse(Input[i].ToString());
+                b[i] = byte.Parse(input[i].ToString());
             }
             return Generate(b);
         }
@@ -240,22 +240,23 @@ namespace Demoder.Common.Hash
         /// <summary>
         /// Generates a hexadecimal string representing the MD5 hash of the provided data
         /// </summary>
-        /// <param name="Input">string input representing data</param>
+        /// <param name="input">string input representing data</param>
         /// <returns>a hexadecimal string of 32 characters representing the MD5 hash of the provided data</returns>
-        public static MD5Checksum Generate(string Input) { return Generate(Encoding.Default.GetBytes(Input)); }
+        public static MD5Checksum Generate(string input) { return Generate(Encoding.Default.GetBytes(input)); }
 
-        public static MD5Checksum Generate(List<byte> Input) { return Generate(Input.ToArray()); }
+        public static MD5Checksum Generate(List<byte> input) { return Generate(input.ToArray()); }
 
         /// <summary>
         /// Generates a hexadecimal string representing the MD5 hash of the file located at path
         /// </summary>
-        /// <param name="FilePath">Full path to the file we should generate a MD5 hash of</param>
+        /// <param name="filePath">Full path to the file we should generate a MD5 hash of</param>
         /// <exception cref="FileNotFoundException">File does not exist</exception>
         /// <returns>a hexadecimal string of 32 characters representing the MD5 hash of the provided file</returns>
-        public static MD5Checksum Generate(FileInfo FilePath)
+        public static MD5Checksum Generate(FileInfo filePath)
         {
-            if (!FilePath.Exists) throw new FileNotFoundException("File does not exist");
-            return Generate(File.ReadAllBytes(FilePath.FullName));
+            if (!filePath.Exists) 
+                throw new FileNotFoundException("File does not exist");
+            return Generate(File.ReadAllBytes(filePath.FullName));
         }
         #endregion
     }

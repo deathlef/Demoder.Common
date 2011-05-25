@@ -40,31 +40,31 @@ namespace Demoder.Common.Net
         /// <summary>
         /// IP Endpoint to connect to
         /// </summary>
-        private IPEndPoint _ipEndPoint;
+        private IPEndPoint ipEndPoint;
         /// <summary>
         /// Hostname to provide to the foreign webserver
         /// </summary>
-        private string _hostName;
+        private string hostName;
         /// <summary>
         /// Our user-agent.
         /// </summary>
-        private string _userAgent;
+        private string userAgent;
 
-        private WebClient _webClient;
+        private WebClient webClient;
 
-        private volatile int _failedDownloads = 0;
-        private volatile int _successfullDownloads = 0;
+        private volatile int failedDownloads = 0;
+        private volatile int successfullDownloads = 0;
 
         /*
          * Need to think out a smart way of dealing with this queue.
          */
 
-        private Queue<IDownloadItem> _downloadQueue = new Queue<IDownloadItem>(8);
+        private Queue<IDownloadItem> downloadQueue = new Queue<IDownloadItem>(8);
 
         //Threading
-        private Thread _queueManager;
-        private ManualResetEvent _queueManagerMRE = new ManualResetEvent(false);
-        private volatile bool _disposed;
+        private Thread queueManager;
+        private ManualResetEvent queueManagerMRE = new ManualResetEvent(false);
+        private volatile bool disposed;
 
         /// <summary>
         /// Set this to something else than null to enable slave mode.
@@ -80,57 +80,57 @@ namespace Demoder.Common.Net
         {
             get
             {
-                return this._disposed;
+                return this.disposed;
             }
         }
 
         #endregion
         #region Public accessors
-        public bool IsBusy { get { return this._webClient.IsBusy; } }
+        public bool IsBusy { get { return this.webClient.IsBusy; } }
         /// <summary>
         /// Number of failed downloads
         /// </summary>
-        public int FailedDownloads { get { return this._failedDownloads; } }
+        public int FailedDownloads { get { return this.failedDownloads; } }
         /// <summary>
         /// Number of successfull downloads
         /// </summary>
-        public int SuccessfullDownloads { get { return this._successfullDownloads; } }
+        public int SuccessfullDownloads { get { return this.successfullDownloads; } }
 
         public int QueueCount
         {
-            get { return this._downloadQueue.Count; }
+            get { return this.downloadQueue.Count; }
         }
 
-        public IPEndPoint IPEndPoint { get { return this._ipEndPoint; } }
+        public IPEndPoint IPEndPoint { get { return this.ipEndPoint; } }
         #endregion
 
         #region Constructor
-        public Downloader(IPEndPoint IPEndPoint, string HostName, string UserAgent)
+        public Downloader(IPEndPoint ipEndPoint, string hostName, string userAgent)
         {
-            this._ipEndPoint = IPEndPoint;
-            this._hostName = HostName.ToLower();
-            this._userAgent = UserAgent;
-            this._webClient = createWebClient();
+            this.ipEndPoint = ipEndPoint;
+            this.hostName = hostName.ToLower();
+            this.userAgent = userAgent;
+            this.webClient = createWebClient();
 
-            this._queueManager = new Thread(new ThreadStart(this.queueHandler));
-            this._queueManager.IsBackground = true;
-            this._queueManager.Name = "Queue Manager: " + this.ToString();
-            this._queueManager.Priority = ThreadPriority.Lowest;
-            this._queueManager.Start();
-            this._disposed = false;
+            this.queueManager = new Thread(new ThreadStart(this.queueHandler));
+            this.queueManager.IsBackground = true;
+            this.queueManager.Name = "Queue Manager: " + this.ToString();
+            this.queueManager.Priority = ThreadPriority.Lowest;
+            this.queueManager.Start();
+            this.disposed = false;
 
         }
         #endregion
 
         #region methods
-        public void DownloadData(IDownloadItem DownloadItem)
+        public void DownloadData(IDownloadItem downloadItem)
         {
-            if (DownloadItem.Mirror.Host.ToLower() != this._hostName)
-                throw new ArgumentException("This downloader may only retrieve data from the hostname " + this._hostName, "URI");
+            if (downloadItem.Mirror.Host.ToLower() != this.hostName)
+                throw new ArgumentException("This downloader may only retrieve data from the hostname " + this.hostName, "URI");
             //insert code to download here...
-            lock (this._downloadQueue)
-                this._downloadQueue.Enqueue(DownloadItem);
-            this._queueManagerMRE.Set();
+            lock (this.downloadQueue)
+                this.downloadQueue.Enqueue(downloadItem);
+            this.queueManagerMRE.Set();
         }
 
         /// <summary>
@@ -139,13 +139,13 @@ namespace Demoder.Common.Net
         /// <returns></returns>
         public IDownloadItem[] Stop()
         {
-            this._disposed = true;
+            this.disposed = true;
             IDownloadItem[] ldi;
-            lock (this._downloadQueue)
+            lock (this.downloadQueue)
             {
-                ldi = this._downloadQueue.ToArray();
-                this._downloadQueue.Clear();
-                this._queueManagerMRE.Set();
+                ldi = this.downloadQueue.ToArray();
+                this.downloadQueue.Clear();
+                this.queueManagerMRE.Set();
             }
             ((IDisposable)this).Dispose();
             return ldi;
@@ -155,10 +155,10 @@ namespace Demoder.Common.Net
         private WebClient createWebClient()
         {
             WebClient wc = new WebClient();
-            wc.Proxy = new WebProxy(this._ipEndPoint.Address.ToString(), this._ipEndPoint.Port); //Workaround: Enable connecting to a specified mirror
+            wc.Proxy = new WebProxy(this.ipEndPoint.Address.ToString(), this.ipEndPoint.Port); //Workaround: Enable connecting to a specified mirror
             //wc.Headers.Add(HttpRequestHeader.Host, this._hostName);
             wc.Headers.Add(HttpRequestHeader.KeepAlive, "15");
-            wc.Headers.Add(HttpRequestHeader.UserAgent, this._userAgent);
+            wc.Headers.Add(HttpRequestHeader.UserAgent, this.userAgent);
             return wc;
         }
         #endregion
@@ -166,23 +166,23 @@ namespace Demoder.Common.Net
         #region Queue handler
         private void queueHandler()
         {
-            while (!this._disposed)
+            while (!this.disposed)
             {
                 //Get item.
                 IDownloadItem di;
-                lock (this._downloadQueue)
+                lock (this.downloadQueue)
                 {
-                    if (this._downloadQueue.Count == 0)
+                    if (this.downloadQueue.Count == 0)
                         di = null;
                     else
-                        di = this._downloadQueue.Dequeue();
+                        di = this.downloadQueue.Dequeue();
                 }
 
                 if (di == null) //Empty queue
                 {
                     // We should wait for the MRE. 
                     // The MRE will be set when we're cancelled, so no point with a timeout.
-                    this._queueManagerMRE.WaitOne();
+                    this.queueManagerMRE.WaitOne();
                     continue; //Restart the loop in case we have been told to stop.
                 }
                 this.queueProcessEntry(di);
@@ -192,32 +192,32 @@ namespace Demoder.Common.Net
         /// <summary>
         /// Processes a DownloadItem queue entry.
         /// </summary>
-        /// <param name="DownloadItem"></param>
-        private void queueProcessEntry(IDownloadItem DownloadItem)
+        /// <param name="downloadItem"></param>
+        private void queueProcessEntry(IDownloadItem downloadItem)
         {
             try
             {
-                if (DownloadItem.SaveAs != null)
+                if (downloadItem.SaveAs != null)
                 {
-                    this._webClient.DownloadFile(DownloadItem.Mirror, DownloadItem.SaveAs.FullName);
-                    DownloadItem.SuccessfullDownload(File.ReadAllBytes(DownloadItem.SaveAs.FullName));
+                    this.webClient.DownloadFile(downloadItem.Mirror, downloadItem.SaveAs.FullName);
+                    downloadItem.SuccessfullDownload(File.ReadAllBytes(downloadItem.SaveAs.FullName));
                 }
                 else
                 {
-                    byte[] bytes = this._webClient.DownloadData(DownloadItem.Mirror);
-                    DownloadItem.SuccessfullDownload(bytes);
+                    byte[] bytes = this.webClient.DownloadData(downloadItem.Mirror);
+                    downloadItem.SuccessfullDownload(bytes);
                 }
             }
             catch (Exception ex)
             {
             }
             //Signal the DownloadItems faileddelegate
-            if (!DownloadItem.IntegrityOK)
-                DownloadItem.FailedDownload((this.MasterDelegate == null));
+            if (!downloadItem.IntegrityOK)
+                downloadItem.FailedDownload((this.MasterDelegate == null));
 
             //Signal our master, if any
             if (this.MasterDelegate != null) //Slave mode.
-                this.MasterDelegate(this, DownloadItem);
+                this.MasterDelegate(this, downloadItem);
         }
         #endregion
 
@@ -226,9 +226,9 @@ namespace Demoder.Common.Net
         {
             return String.Format("{0}: IP {1} port {2}. (Host: {3})",
                 this.GetType().ToString(),
-                this._ipEndPoint.Address,
-                this._ipEndPoint.Port,
-                this._hostName);
+                this.ipEndPoint.Address,
+                this.ipEndPoint.Port,
+                this.hostName);
         }
         #endregion
 
@@ -236,19 +236,19 @@ namespace Demoder.Common.Net
 
         void IDisposable.Dispose()
         {
-            if (!this._disposed)
+            if (!this.disposed)
             {
-                this._disposed = true;
-                this._queueManager.Join();
-                this._queueManager = null;
-                this._downloadQueue = null;
-                this._failedDownloads = 0;
-                this._hostName = null;
-                this._ipEndPoint = null;
-                this._queueManagerMRE = null;
-                this._userAgent = null;
-                this._webClient.Dispose();
-                this._webClient = null;
+                this.disposed = true;
+                this.queueManager.Join();
+                this.queueManager = null;
+                this.downloadQueue = null;
+                this.failedDownloads = 0;
+                this.hostName = null;
+                this.ipEndPoint = null;
+                this.queueManagerMRE = null;
+                this.userAgent = null;
+                this.webClient.Dispose();
+                this.webClient = null;
                 GC.SuppressFinalize(this);
             }
         }

@@ -78,13 +78,13 @@ namespace Demoder.Common.Net
         /// <param name="Bytes"></param>
         /// <returns><![CDATA[If integrity of data is ok: true
         /// If integrity isn't OK: false]]></returns>
-        bool SuccessfullDownload(byte[] Bytes);
+        bool SuccessfullDownload(byte[] bytes);
         /// <summary>
         /// Download failed. Move the mirror to the failed queue. If there are no more mirrors, call the DownloadFailed delegate and return false.
         /// </summary>
         /// <param name="CycleMirror">Should the current mirror be marked as failed?</param>
         /// <returns>true if we have more mirrors in queue, false otherwise</returns>
-        bool FailedDownload(bool FailMirror);
+        bool FailedDownload(bool failMirror);
         /// <summary>
         /// Wait for the download to finish
         /// </summary>

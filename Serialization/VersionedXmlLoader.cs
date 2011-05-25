@@ -64,15 +64,15 @@ namespace Demoder.Common.Serialization
     {
         #region Members
         [XmlAttribute]
-        public string Name { get { return this._name; } set { } }
+        public string Name { get; private set; }
         [XmlAttribute]
-        public int Version { get { return this._version; } set { } }
+        public int Version { get; private set; }
         [XmlIgnore]
-        public bool CanUpgrade { get { return this._canUpgrade; } }
+        public bool CanUpgrade { get; private set; }
         [XmlIgnore]
-        public Type Type { get { return this._type; } }
+        public Type Type { get; private set; }
 
-        private static Dictionary<string, Type> _types = new Dictionary<string, Type>();
+        private static Dictionary<string, Type> types = new Dictionary<string, Type>();
         #endregion Members
 
         public abstract VersionedXmlLoader Upgrade();
@@ -80,32 +80,32 @@ namespace Demoder.Common.Serialization
         #region Static methods
         public static void Register(string name, int version, Type type)
         {
-            lock (_types)
+            lock (types)
             {
                 string id = name + "_" + version.ToString();
-                if (_types.ContainsKey(id))
-                    _types[id] = type;
+                if (types.ContainsKey(id))
+                    types[id] = type;
                 else
-                    _types.Add(id, type);
+                    types.Add(id, type);
             }
         }
 
         public static void Unregister(string name, int version)
         {
-            lock (_types)
+            lock (types)
             {
                 string id = name + "_" + version.ToString();
-                if (_types.ContainsKey(id))
-                    _types.Remove(id);
+                if (types.ContainsKey(id))
+                    types.Remove(id);
             }
         }
 
         public static bool IsRegistered(string name, int version)
         {
-            lock (_types)
+            lock (types)
             {
                 string id = name + "_" + version.ToString();
-                return _types.ContainsKey(id);
+                return types.ContainsKey(id);
             }
         }
 
@@ -127,27 +127,27 @@ namespace Demoder.Common.Serialization
             return vxl;
         }
 
-        public static VersionedXmlLoader Load(IEnumerable<Uri> URIs)
+        public static VersionedXmlLoader Load(IEnumerable<Uri> uri)
         {
-            DownloadItem di = new DownloadItem(null, URIs, null, null);
+            DownloadItem di = new DownloadItem(null, uri, null, null);
             Demoder.Common.Net.DownloadManager.StaticDLM.Download(di);
             di.Wait();
             Stream stream = new MemoryStream(di.Data);
             return Load(stream);
         }
 
-        public static VersionedXmlLoader Load(Stream Stream)
+        public static VersionedXmlLoader Load(Stream stream)
         {
             // Check stream
-            if (Stream == null)
+            if (stream == null)
                 throw new ArgumentNullException();
-            if (!Stream.CanRead)
+            if (!stream.CanRead)
                 throw new ArgumentException("Stream can not be read");
             XmlReader reader = null;
             try
             {
                 // Start reading XML
-                reader = XmlReader.Create(Stream);
+                reader = XmlReader.Create(stream);
                 if (reader.ReadToFollowing("Root") == false)
                     return null;
                 // Determine the type of the XML file
@@ -158,17 +158,17 @@ namespace Demoder.Common.Serialization
                     return null;
                 string type = name + "_" + version;
                 // Load file as known type
-                Stream.Seek(0, SeekOrigin.Begin);
+                stream.Seek(0, SeekOrigin.Begin);
                 Type dataType = null;
-                lock (_types)
+                lock (types)
                 {
-                    if (_types.ContainsKey(type))
-                        dataType = _types[type];
+                    if (types.ContainsKey(type))
+                        dataType = types[type];
                 }
                 if (dataType == null)
                     return null;
                 // Read data
-                VersionedXmlLoader data = (VersionedXmlLoader)Xml.Compat.Deserialize(dataType, Stream, false);
+                VersionedXmlLoader data = (VersionedXmlLoader)Xml.Compat.Deserialize(dataType, stream, false);
                 if (data == null)
                     return null;
                 // Upgrade data if needed
@@ -188,17 +188,12 @@ namespace Demoder.Common.Serialization
         #endregion Static Methods
 
         #region Internal
-        private string _name;
-        private int _version;
-        private bool _canUpgrade;
-        private Type _type;
-
         protected VersionedXmlLoader(string name, int version, bool canUpgrade, Type type)
         {
-            this._name = name;
-            this._version = version;
-            this._canUpgrade = canUpgrade;
-            this._type = type;
+            this.Name = name;
+            this.Version = version;
+            this.CanUpgrade = canUpgrade;
+            this.Type = type;
         }
         #endregion
     }

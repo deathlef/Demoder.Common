@@ -39,26 +39,26 @@ namespace Demoder.Common.Hash
     public struct ChecksumHexStore : ICheckSum, IEquatable<ICheckSum>
     {
         #region Members
-        private byte[] _bytes;
+        private byte[] bytes;
         #endregion
         #region Constructors
         /// <summary>
         /// Initializes an instance using a byte representation of a checksum
         /// </summary>
-        /// <param name="Bytes"></param>
-        public ChecksumHexStore(byte[] Bytes)
+        /// <param name="bytes"></param>
+        public ChecksumHexStore(byte[] bytes)
         {
-            this._bytes = Bytes;
+            this.bytes = bytes;
         }
 
         /// <summary>
         /// Initializes an instance using a string representation of a checksum
         /// </summary>
-        /// <param name="Hex"></param>
-        public ChecksumHexStore(string Hex)
+        /// <param name="hex"></param>
+        public ChecksumHexStore(string hex)
         {
-            this._bytes = null;
-            this.String = Hex;
+            this.bytes = null;
+            this.String = hex;
         }
         #endregion
 
@@ -94,19 +94,19 @@ namespace Demoder.Common.Hash
         {
             //Generate a hexadecimal string
             StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < this._bytes.Length; i++)
+            for (int i = 0; i < this.bytes.Length; i++)
             {
-                sb.Append(this._bytes[i].ToString("X2"));
+                sb.Append(this.bytes[i].ToString("X2"));
             }
             return sb.ToString();
         }
 
-        private byte[] generateBytes(string Hex)
+        private byte[] generateBytes(string hex)
         {
-            int numberChars = Hex.Length;
+            int numberChars = hex.Length;
             byte[] bytes = new byte[numberChars / 2];
             for (int i = 0; i < numberChars; i += 2)
-                bytes[i / 2] = Convert.ToByte(Hex.Substring(i, 2), 16);
+                bytes[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16);
             return bytes;
         }
         #endregion
@@ -120,11 +120,11 @@ namespace Demoder.Common.Hash
         {
             set
             {
-                this._bytes = value;
+                this.bytes = value;
             }
             get
             {
-                return this._bytes;
+                return this.bytes;
             }
         }
         /// <summary>
@@ -142,7 +142,7 @@ namespace Demoder.Common.Hash
                     val = val.Substring(2);
                 try
                 {
-                    this._bytes = this.generateBytes(val);
+                    this.bytes = this.generateBytes(val);
                 }
                 catch
                 {
@@ -233,9 +233,9 @@ namespace Demoder.Common.Hash
         #endregion
 
         #region IEquatable<ICheckSum> Members
-        public bool Equals(ICheckSum Other)
+        public bool Equals(ICheckSum other)
         {
-            if (this._bytes.Equals(Other.Bytes))
+            if (this.bytes.Equals(other.Bytes))
                 return true;
             else
                 return false;

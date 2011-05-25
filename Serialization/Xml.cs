@@ -40,23 +40,23 @@ namespace Demoder.Common.Serialization
         /// Serializes an object into an already opened stream
         /// </summary>
         /// <typeparam name="T">Class type to serialize class as</typeparam>
-        /// <param name="Stream">Stream to serialize into</param>
-        /// <param name="Obj">Class to serialize</param>
-        public static bool Serialize<T>(Stream Stream, object Obj, bool CloseStream) where T : class
+        /// <param name="stream">Stream to serialize into</param>
+        /// <param name="obj">Class to serialize</param>
+        public static bool Serialize<T>(Stream stream, object obj, bool closeStream) where T : class
         {
-            return Compat.Serialize(typeof(T), Stream, Obj, CloseStream);
+            return Compat.Serialize(typeof(T), stream, obj, closeStream);
         }
         /// <summary>
         /// Serialize a class to a file
         /// </summary>
         /// <typeparam name="T">Class type to serialize</typeparam>
-        /// <param name="Path"></param>
-        /// <param name="Obj"></param>
-        /// <param name="GZip">Whether or not the saved file should be GZipped</param>
+        /// <param name="path"></param>
+        /// <param name="obj"></param>
+        /// <param name="gzip">Whether or not the saved file should be GZipped</param>
         /// <returns></returns>
-        public static bool Serialize<T>(FileInfo Path, T Obj, bool GZip) where T : class
+        public static bool Serialize<T>(FileInfo path, T obj, bool gzip) where T : class
         {
-            return Compat.Serialize(typeof(T), Path, Obj, GZip);
+            return Compat.Serialize(typeof(T), path, obj, gzip);
         }
         #endregion
 
@@ -65,12 +65,12 @@ namespace Demoder.Common.Serialization
         /// Deserialize a stream
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="Stream"></param>
-        /// <param name="CloseStream"></param>
+        /// <param name="stream"></param>
+        /// <param name="closeStream"></param>
         /// <returns></returns>
-        public static T Deserialize<T>(Stream Stream, bool CloseStream) where T : class
+        public static T Deserialize<T>(Stream stream, bool closeStream) where T : class
         {
-            object obj = Compat.Deserialize(typeof(T), Stream, CloseStream);
+            object obj = Compat.Deserialize(typeof(T), stream, closeStream);
             if (obj == null)
                 return default(T);
             else
@@ -81,12 +81,12 @@ namespace Demoder.Common.Serialization
         /// Deserialize a file
         /// </summary>
         /// <typeparam name="T">What class type to parse file as</typeparam>
-        /// <param name="Path">Path to the file</param>
-        /// <param name="GZip">Whether or not the file is gzip-compressed</param>
+        /// <param name="path">Path to the file</param>
+        /// <param name="gzip">Whether or not the file is gzip-compressed</param>
         /// <returns></returns>
-        public static T Deserialize<T>(FileInfo Path, bool GZip) where T : class
+        public static T Deserialize<T>(FileInfo path, bool gzip) where T : class
         {
-            object obj = Compat.Deserialize(typeof(T), Path, GZip);
+            object obj = Compat.Deserialize(typeof(T), path, gzip);
             if (obj == null)
                 return default(T);
             else
@@ -97,22 +97,22 @@ namespace Demoder.Common.Serialization
         /// Deserialize content of UriBuilder
         /// </summary>
         /// <typeparam name="T">What class to parse file as</typeparam>
-        /// <param name="Path">Path to fetch</param>
+        /// <param name="path">Path to fetch</param>
         /// <returns></returns>
-        public static T Deserialize<T>(UriBuilder Path) where T : class
+        public static T Deserialize<T>(UriBuilder path) where T : class
         {
-            return Deserialize<T>(Path.Uri);
+            return Deserialize<T>(path.Uri);
         }
 
         /// <summary>
         /// Deserialize content of Uris.
         /// </summary>
         /// <typeparam name="T">Class type to parse as</typeparam>
-        /// <param name="Uris">List of mirrors to try</param>
+        /// <param name="uris">List of mirrors to try</param>
         /// <returns></returns>
-        public static T Deserialize<T>(IEnumerable<Uri> Uris) where T : class
+        public static T Deserialize<T>(IEnumerable<Uri> uris) where T : class
         {
-            object obj = Compat.Deserialize(typeof(T), Uris);
+            object obj = Compat.Deserialize(typeof(T), uris);
             if (obj == null)
                 return default(T);
             else
@@ -123,11 +123,11 @@ namespace Demoder.Common.Serialization
         /// Deserialize content of URI
         /// </summary>
         /// <typeparam name="T">Class type to parse as</typeparam>
-        /// <param name="Path">URI to deserialize</param>
+        /// <param name="path">URI to deserialize</param>
         /// <returns></returns>
-        public static T Deserialize<T>(Uri Path) where T : class
+        public static T Deserialize<T>(Uri path) where T : class
         {
-            object obj = Compat.Deserialize(typeof(T), Path);
+            object obj = Compat.Deserialize(typeof(T), path);
             if (obj == null)
                 return default(T);
             else
@@ -142,25 +142,25 @@ namespace Demoder.Common.Serialization
             /// <summary>
             /// Serialize object to stream
             /// </summary>
-            /// <param name="T"></param>
-            /// <param name="Stream"></param>
-            /// <param name="Obj"></param>
-            /// <param name="CloseStream"></param>
+            /// <param name="t"></param>
+            /// <param name="stream"></param>
+            /// <param name="obj"></param>
+            /// <param name="closeStream"></param>
             /// <returns></returns>
-            public static bool Serialize(Type T, Stream Stream, object Obj, bool CloseStream)
+            public static bool Serialize(Type t, Stream stream, object obj, bool closeStream)
             {
-                if (Stream == null) throw new ArgumentNullException("Stream");
-                if (Obj == null) throw new ArgumentNullException("Obj");
+                if (stream == null) throw new ArgumentNullException("Stream");
+                if (obj == null) throw new ArgumentNullException("Obj");
                 try
                 {
-                    XmlSerializer serializer = new XmlSerializer(T);
-                    serializer.Serialize(Stream, Obj);
-                    if (CloseStream) Stream.Close();
+                    XmlSerializer serializer = new XmlSerializer(t);
+                    serializer.Serialize(stream, obj);
+                    if (closeStream) stream.Close();
                     return true;
                 }
                 catch (Exception ex)
                 {
-                    if (CloseStream && Stream != null) Stream.Close();
+                    if (closeStream && stream != null) stream.Close();
                     return false;
                 }
             }
@@ -168,22 +168,22 @@ namespace Demoder.Common.Serialization
             /// <summary>
             /// Serialize object to file
             /// </summary>
-            /// <param name="T"></param>
-            /// <param name="Path"></param>
-            /// <param name="Obj"></param>
-            /// <param name="GZip"></param>
+            /// <param name="t"></param>
+            /// <param name="path"></param>
+            /// <param name="obj"></param>
+            /// <param name="gzip"></param>
             /// <returns></returns>
-            public static bool Serialize(Type T, FileInfo Path, object Obj, bool GZip)
+            public static bool Serialize(Type t, FileInfo path, object obj, bool gzip)
             {
-                if (Path == null) throw new ArgumentNullException("Path");
-                if (Obj == null) throw new ArgumentNullException("Obj");
-                if (GZip)
+                if (path == null) throw new ArgumentNullException("Path");
+                if (obj == null) throw new ArgumentNullException("Obj");
+                if (gzip)
                 {
-                    using (FileStream fs = Path.Create())
+                    using (FileStream fs = path.Create())
                     {
                         using (GZipStream gzs = new GZipStream(fs, CompressionMode.Compress))
                         {
-                            Serialize(T, gzs, Obj, true);
+                            Serialize(t, gzs, obj, true);
                         }
                     }
                     return true;
@@ -194,10 +194,10 @@ namespace Demoder.Common.Serialization
                     FileStream fs = null;
                     try
                     {
-                        XmlSerializer serializer = new XmlSerializer(T);
-                        serializer.Serialize(ms, Obj); //Serialize into memory
+                        XmlSerializer serializer = new XmlSerializer(t);
+                        serializer.Serialize(ms, obj); //Serialize into memory
 
-                        fs = Path.Create();
+                        fs = path.Create();
                         ms.WriteTo(fs);
                         if (fs != null) fs.Close();
                         if (ms != null) ms.Close();
@@ -216,24 +216,24 @@ namespace Demoder.Common.Serialization
             /// <summary>
             /// Deserialize a stream
             /// </summary>
-            /// <param name="T"></param>
-            /// <param name="Stream"></param>
-            /// <param name="CloseStream"></param>
+            /// <param name="t"></param>
+            /// <param name="stream"></param>
+            /// <param name="closeStream"></param>
             /// <returns></returns>
-            public static object Deserialize(Type T, Stream Stream, bool CloseStream)
+            public static object Deserialize(Type t, Stream stream, bool closeStream)
             {
-                if (Stream == null) throw new ArgumentNullException("Stream");
+                if (stream == null) throw new ArgumentNullException("Stream");
                 try
                 {
-                    XmlSerializer serializer = new XmlSerializer(T);
-                    object obj = serializer.Deserialize(Stream);
-                    if (Stream != null && CloseStream) Stream.Close();
+                    XmlSerializer serializer = new XmlSerializer(t);
+                    object obj = serializer.Deserialize(stream);
+                    if (stream != null && closeStream) stream.Close();
                     return obj;
                 }
                 catch (Exception ex)
                 {
-                    if (Stream != null && CloseStream)
-                        Stream.Close();
+                    if (stream != null && closeStream)
+                        stream.Close();
                     return null;
                 }
             }
@@ -241,21 +241,21 @@ namespace Demoder.Common.Serialization
             /// <summary>
             /// Deserialize a file
             /// </summary>
-            /// <param name="T"></param>
-            /// <param name="Path"></param>
-            /// <param name="GZip"></param>
+            /// <param name="t"></param>
+            /// <param name="path"></param>
+            /// <param name="gzip"></param>
             /// <returns></returns>
-            public static object Deserialize(Type T, FileInfo Path, bool GZip)
+            public static object Deserialize(Type t, FileInfo path, bool gzip)
             {
-                if (Path == null) throw new ArgumentNullException("Path");
+                if (path == null) throw new ArgumentNullException("Path");
 
-                if (GZip)
+                if (gzip)
                 {
-                    using (FileStream fs = Path.OpenRead())
+                    using (FileStream fs = path.OpenRead())
                     {
                         using (GZipStream gzs = new System.IO.Compression.GZipStream(fs, CompressionMode.Decompress, true))
                         {
-                            return Deserialize(T, gzs, true);
+                            return Deserialize(t, gzs, true);
                         }
                     }
                 }
@@ -264,8 +264,8 @@ namespace Demoder.Common.Serialization
                     FileStream stream = null;
                     try
                     {
-                        stream = Path.OpenRead();
-                        XmlSerializer serializer = new XmlSerializer(T);
+                        stream = path.OpenRead();
+                        XmlSerializer serializer = new XmlSerializer(t);
                         Object obj = serializer.Deserialize(stream);
                         if (stream != null) stream.Close();
                         return obj;
@@ -281,26 +281,26 @@ namespace Demoder.Common.Serialization
             /// <summary>
             /// Deserialize an URI
             /// </summary>
-            /// <param name="T"></param>
-            /// <param name="Path"></param>
+            /// <param name="t"></param>
+            /// <param name="path"></param>
             /// <returns></returns>
-            public static object Deserialize(Type T, UriBuilder Path)
+            public static object Deserialize(Type t, UriBuilder path)
             {
-                return Deserialize(T, Path.Uri);
+                return Deserialize(t, path.Uri);
             }
 
             /// <summary>
             /// Deserialize an URI
             /// </summary>
-            /// <param name="T"></param>
-            /// <param name="Uris"></param>
+            /// <param name="t"></param>
+            /// <param name="uris"></param>
             /// <returns></returns>
-            public static object Deserialize(Type T, IEnumerable<Uri> Uris)
+            public static object Deserialize(Type t, IEnumerable<Uri> uris)
             {
                 try
                 {
-                    DownloadItem di = new DownloadItem(null, Uris, null, null);
-                    return Deserialize(T, new MemoryStream(DownloadManager.GetBinaryData(di, int.MaxValue)), true);
+                    DownloadItem di = new DownloadItem(null, uris, null, null);
+                    return Deserialize(t, new MemoryStream(DownloadManager.GetBinaryData(di, int.MaxValue)), true);
                 }
                 catch
                 {
@@ -311,15 +311,15 @@ namespace Demoder.Common.Serialization
             /// <summary>
             /// Deserialize an URI
             /// </summary>
-            /// <param name="T"></param>
-            /// <param name="Path"></param>
+            /// <param name="t"></param>
+            /// <param name="path"></param>
             /// <returns></returns>
-            public static object Deserialize(Type T, Uri Path)
+            public static object Deserialize(Type t, Uri path)
             {
-                if (Path == null) throw new ArgumentNullException("Path");
+                if (path == null) throw new ArgumentNullException("Path");
                 try
                 {
-                    return Deserialize(T, new List<Uri>(new Uri[] { Path }));
+                    return Deserialize(t, new List<Uri>(new Uri[] { path }));
                 }
                 catch { return null; }
             }

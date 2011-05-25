@@ -34,12 +34,12 @@ namespace Demoder.Common.Hash
     public class SHA1Checksum : ICheckSum
     {
         #region Members
-        private ICheckSum _checkSumStore;
+        private ICheckSum checkSumStore;
         #endregion
         #region Constructors
-        public SHA1Checksum(byte[] Bytes) : this() { this._checkSumStore = new ChecksumHexStore(Bytes); }
-        public SHA1Checksum(string Hex) : this() { this._checkSumStore = new ChecksumHexStore(Hex); }
-        public SHA1Checksum() { this._checkSumStore = null; }
+        public SHA1Checksum(byte[] bytes) : this() { this.checkSumStore = new ChecksumHexStore(bytes); }
+        public SHA1Checksum(string hex) : this() { this.checkSumStore = new ChecksumHexStore(hex); }
+        public SHA1Checksum() { this.checkSumStore = null; }
         #endregion
         #region Interfaces
         #region ICheckSum Members
@@ -50,16 +50,16 @@ namespace Demoder.Common.Hash
         {
             get
             {
-                if (this._checkSumStore == null)
+                if (this.checkSumStore == null)
                     return null;
-                return this._checkSumStore.Bytes;
+                return this.checkSumStore.Bytes;
             }
             set
             {
-                if (this._checkSumStore == null)
-                    this._checkSumStore = new ChecksumHexStore(value);
+                if (this.checkSumStore == null)
+                    this.checkSumStore = new ChecksumHexStore(value);
                 else
-                    this._checkSumStore.Bytes = value;
+                    this.checkSumStore.Bytes = value;
             }
         }
         /// <summary>
@@ -69,26 +69,26 @@ namespace Demoder.Common.Hash
         {
             get
             {
-                if (this._checkSumStore == null)
+                if (this.checkSumStore == null)
                     return String.Empty;
-                return this._checkSumStore.String;
+                return this.checkSumStore.String;
             }
             set
             {
-                if (this._checkSumStore == null)
-                    this._checkSumStore = new ChecksumHexStore(value);
+                if (this.checkSumStore == null)
+                    this.checkSumStore = new ChecksumHexStore(value);
                 else
-                    this._checkSumStore.String = value;
+                    this.checkSumStore.String = value;
             }
         }
         #endregion
         #region IEquatable<ICheckSum> Members
-        public override bool Equals(object Other)
+        public override bool Equals(object other)
         {
             ICheckSum other;
             try
             {
-                other = (ICheckSum)Other;
+                other = (ICheckSum)other;
             }
             catch { return false; }
             if (this.String == other.String)
@@ -105,13 +105,13 @@ namespace Demoder.Common.Hash
         }
 
         #region static operators
-        public static bool operator ==(SHA1Checksum CS1, MD5Checksum CS2)
+        public static bool operator ==(SHA1Checksum cs1, MD5Checksum cs2)
         {
             //Check for null.
             bool cs1_isnull = false;
             try
             {
-                CS1.ToString();
+                cs1.ToString();
             }
             catch (NullReferenceException ex)
             {
@@ -122,7 +122,7 @@ namespace Demoder.Common.Hash
             bool cs2_isnull = false;
             try
             {
-                CS2.ToString();
+                cs2.ToString();
             }
             catch (NullReferenceException ex)
             {
@@ -137,18 +137,18 @@ namespace Demoder.Common.Hash
             if (cs1_isnull == false && cs2_isnull == true)
                 return false;
             //Done checking null
-            if (CS1.Bytes.Equals(CS2.Bytes))
+            if (cs1.Bytes.Equals(cs2.Bytes))
                 return true;
             else
                 return false;
         }
-        public static bool operator !=(SHA1Checksum CS1, MD5Checksum CS2)
+        public static bool operator !=(SHA1Checksum cs1, MD5Checksum cs2)
         {
             //Check for null.
             bool cs1_isnull = false;
             try
             {
-                CS1.ToString();
+                cs1.ToString();
             }
             catch (NullReferenceException ex)
             {
@@ -159,7 +159,7 @@ namespace Demoder.Common.Hash
             bool cs2_isnull = false;
             try
             {
-                CS2.ToString();
+                cs2.ToString();
             }
             catch (NullReferenceException ex)
             {
@@ -174,7 +174,7 @@ namespace Demoder.Common.Hash
             if (cs1_isnull == false && cs2_isnull == true)
                 return false;
             //Done checking null
-            if (!CS1.Bytes.Equals(CS2.Bytes))
+            if (!cs1.Bytes.Equals(cs2.Bytes))
                 return true;
             else
                 return false;
@@ -184,23 +184,23 @@ namespace Demoder.Common.Hash
         /// <summary>
         /// Get SHA1 hash of byte array
         /// </summary>
-        /// <param name="Input"></param>
+        /// <param name="input"></param>
         /// <returns></returns>
-        public static SHA1Checksum Generate(byte[] Input)
+        public static SHA1Checksum Generate(byte[] input)
         {
             SHA1 _sha1 = new SHA1CryptoServiceProvider();
-            byte[] hash = _sha1.ComputeHash(Input);
+            byte[] hash = _sha1.ComputeHash(input);
             return new SHA1Checksum(hash);
         }
         /// <summary>
         /// Get SHA1 hash of Stream input.
         /// </summary>
-        /// <param name="Input"></param>
+        /// <param name="input"></param>
         /// <returns></returns>
-        public static SHA1Checksum Generate(Stream Input)
+        public static SHA1Checksum Generate(Stream input)
         {
             SHA1 _sha1 = new SHA1CryptoServiceProvider();
-            byte[] hash = _sha1.ComputeHash(Input);
+            byte[] hash = _sha1.ComputeHash(input);
             return new SHA1Checksum(hash);
         }
 
@@ -208,21 +208,21 @@ namespace Demoder.Common.Hash
         /// <summary>
         /// Get SHA1 hash of text
         /// </summary>
-        /// <param name="Input"></param>
+        /// <param name="input"></param>
         /// <returns></returns>
-        public static SHA1Checksum Generate(string Input)
+        public static SHA1Checksum Generate(string input)
         {
-            return Generate(Encoding.Default.GetBytes(Input));
+            return Generate(Encoding.Default.GetBytes(input));
         }
 
         /// <summary>
         /// Get SHA1 hash of MemoryStream
         /// </summary>
-        /// <param name="Input"></param>
+        /// <param name="input"></param>
         /// <returns></returns>
-        public static SHA1Checksum Generate(MemoryStream Input)
+        public static SHA1Checksum Generate(MemoryStream input)
         {
-            return Generate(Input.ToArray());
+            return Generate(input.ToArray());
         }
 
         public static SHA1Checksum Generate(List<byte> Input) { return Generate(Input.ToArray()); }
@@ -230,13 +230,13 @@ namespace Demoder.Common.Hash
         /// <summary>
         /// Get SHA1 hash of file
         /// </summary>
-        /// <param name="FilePath">path to file</param>
+        /// <param name="filePath">path to file</param>
         /// <exception cref="FileNotFoundException">File does not exist</exception>
         /// <returns></returns>
-        public static SHA1Checksum Generate(FileInfo FilePath)
+        public static SHA1Checksum Generate(FileInfo filePath)
         {
-            if (!FilePath.Exists) throw new FileNotFoundException("File does not exist");
-            return Generate(File.ReadAllBytes(FilePath.FullName));
+            if (!filePath.Exists) throw new FileNotFoundException("File does not exist");
+            return Generate(File.ReadAllBytes(filePath.FullName));
         }
         #endregion
     }

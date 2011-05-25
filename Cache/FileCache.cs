@@ -39,37 +39,37 @@ namespace Demoder.Common.Cache
         /// <summary>
         /// This is an index of all the cached data
         /// </summary>
-        private Dictionary<string, CacheInfo> _cacheIndex = new Dictionary<string, CacheInfo>();
+        private Dictionary<string, CacheInfo> cacheIndex = new Dictionary<string, CacheInfo>();
         /// <summary>
         /// Monitors the cache directory for changes
         /// </summary>
-        private FileSystemWatcher _fsWatcher;
+        private FileSystemWatcher fsWatcher;
 
-        private DirectoryInfo _cacheRootDirectory;
-        private DirectoryInfo _cacheIndexDirectory;
-        private DirectoryInfo _cacheDataDirectory;
+        private DirectoryInfo cacheRootDirectory;
+        private DirectoryInfo cacheIndexDirectory;
+        private DirectoryInfo cacheDataDirectory;
         #endregion
         #region Constructors
         /// <summary>
         /// Initializes the URL cache
         /// </summary>
-        /// <param name="RootDirectory">Directory used for storage</param>
-        public FileCache(DirectoryInfo RootDirectory)
+        /// <param name="rootDirectory">Directory used for storage</param>
+        public FileCache(DirectoryInfo rootDirectory)
         {
             //Define cache directories
-            this._cacheRootDirectory = RootDirectory;
-            this._cacheIndexDirectory = new DirectoryInfo(RootDirectory.FullName + Path.DirectorySeparatorChar + "Index");
-            this._cacheDataDirectory = new DirectoryInfo(RootDirectory.FullName + Path.DirectorySeparatorChar + "Data");
+            this.cacheRootDirectory = rootDirectory;
+            this.cacheIndexDirectory = new DirectoryInfo(rootDirectory.FullName + Path.DirectorySeparatorChar + "Index");
+            this.cacheDataDirectory = new DirectoryInfo(rootDirectory.FullName + Path.DirectorySeparatorChar + "Data");
             //Check if cache directories exist
-            if (!this._cacheRootDirectory.Exists)
-                this._cacheRootDirectory.Create();
-            if (!this._cacheIndexDirectory.Exists)
-                this._cacheIndexDirectory.Create();
-            if (!this._cacheDataDirectory.Exists)
-                this._cacheDataDirectory.Create();
+            if (!this.cacheRootDirectory.Exists)
+                this.cacheRootDirectory.Create();
+            if (!this.cacheIndexDirectory.Exists)
+                this.cacheIndexDirectory.Create();
+            if (!this.cacheDataDirectory.Exists)
+                this.cacheDataDirectory.Create();
 
             //initialize the fsWatcher
-            this._fsWatcher = new FileSystemWatcher(RootDirectory.FullName);
+            this.fsWatcher = new FileSystemWatcher(rootDirectory.FullName);
         }
         #endregion
         #region fsWatcher implementation
@@ -77,33 +77,33 @@ namespace Demoder.Common.Cache
         #endregion
 
         #region Methods
-        public void Cache(string Key, byte[] Data)
+        public void Cache(string key, byte[] data)
         {
-            lock (this._cacheIndex)
+            lock (this.cacheIndex)
             {
-                string md5 = MD5Checksum.Generate(Data).String;
+                string md5 = MD5Checksum.Generate(data).String;
                 //Is this data the same as the old?
-                if (this._cacheIndex.ContainsKey(Key))
-                    if (this._cacheIndex[Key].Hash == md5)
+                if (this.cacheIndex.ContainsKey(key))
+                    if (this.cacheIndex[key].Hash == md5)
                         return;
 
                 //If we made it here, it's a change to the old value.
-                CacheInfo ci = new CacheInfo(Key, md5);
-                FileInfo dataFile = new FileInfo(this._getDataFileName(Key));
-                FileInfo indexFile = new FileInfo(this._getIndexFileName(Key));
+                CacheInfo ci = new CacheInfo(key, md5);
+                FileInfo dataFile = new FileInfo(this._getDataFileName(key));
+                FileInfo indexFile = new FileInfo(this._getIndexFileName(key));
                 try
                 {
                     //Update the cache.
-                    File.WriteAllBytes(dataFile.FullName, Data); //Write the data
+                    File.WriteAllBytes(dataFile.FullName, data); //Write the data
                     Xml.Serialize<CacheInfo>(indexFile, ci, false); //Write the index
-                    this._cacheIndex[Key] = ci; //Store index in memory
+                    this.cacheIndex[key] = ci; //Store index in memory
                 }
                 catch
                 {
                     //If something fails with the caching, remove the cache entry.
-                    if (this._cacheIndex.ContainsKey(Key))
+                    if (this.cacheIndex.ContainsKey(key))
                     {
-                        this._cacheIndex.Remove(Key);
+                        this.cacheIndex.Remove(key);
                     }
                     try
                     {
@@ -119,44 +119,44 @@ namespace Demoder.Common.Cache
         /// <summary>
         /// Reads a file from cache.
         /// </summary>
-        /// <param name="Key">ID of file to read</param>
+        /// <param name="key">ID of file to read</param>
         /// <returns></returns>
-        public byte[] Read(string Key)
+        public byte[] Read(string key)
         {
-            lock (this._cacheIndex)
+            lock (this.cacheIndex)
             {
-                if (!this._cacheIndex.ContainsKey(Key))
+                if (!this.cacheIndex.ContainsKey(key))
                     return null;
                 else
                 {
-                    byte[] bytes = File.ReadAllBytes(this._getDataFileName(Key));
+                    byte[] bytes = File.ReadAllBytes(this._getDataFileName(key));
                     //Ensure the index is up to date.
                     string md5 = MD5Checksum.Generate(bytes).String;
-                    if (md5 != this._cacheIndex[Key].Hash)
-                        this.Cache(Key, bytes);
+                    if (md5 != this.cacheIndex[key].Hash)
+                        this.Cache(key, bytes);
                     return bytes;
                 }
             }
         }
 
-        public DateTime Time(string Key)
+        public DateTime Time(string key)
         {
-            lock (this._cacheIndex)
+            lock (this.cacheIndex)
             {
-                if (this._cacheIndex.ContainsKey(Key))
-                    return new FileInfo(this._getDataFileName(Key)).LastWriteTime;
+                if (this.cacheIndex.ContainsKey(key))
+                    return new FileInfo(this._getDataFileName(key)).LastWriteTime;
                 else
                     return default(DateTime);
             }
         }
 
-        private string _getIndexFileName(string Key)
+        private string _getIndexFileName(string key)
         {
-            return this._cacheIndexDirectory.FullName + Path.DirectorySeparatorChar + MD5Checksum.Generate(Key) + ".xml";
+            return this.cacheIndexDirectory.FullName + Path.DirectorySeparatorChar + MD5Checksum.Generate(key) + ".xml";
         }
-        private string _getDataFileName(string Key)
+        private string _getDataFileName(string key)
         {
-            return this._cacheDataDirectory.FullName + Path.DirectorySeparatorChar + MD5Checksum.Generate(Key) + ".data";
+            return this.cacheDataDirectory.FullName + Path.DirectorySeparatorChar + MD5Checksum.Generate(key) + ".data";
         }
         #endregion
 
@@ -164,17 +164,17 @@ namespace Demoder.Common.Cache
         public class CacheInfo
         {
             #region members
-            private string _key = default(string);
-            private string _hash = default(string);
+            private string key = default(string);
+            private string hash = default(string);
             #endregion
             #region constructors
             public CacheInfo()
             {
             }
-            public CacheInfo(string Key, string MD5Hash)
+            public CacheInfo(string key, string md5Hash)
             {
-                this._key = Key;
-                this._hash = MD5Hash;
+                this.key = key;
+                this.hash = md5Hash;
             }
             #endregion
             #region accessors
@@ -183,11 +183,11 @@ namespace Demoder.Common.Cache
             /// </summary>
             public string Key
             {
-                get { return this._key; }
+                get { return this.key; }
                 set
                 {
-                    if (this._key == default(string))
-                        this._key = value;
+                    if (this.key == default(string))
+                        this.key = value;
                     else
                         throw new InvalidOperationException("Key may not be changed after initialization of object.");
                 }
@@ -198,8 +198,8 @@ namespace Demoder.Common.Cache
             /// </summary>
             public string Hash
             {
-                get { return this._hash; }
-                set { this._hash = value; }
+                get { return this.hash; }
+                set { this.hash = value; }
             }
             #endregion
         }
