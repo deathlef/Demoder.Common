@@ -91,7 +91,7 @@ namespace Demoder.Common.Net
             DownloadItemEventHandler downloadFailureDelegate,
             MD5Checksum ExcpectedMD5,
             FileInfo SaveAs)
-            : this(Tag, mirrors, downloadSuccessDelegate, downloadFailureDelegate, ExcpectedMD5)
+            : this(tag, mirrors, downloadSuccessDelegate, downloadFailureDelegate, ExcpectedMD5)
         {
             this.saveAs = SaveAs;
         }
