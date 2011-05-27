@@ -83,12 +83,12 @@ namespace Demoder.Common.Hash
         }
         #endregion
         #region IEquatable<ICheckSum> Members
-        public override bool Equals(object other)
+        public override bool Equals(object obj)
         {
             ICheckSum other;
             try
             {
-                other = (ICheckSum)other;
+                other = (ICheckSum)obj;
             }
             catch { return false; }
             if (this.String == other.String)

@@ -228,7 +228,7 @@ namespace Demoder.Common.Net
 
             IPAddress[] ips;
             // DNS lookup
-            if (this.proxySettings == null || this.proxySettings.IsBypassed(Uri))
+            if (this.proxySettings == null || this.proxySettings.IsBypassed(uri))
                 ips = Dns.GetHostAddresses(uri.Host); //Not using proxy
             else
                 ips = Dns.GetHostAddresses(this.proxySettings.Address.Host); //Using proxy
