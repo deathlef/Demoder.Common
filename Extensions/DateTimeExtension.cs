@@ -41,5 +41,18 @@ namespace Demoder.Common.Extensions
             return (long)Math.Floor(ts.TotalSeconds);
         }
 
+        public static string ToFriendlyString(this TimeSpan obj)
+        {
+            string ret = String.Empty;
+            if (obj.Days > 0)
+                ret += obj.Days.ToString() + "d";
+            if (obj.Hours > 0)
+                ret += obj.Hours.ToString() + "h";
+            if (obj.Minutes > 0)
+                ret += obj.Minutes.ToString() + "m";
+            if (obj.Seconds > 0)
+                ret += obj.Seconds.ToString() + "s";
+            return ret;
+        }
     }
 }
