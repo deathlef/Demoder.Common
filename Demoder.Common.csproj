@@ -51,6 +51,7 @@
     <Compile Include="CommandLineParameters.cs" />
     <Compile Include="Extensions\DateTimeExtension.cs" />
     <Compile Include="Extensions\NumberExtension.cs" />
+    <Compile Include="Extensions\TypeExtensions.cs" />
     <Compile Include="Hash\ICheckSum.cs" />
     <Compile Include="Logging\IEventLogEntry.cs" />
     <Compile Include="Logging\LogRotater.cs" />
