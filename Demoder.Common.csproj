@@ -79,6 +79,7 @@
     <Compile Include="Serialization\SerializableKeyValuePair.cs" />
     <Compile Include="Serialization\VersionedXmlLoader.cs" />
     <Compile Include="Serialization\Xml.cs" />
+    <Compile Include="TypeConverter.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Licence.txt" />
