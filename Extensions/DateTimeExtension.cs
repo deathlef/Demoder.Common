@@ -41,6 +41,50 @@ namespace Demoder.Common.Extensions
             return (long)Math.Floor(ts.TotalSeconds);
         }
 
+        /// <summary>
+        /// Adds a timespan in format 365d24h60m60s to the DateTime object.
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <param name="time"></param>
+        /// <returns></returns>
+        public static DateTime AddFriendlyStringTimeSpan(this DateTime obj, string time)
+        {
+            int days, hours, minutes, seconds; days = hours = minutes = seconds = 0;
+            string val = String.Empty;
+            string markers = "dhms";
+            int test;
+            foreach (Char c in time)
+            {
+                if (!markers.Contains(c) && (int.TryParse(c.ToString(), out test)))
+                    val += c;
+                else if (c == "d"[0])
+                {
+                    days = int.Parse(val);
+                    val = String.Empty;
+                }
+                else if (c == "h"[0])
+                {
+                    hours = int.Parse(val);
+                    val = String.Empty;
+                }
+                else if (c == "m"[0])
+                {
+                    minutes = int.Parse(val);
+                    val = String.Empty;
+                }
+                else if (c == "s"[0])
+                {
+                    seconds = int.Parse(val);
+                    val = String.Empty;
+                }
+                else
+                {
+                    val = String.Empty;
+                }
+            }
+            return obj.AddSeconds(seconds).AddMinutes(minutes).AddHours(hours).AddDays(days);
+        }
+
         public static string ToFriendlyString(this TimeSpan obj)
         {
             string ret = String.Empty;
