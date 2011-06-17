@@ -57,22 +57,22 @@ namespace Demoder.Common.Extensions
             {
                 if (!markers.Contains(c) && (int.TryParse(c.ToString(), out test)))
                     val += c;
-                else if (c == "d"[0])
+                else if (c == 'd')
                 {
                     days = int.Parse(val);
                     val = String.Empty;
                 }
-                else if (c == "h"[0])
+                else if (c == 'h')
                 {
                     hours = int.Parse(val);
                     val = String.Empty;
                 }
-                else if (c == "m"[0])
+                else if (c == 'm')
                 {
                     minutes = int.Parse(val);
                     val = String.Empty;
                 }
-                else if (c == "s"[0])
+                else if (c == 's')
                 {
                     seconds = int.Parse(val);
                     val = String.Empty;
