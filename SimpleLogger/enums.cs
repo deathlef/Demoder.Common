@@ -31,6 +31,7 @@ namespace Demoder.Common.SimpleLogger
     [Flags]
     public enum EventLogLevel
     {
+        Console = 64,
         Critical = 32,
         Serious = 16,
         Error = 8,

@@ -26,17 +26,68 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Diagnostics;
+using System.IO;
 
 namespace Demoder.Common.SimpleLogger
 {
     public class Logger
     {
-        public void Log(EventLogLevel level, string category, string message)
+        private const string logDebugTemplate = "@Model.Time [@Model.Level] (@Model.File:@Model.Line/@Model.Method) @Model.Category: @Model.Message";
+        private const string logNormalTemplate = "@Model.Time [@Model.Level] @Model.Category: @Model.Message";
+        private readonly EventLogLevel minLogLevel;
+
+        public Logger(EventLogLevel minLevel = EventLogLevel.Debug)
         {
-            // StackTrace output, skip first frame as that's irrelevant
-            StackTrace trace = new StackTrace(1, true);
-            StackFrame frame = trace.GetFrame(0);
-            
+            this.minLogLevel = minLevel;
+        }
+
+        public void Log(EventLogLevel level, string category, string message, int skipFrames=1)
+        {
+            if (level < this.minLogLevel)
+            {
+                return;
+            }
+            bool isDebug = false;
+            if (level == EventLogLevel.Debug || level == EventLogLevel.Error)
+            {
+                isDebug=true;
+            }
+            dynamic log;
+            if (isDebug)
+            {
+                // StackTrace output, skip first frame as that's irrelevant
+                StackTrace trace = new StackTrace(skipFrames, true);
+                StackFrame frame = trace.GetFrame(0);
+                log = new
+                {
+                    Time = DateTime.Now.ToLongTimeString(),
+                    Level = level.ToString(),
+                    File = new FileInfo(frame.GetFileName()).Name,
+                    Line = frame.GetFileLineNumber().ToString(),
+                    Method = frame.GetMethod().Name,
+                    Category = category,
+                    Message = message
+                };
+            }
+            else
+            {
+                log = new
+                {
+                    Time = DateTime.Now.ToLongTimeString(),
+                    Level = level.ToString(),
+                    Category = category,
+                    Message = message
+                };
+            }
+            Console.WriteLine(this.razorParse(log, isDebug));
+        }
+
+        private string razorParse(dynamic model, bool isDebug) {
+            if (isDebug)
+            {
+                return RazorEngine.Razor.Parse(logDebugTemplate, model);
+            }
+            return RazorEngine.Razor.Parse(logNormalTemplate, model);
         }
     }
 }
