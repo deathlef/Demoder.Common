@@ -35,10 +35,12 @@ namespace Demoder.Common.SimpleLogger
         private const string logDebugTemplate = "@Model.Time [@Model.Level] (@Model.File:@Model.Line/@Model.Method) @Model.Category: @Model.Message";
         private const string logNormalTemplate = "@Model.Time [@Model.Level] @Model.Category: @Model.Message";
         private readonly EventLogLevel minLogLevel;
+        private readonly string prefix;
 
-        public Logger(EventLogLevel minLevel = EventLogLevel.Debug)
+        public Logger(EventLogLevel minLevel = EventLogLevel.Debug, string prefix="")
         {
             this.minLogLevel = minLevel;
+            this.prefix = String.Format("{0,10}",prefix);
         }
 
         public void Log(EventLogLevel level, string category, string message, int skipFrames=1)
@@ -79,7 +81,7 @@ namespace Demoder.Common.SimpleLogger
                     Message = message
                 };
             }
-            Console.WriteLine(this.razorParse(log, isDebug));
+            Console.WriteLine(this.prefix + " "+this.razorParse(log, isDebug));
         }
 
         private string razorParse(dynamic model, bool isDebug) {
