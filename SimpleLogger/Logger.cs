@@ -43,19 +43,30 @@ namespace Demoder.Common.SimpleLogger
             this.prefix = String.Format("{0,10}",prefix);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="level"></param>
+        /// <param name="category"></param>
+        /// <param name="message"></param>
+        /// <param name="skipFrames">Only relevant for level.Debug|level.Error. How many StackTrace frames to skip? If set to less than 0, will not do stack trace</param>
         public void Log(EventLogLevel level, string category, string message, int skipFrames=1)
         {
             if (level < this.minLogLevel)
             {
                 return;
             }
-            bool isDebug = false;
-            if (level == EventLogLevel.Debug || level == EventLogLevel.Error)
+            bool doStackTrace = false;
+            if (skipFrames < 0)
             {
-                isDebug=true;
+                doStackTrace = false;
+            }
+            else if (level == EventLogLevel.Debug || level == EventLogLevel.Error)
+            {
+                doStackTrace=true;
             }
             dynamic log;
-            if (isDebug)
+            if (doStackTrace)
             {
                 // StackTrace output, skip first frame as that's irrelevant
                 StackTrace trace = new StackTrace(skipFrames, true);
@@ -81,7 +92,7 @@ namespace Demoder.Common.SimpleLogger
                     Message = message
                 };
             }
-            Console.WriteLine(this.prefix + " "+this.razorParse(log, isDebug));
+            Console.WriteLine(this.prefix + " "+this.razorParse(log, doStackTrace));
         }
 
         private string razorParse(dynamic model, bool isDebug) {
