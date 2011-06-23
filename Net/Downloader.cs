@@ -86,7 +86,6 @@ namespace Demoder.Common.Net
 
         #endregion
         #region Public accessors
-        public bool IsBusy { get { return this.webClient.IsBusy; } }
         /// <summary>
         /// Number of failed downloads
         /// </summary>
@@ -114,7 +113,7 @@ namespace Demoder.Common.Net
 
             this.queueManager = new Thread(new ThreadStart(this.queueHandler));
             this.queueManager.IsBackground = true;
-            this.queueManager.Name = "Queue Manager: " + this.ToString();
+            this.queueManager.Name = "Downloader: Queue Manager: " + this.ToString();
             this.queueManager.Priority = ThreadPriority.Lowest;
             this.queueManager.Start();
             this.disposed = false;
@@ -197,15 +196,18 @@ namespace Demoder.Common.Net
         {
             try
             {
-                if (downloadItem.SaveAs != null)
+                using (this.webClient = this.createWebClient())
                 {
-                    this.webClient.DownloadFile(downloadItem.Mirror, downloadItem.SaveAs.FullName);
-                    downloadItem.SuccessfullDownload(File.ReadAllBytes(downloadItem.SaveAs.FullName));
-                }
-                else
-                {
-                    byte[] bytes = this.webClient.DownloadData(downloadItem.Mirror);
-                    downloadItem.SuccessfullDownload(bytes);
+                    if (downloadItem.SaveAs != null)
+                    {
+                        this.webClient.DownloadFile(downloadItem.Mirror, downloadItem.SaveAs.FullName);
+                        downloadItem.SuccessfullDownload(File.ReadAllBytes(downloadItem.SaveAs.FullName));
+                    }
+                    else
+                    {
+                        byte[] bytes = this.webClient.DownloadData(downloadItem.Mirror);
+                        downloadItem.SuccessfullDownload(bytes);
+                    }
                 }
             }
             catch (Exception ex)
