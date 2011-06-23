@@ -71,11 +71,21 @@ namespace Demoder.Common.SimpleLogger
                 // StackTrace output, skip first frame as that's irrelevant
                 StackTrace trace = new StackTrace(skipFrames, true);
                 StackFrame frame = trace.GetFrame(0);
+                string filename = frame.GetFileName();
+
+                if (filename!=null) 
+                {
+                    filename = new FileInfo(filename).Name;
+                }
+                else {
+                    filename = "";
+                }
+
                 log = new
                 {
                     Time = DateTime.Now.ToLongTimeString(),
                     Level = level.ToString(),
-                    File = new FileInfo(frame.GetFileName()).Name,
+                    File = filename,
                     Line = frame.GetFileLineNumber().ToString(),
                     Method = frame.GetMethod().Name,
                     Category = category,
