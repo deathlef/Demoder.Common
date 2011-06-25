@@ -49,6 +49,10 @@ namespace Demoder.Common.Cache
         public XmlCacheWrapper(DirectoryInfo cacheRootDirectory)
         {
             this.rootDirectory = cacheRootDirectory;
+            if (!this.rootDirectory.Exists)
+            {
+                this.rootDirectory.Create();
+            }
         }
 
         /// <summary>
