@@ -182,6 +182,7 @@ namespace Demoder.Common.Net
                     // We should wait for the MRE. 
                     // The MRE will be set when we're cancelled, so no point with a timeout.
                     this.queueManagerMRE.WaitOne();
+                    this.queueManagerMRE.Reset();
                     continue; //Restart the loop in case we have been told to stop.
                 }
                 this.queueProcessEntry(di);
