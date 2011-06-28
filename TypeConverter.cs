@@ -46,5 +46,45 @@ namespace Demoder.Common
                 return Enum.Parse(type, word);
             return ((IConvertible)word).ToType(type, CultureInfo.InvariantCulture);
         }
+
+        public static string FindAcceptedValues(Type t)
+        {
+            string formatValue = "a whole number between {0} and {1}";
+            string formatFloating = "a decimal number between {0} and {1}";
+            if (t.IsEnum)
+                return String.Join(", ", t.GetEnumNames());
+            if (t == typeof(sbyte))
+                return String.Format(formatValue, sbyte.MinValue, sbyte.MaxValue);
+            if (t == typeof(byte))
+                return String.Format(formatValue, byte.MinValue, byte.MaxValue);
+            if (t == typeof(short))
+                return String.Format(formatValue, short.MinValue, short.MaxValue);
+            if (t == typeof(short))
+                return String.Format(formatValue, short.MinValue, short.MaxValue);
+            if (t == typeof(ushort))
+                return String.Format(formatValue, ushort.MinValue, ushort.MaxValue);
+            if (t == typeof(int))
+                return String.Format(formatValue, int.MinValue, int.MaxValue);
+            if (t == typeof(uint))
+                return String.Format(formatValue, uint.MinValue, uint.MaxValue);
+            if (t == typeof(long))
+                return String.Format(formatValue, long.MinValue, long.MaxValue);
+            if (t == typeof(ulong))
+                return String.Format(formatValue, ulong.MinValue, ulong.MaxValue);
+
+            if (t == typeof(float))
+                return String.Format(formatFloating, float.MinValue, float.MaxValue);
+            if (t == typeof(double))
+                return String.Format(formatFloating, double.MinValue, double.MaxValue);
+            if (t == typeof(decimal))
+                return String.Format(formatFloating, decimal.MinValue, decimal.MaxValue);
+
+            if (t == typeof(bool))
+                return String.Format("{0} or {1}", bool.FalseString, bool.TrueString);
+            if (t == typeof(string))
+                return "text";
+
+            return t.Name;
+        }
     }
 }
