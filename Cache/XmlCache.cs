@@ -192,16 +192,13 @@ namespace Demoder.Common.Cache
 
         public string GetPath(params string[] args)
         {
-            StringBuilder path = new StringBuilder();
-            if (string.IsNullOrEmpty(this.path))
-                path.Append(".");
-            else
-                path.Append(this.path);
-            path.Append(System.IO.Path.DirectorySeparatorChar);
-            path.Append(string.Join(System.IO.Path.DirectorySeparatorChar.ToString(), args, 0, args.Length - 1));
-            if (args.Length > 1)
-                path.Append(System.IO.Path.DirectorySeparatorChar);
-            return path.ToString();
+            string basePath = this.path;
+            if (String.IsNullOrWhiteSpace(basePath)) { basePath = "."; }
+
+            string argPath = string.Join(System.IO.Path.DirectorySeparatorChar.ToString(), args, 0, args.Length - 1);
+            if (args.Length > 1) { argPath += System.IO.Path.DirectorySeparatorChar; }
+
+            return System.IO.Path.Combine(basePath, argPath);
         }
 
         public string GetFile(params string[] args)
