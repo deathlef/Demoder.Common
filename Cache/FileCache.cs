@@ -58,8 +58,8 @@ namespace Demoder.Common.Cache
         {
             //Define cache directories
             this.cacheRootDirectory = rootDirectory;
-            this.cacheIndexDirectory = new DirectoryInfo(rootDirectory.FullName + Path.DirectorySeparatorChar + "Index");
-            this.cacheDataDirectory = new DirectoryInfo(rootDirectory.FullName + Path.DirectorySeparatorChar + "Data");
+            this.cacheIndexDirectory = new DirectoryInfo(Path.Combine(rootDirectory.FullName, "Index"));
+            this.cacheDataDirectory = new DirectoryInfo(Path.Combine(rootDirectory.FullName, "Data"));
             //Check if cache directories exist
             if (!this.cacheRootDirectory.Exists)
                 this.cacheRootDirectory.Create();
@@ -89,8 +89,8 @@ namespace Demoder.Common.Cache
 
                 //If we made it here, it's a change to the old value.
                 CacheInfo ci = new CacheInfo(key, md5);
-                FileInfo dataFile = new FileInfo(this._getDataFileName(key));
-                FileInfo indexFile = new FileInfo(this._getIndexFileName(key));
+                FileInfo dataFile = new FileInfo(this.GetDataFileName(key));
+                FileInfo indexFile = new FileInfo(this.GetIndexFileName(key));
                 try
                 {
                     //Update the cache.
@@ -129,7 +129,7 @@ namespace Demoder.Common.Cache
                     return null;
                 else
                 {
-                    byte[] bytes = File.ReadAllBytes(this._getDataFileName(key));
+                    byte[] bytes = File.ReadAllBytes(this.GetDataFileName(key));
                     //Ensure the index is up to date.
                     string md5 = MD5Checksum.Generate(bytes).String;
                     if (md5 != this.cacheIndex[key].Hash)
@@ -144,19 +144,19 @@ namespace Demoder.Common.Cache
             lock (this.cacheIndex)
             {
                 if (this.cacheIndex.ContainsKey(key))
-                    return new FileInfo(this._getDataFileName(key)).LastWriteTime;
+                    return new FileInfo(this.GetDataFileName(key)).LastWriteTime;
                 else
                     return default(DateTime);
             }
         }
 
-        private string _getIndexFileName(string key)
+        private string GetIndexFileName(string key)
         {
-            return this.cacheIndexDirectory.FullName + Path.DirectorySeparatorChar + MD5Checksum.Generate(key) + ".xml";
+            return Path.Combine(this.cacheIndexDirectory.FullName, MD5Checksum.Generate(key) + ".xml");
         }
-        private string _getDataFileName(string key)
+        private string GetDataFileName(string key)
         {
-            return this.cacheDataDirectory.FullName + Path.DirectorySeparatorChar + MD5Checksum.Generate(key) + ".data";
+            return Path.Combine(this.cacheDataDirectory.FullName, MD5Checksum.Generate(key) + ".data");
         }
         #endregion
 

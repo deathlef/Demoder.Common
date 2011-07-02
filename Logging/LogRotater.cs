@@ -128,10 +128,7 @@ namespace Demoder.Common.Logging
             {
                 if (this.disposed)
                     throw new ObjectDisposedException("");
-                return new FileInfo(String.Format("{1}{0}{2}",
-                    Path.DirectorySeparatorChar,
-                    this.logDirectory,
-                    this.logName));
+                return new FileInfo(Path.Combine(this.logDirectory.FullName, this.logName));
             }
         }
         #endregion
