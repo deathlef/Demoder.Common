@@ -34,48 +34,50 @@ namespace Demoder.Common.SimpleLogger
     {
         private const string logDebugTemplate = "@Model.Time [@Model.Level] (@Model.File:@Model.Line/@Model.Method) @Model.Category: @Model.Message";
         private const string logNormalTemplate = "@Model.Time [@Model.Level] @Model.Category: @Model.Message";
+        private readonly string category;
         private readonly EventLogLevel minLogLevel;
         private readonly string prefix;
 
-        public Logger(EventLogLevel minLevel = EventLogLevel.Debug, string prefix="")
+        public Logger(string category, EventLogLevel minLevel = EventLogLevel.Debug, string prefix="")
         {
+            this.category = category;
             this.minLogLevel = minLevel;
             this.prefix = String.Format("{0,10}",prefix);
         }
 
-        public void Console(string category, string message, int skipFrames = 0)
+        public void Console(string message, int skipFrames = 0)
         {
-            this.Log(EventLogLevel.Console, category, message, skipFrames + 2);
+            this.Log(EventLogLevel.Console, message, skipFrames + 2);
         }
 
-        public void Critical(string category, string message, int skipFrames = 0)
+        public void Critical(string message, int skipFrames = 0)
         {
-            this.Log(EventLogLevel.Critical, category, message, skipFrames + 2);
+            this.Log(EventLogLevel.Critical, message, skipFrames + 2);
         }
 
-        public void Serious(string category, string message, int skipFrames = 0)
+        public void Serious(string message, int skipFrames = 0)
         {
-            this.Log(EventLogLevel.Serious, category, message, skipFrames + 2);
+            this.Log(EventLogLevel.Serious, message, skipFrames + 2);
         }
 
-        public void Error(string category, string message, int skipFrames = 0)
+        public void Error(string message, int skipFrames = 0)
         {
-            this.Log(EventLogLevel.Error, category, message, skipFrames + 2);
+            this.Log(EventLogLevel.Error, message, skipFrames + 2);
         }
 
-        public void Warning(string category, string message, int skipFrames = 0)
+        public void Warning(string message, int skipFrames = 0)
         {
-            this.Log(EventLogLevel.Warning, category, message, skipFrames + 2);
+            this.Log(EventLogLevel.Warning, message, skipFrames + 2);
         }
 
-        public void Notice(string category, string message, int skipFrames = 0)
+        public void Notice(string message, int skipFrames = 0)
         {
-            this.Log(EventLogLevel.Notice, category, message, skipFrames + 2);
+            this.Log(EventLogLevel.Notice, message, skipFrames + 2);
         }
 
-        public void Debug(string category, string message, int skipFrames = 0)
+        public void Debug(string message, int skipFrames = 0)
         {
-            this.Log(EventLogLevel.Debug, category, message, skipFrames + 2);
+            this.Log(EventLogLevel.Debug, message, skipFrames + 2);
         }
 
         /// <summary>
@@ -85,7 +87,7 @@ namespace Demoder.Common.SimpleLogger
         /// <param name="category"></param>
         /// <param name="message"></param>
         /// <param name="skipFrames">Only relevant for level.Debug|level.Error. How many StackTrace frames to skip? If set to less than 0, will not do stack trace</param>
-        public void Log(EventLogLevel level, string category, string message, int skipFrames=1)
+        private void Log(EventLogLevel level, string message, int skipFrames=1)
         {
             if (level < this.minLogLevel)
             {
@@ -123,7 +125,7 @@ namespace Demoder.Common.SimpleLogger
                     File = filename,
                     Line = frame.GetFileLineNumber().ToString(),
                     Method = frame.GetMethod().Name,
-                    Category = category,
+                    Category = this.category,
                     Message = message
                 };
             }
@@ -133,11 +135,11 @@ namespace Demoder.Common.SimpleLogger
                 {
                     Time = DateTime.Now.ToLongTimeString(),
                     Level = level.ToString(),
-                    Category = category,
+                    Category = this.category,
                     Message = message
                 };
             }
-            Console.WriteLine(this.prefix + " "+this.razorParse(log, doStackTrace));
+            System.Console.WriteLine(this.prefix + " "+this.razorParse(log, doStackTrace));
         }
 
         private string razorParse(dynamic model, bool isDebug) {

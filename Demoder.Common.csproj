@@ -92,6 +92,7 @@
     <Compile Include="Serialization\VersionedXmlLoader.cs" />
     <Compile Include="Serialization\Xml.cs" />
     <Compile Include="SimpleLogger\enums.cs" />
+    <Compile Include="SimpleLogger\Log.cs" />
     <Compile Include="SimpleLogger\Logger.cs" />
     <Compile Include="TypeConverter.cs" />
   </ItemGroup>
