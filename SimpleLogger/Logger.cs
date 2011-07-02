@@ -43,6 +43,41 @@ namespace Demoder.Common.SimpleLogger
             this.prefix = String.Format("{0,10}",prefix);
         }
 
+        public void Console(string category, string message, int skipFrames = 0)
+        {
+            this.Log(EventLogLevel.Console, category, message, skipFrames + 2);
+        }
+
+        public void Critical(string category, string message, int skipFrames = 0)
+        {
+            this.Log(EventLogLevel.Critical, category, message, skipFrames + 2);
+        }
+
+        public void Serious(string category, string message, int skipFrames = 0)
+        {
+            this.Log(EventLogLevel.Serious, category, message, skipFrames + 2);
+        }
+
+        public void Error(string category, string message, int skipFrames = 0)
+        {
+            this.Log(EventLogLevel.Error, category, message, skipFrames + 2);
+        }
+
+        public void Warning(string category, string message, int skipFrames = 0)
+        {
+            this.Log(EventLogLevel.Warning, category, message, skipFrames + 2);
+        }
+
+        public void Notice(string category, string message, int skipFrames = 0)
+        {
+            this.Log(EventLogLevel.Notice, category, message, skipFrames + 2);
+        }
+
+        public void Debug(string category, string message, int skipFrames = 0)
+        {
+            this.Log(EventLogLevel.Debug, category, message, skipFrames + 2);
+        }
+
         /// <summary>
         /// 
         /// </summary>
