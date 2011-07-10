@@ -48,6 +48,7 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Data.Linq" />
+    <Reference Include="System.Web" />
     <Reference Include="System.Web.Razor">
       <HintPath>dlls\RazorEngine\System.Web.Razor.dll</HintPath>
     </Reference>
@@ -95,6 +96,7 @@
     <Compile Include="SimpleLogger\Log.cs" />
     <Compile Include="SimpleLogger\Logger.cs" />
     <Compile Include="TypeConverter.cs" />
+    <Compile Include="Web\UriQueryBuilder.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Licence.txt" />
