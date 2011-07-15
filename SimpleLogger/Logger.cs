@@ -32,17 +32,15 @@ namespace Demoder.Common.SimpleLogger
 {
     public class Logger
     {
-        private const string logDebugTemplate = "@Model.Time [@Model.Level] (@Model.File:@Model.Line/@Model.Method) @Model.Category: @Model.Message";
-        private const string logNormalTemplate = "@Model.Time [@Model.Level] @Model.Category: @Model.Message";
         private readonly string category;
         private readonly EventLogLevel minLogLevel;
         private readonly string prefix;
 
-        public Logger(string category, EventLogLevel minLevel = EventLogLevel.Debug, string prefix="")
+        public Logger(string category, EventLogLevel minLevel = EventLogLevel.Debug, string prefix = "")
         {
             this.category = category;
             this.minLogLevel = minLevel;
-            this.prefix = String.Format("{0,10}",prefix);
+            this.prefix = String.Format("{0,10}", prefix);
         }
 
         public void Console(string message, int skipFrames = 0)
@@ -87,7 +85,7 @@ namespace Demoder.Common.SimpleLogger
         /// <param name="category"></param>
         /// <param name="message"></param>
         /// <param name="skipFrames">Only relevant for level.Debug|level.Error. How many StackTrace frames to skip? If set to less than 0, will not do stack trace</param>
-        private void Log(EventLogLevel level, string message, int skipFrames=1)
+        private void Log(EventLogLevel level, string message, int skipFrames = 1)
         {
             if (level < this.minLogLevel)
             {
@@ -100,7 +98,7 @@ namespace Demoder.Common.SimpleLogger
             }
             else if (level == EventLogLevel.Debug || level == EventLogLevel.Error)
             {
-                doStackTrace=true;
+                doStackTrace = true;
             }
             dynamic log;
             if (doStackTrace)
@@ -110,44 +108,36 @@ namespace Demoder.Common.SimpleLogger
                 StackFrame frame = trace.GetFrame(0);
                 string filename = frame.GetFileName();
 
-                if (filename!=null) 
+                if (filename != null)
                 {
                     filename = new FileInfo(filename).Name;
                 }
-                else {
+                else
+                {
                     filename = "";
                 }
 
-                log = new
-                {
-                    Time = DateTime.Now.ToLongTimeString(),
-                    Level = level.ToString(),
-                    File = filename,
-                    Line = frame.GetFileLineNumber().ToString(),
-                    Method = frame.GetMethod().Name,
-                    Category = this.category,
-                    Message = message
-                };
+                System.Console.WriteLine("{0} {1} [{2}] ({3}:{4}/{5}) {6}: {7}",
+                    this.prefix,
+                    DateTime.Now.ToLongTimeString(),
+                    level,
+                    filename,
+                    frame.GetFileLineNumber(),
+                    frame.GetMethod().Name,
+                    this.category,
+                    message);
             }
             else
             {
-                log = new
-                {
-                    Time = DateTime.Now.ToLongTimeString(),
-                    Level = level.ToString(),
-                    Category = this.category,
-                    Message = message
-                };
+                System.Console.WriteLine("{0} {1} [{2}] {3}: {4}",
+                    this.prefix,
+                    DateTime.Now.ToLongTimeString(),
+                    level,
+                    this.category,
+                    message
+                    );
             }
-            System.Console.WriteLine(this.prefix + " "+this.razorParse(log, doStackTrace));
-        }
 
-        private string razorParse(dynamic model, bool isDebug) {
-            if (isDebug)
-            {
-                return RazorEngine.Razor.Parse(logDebugTemplate, model);
-            }
-            return RazorEngine.Razor.Parse(logNormalTemplate, model);
         }
     }
 }
