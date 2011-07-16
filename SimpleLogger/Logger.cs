@@ -129,7 +129,7 @@ namespace Demoder.Common.SimpleLogger
             }
             else
             {
-                System.Console.WriteLine("{0} {1} [{2}] {3}: {4}",
+                System.Console.WriteLine("{0} {1} [{2}] {3,10}: {4}",
                     this.prefix,
                     DateTime.Now.ToLongTimeString(),
                     level,
