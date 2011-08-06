@@ -38,6 +38,7 @@ namespace Demoder.Common
         }
         public static object Convert(Type type, string word)
         {
+            if (type == typeof(string)) { return word; }
             if (String.IsNullOrEmpty(word))
                 throw new ArgumentException("Parameter lacks value");
             if (!TypeConverter.IsSupported(type))
