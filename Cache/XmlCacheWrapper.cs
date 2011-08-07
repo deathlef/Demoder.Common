@@ -82,8 +82,9 @@ namespace Demoder.Common.Cache
             lock (this.xmlCache)
             {
                 XMLCache<T> ret = new XMLCache<T>(
-                    Path.Combine(this.rootDirectory.FullName, typeof(T).GUID.ToString()),
-                    cacheTime, fetchTimeout);
+                    this.rootDirectory.FullName,
+                    cacheTime, 
+                    fetchTimeout);
                 this.xmlCache.Add(typeof(T), ret); //Add to internal list.
                 return ret;
             }

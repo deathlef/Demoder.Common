@@ -52,6 +52,7 @@ using System.Text;
 using System.IO;
 using System.Collections.Generic;
 using Demoder.Common.Serialization;
+using Demoder.Common.Hash;
 
 namespace Demoder.Common.Cache
 {
@@ -120,16 +121,20 @@ namespace Demoder.Common.Cache
             if (args.Length == 0)
                 throw new ArgumentException("expecting at least 1 argument");
             // Construct path and filename
-            string path = this.GetPath(args);
-            string file = path + this.GetFile(args);
+            string path = this.GetPath();
+            string file = this.GetFilePath(args);
             // Check if a cached entry exists
             T obj = null;
             if ((source & XMLCacheFlags.ReadCache) != 0 && IsCached(true, file))
             {
                 lock (this)
+                {
                     obj = Xml.Deserialize<T>(new FileInfo(file), false);
+                }
                 if (obj != null)
+                {
                     return obj;
+                }
             }
             // Fetch fresh
             if ((source & XMLCacheFlags.ReadLive) != 0)
@@ -137,7 +142,9 @@ namespace Demoder.Common.Cache
                 //Perform parameter replacing on URIs, if any such syntax is specified in the URIs.
                 List<Uri> uris = new List<Uri>();
                 foreach (Uri uri in urls)
+                {
                     uris.Add(new Uri(string.Format(uri.ToString(), args)));
+                }
                 urls = uris.ToArray();
 
                 obj = Xml.Deserialize<T>(urls);
@@ -145,9 +152,13 @@ namespace Demoder.Common.Cache
                 {
                     // Write cache
                     if (!Directory.Exists(path))
+                    {
                         Directory.CreateDirectory(path);
+                    }
                     lock (this)
+                    {
                         Xml.Serialize<T>(new FileInfo(file), obj, false);
+                    }
                 }
             }
             // Retreive old copy from cache
@@ -164,8 +175,8 @@ namespace Demoder.Common.Cache
         public bool Cache(T obj, params string[] args)
         {
             if (obj == null) return false;
-            string path = this.GetPath(args);
-            string file = path + this.GetFile(args);
+            string path = this.GetPath();
+            string file = this.GetFilePath(args);
             if (!Directory.Exists(path))
                 Directory.CreateDirectory(path);
             lock (this)
@@ -184,31 +195,30 @@ namespace Demoder.Common.Cache
                     // Check file age
                     TimeSpan time = DateTime.Now - File.GetLastWriteTime(file);
                     if (time.TotalMinutes <= this.Duration)
+                    {
                         return true;
+                    }
                 }
             }
             return false;
         }
 
-        public string GetPath(params string[] args)
+        public string GetPath()
         {
             string basePath = this.path;
             if (String.IsNullOrWhiteSpace(basePath)) { basePath = "."; }
-
-            string argPath = string.Join(System.IO.Path.DirectorySeparatorChar.ToString(), args, 0, args.Length - 1);
-            if (args.Length > 1) { argPath += System.IO.Path.DirectorySeparatorChar; }
-
-            return System.IO.Path.Combine(basePath, argPath);
+            return System.IO.Path.Combine(basePath, 
+                typeof(T).GUID.ToString());
         }
 
         public string GetFile(params string[] args)
         {
-            return args[args.Length - 1] + ".xml";
+            return MD5Checksum.Generate(String.Join(";", args)).String + ".xml";
         }
 
         public string GetFilePath(params string[] args)
         {
-            return this.GetPath(args) + this.GetFile(args);
+            return System.IO.Path.Combine(this.GetPath(), this.GetFile(args));
         }
 
         private string path;
