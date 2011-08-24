@@ -35,12 +35,14 @@ namespace Demoder.Common.SimpleLogger
         private readonly string category;
         private readonly EventLogLevel minLogLevel;
         private readonly string prefix;
+        private readonly ConsoleColor tagColor;
 
-        public Logger(string category, EventLogLevel minLevel = EventLogLevel.Debug, string prefix = "")
+        public Logger(string category, EventLogLevel minLevel = EventLogLevel.Debug, string prefix = "", ConsoleColor tagColor = ConsoleColor.White)
         {
             this.category = category;
             this.minLogLevel = minLevel;
             this.prefix = String.Format("{0,10}", prefix);
+            this.tagColor = tagColor;
         }
 
         public void Console(string message, int skipFrames = 0)
@@ -117,8 +119,11 @@ namespace Demoder.Common.SimpleLogger
                     filename = "";
                 }
 
-                System.Console.WriteLine("{0} {1} [{2}] ({3}:{4}/{5}) {6}: {7}",
-                    this.prefix,
+                var fgColor = System.Console.ForegroundColor;
+                System.Console.ForegroundColor = this.tagColor;
+                System.Console.Write(this.prefix);
+                System.Console.ForegroundColor = fgColor;
+                System.Console.WriteLine(" {0} [{1}] ({2}:{3}/{4}) {5}: {6}",
                     DateTime.Now.ToLongTimeString(),
                     level,
                     filename,
@@ -129,8 +134,12 @@ namespace Demoder.Common.SimpleLogger
             }
             else
             {
-                System.Console.WriteLine("{0} {1} [{2}] {3,10}: {4}",
-                    this.prefix,
+                var fgColor = System.Console.ForegroundColor;
+                System.Console.ForegroundColor = this.tagColor;
+                System.Console.Write(this.prefix);
+                System.Console.ForegroundColor = fgColor;
+
+                System.Console.WriteLine(" {0} [{1}] {2,10}: {3}",
                     DateTime.Now.ToLongTimeString(),
                     level,
                     this.category,

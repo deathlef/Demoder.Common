@@ -32,13 +32,15 @@ namespace Demoder.Common.SimpleLogger
         private readonly string category;
         private readonly EventLogLevel minLogLevel;
         private readonly string prefix;
+        private readonly ConsoleColor tagColor;
 
         private Dictionary<string, Logger> loggers = new Dictionary<string, Logger>(StringComparer.InvariantCultureIgnoreCase);
 
-        public Log(EventLogLevel minLevel = EventLogLevel.Debug, string prefix="")
+        public Log(EventLogLevel minLevel = EventLogLevel.Debug, string prefix="", ConsoleColor tagColor = ConsoleColor.White)
         {
             this.minLogLevel = minLevel;
             this.prefix = String.Format("{0,10}",prefix);
+            this.tagColor = tagColor;
         }
 
         public Logger this[string category]
@@ -49,7 +51,7 @@ namespace Demoder.Common.SimpleLogger
                 {
                     if (!this.loggers.ContainsKey(category))
                     {
-                        this.loggers.Add(category, new Logger(category, this.minLogLevel, this.prefix));
+                        this.loggers.Add(category, new Logger(category, this.minLogLevel, this.prefix, this.tagColor));
                     }
                     return this.loggers[category];
                 }
