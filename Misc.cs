@@ -24,6 +24,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
+using System.Security.Cryptography;
 
 namespace Demoder.Common
 {
@@ -131,6 +132,15 @@ namespace Demoder.Common
             //If slice will be larger than the padding
             if (memoryStream.Length > length)
                 throw new Exception("Padding: MemoryStream is larger than defined static length!");
+        }
+
+        public static Random NewRandom()
+        {
+            RNGCryptoServiceProvider random = new RNGCryptoServiceProvider();
+            byte[] blah = new byte[4];
+            random.GetNonZeroBytes(blah);
+            int seed = BitConverter.ToInt32(blah, 0);
+            return new Random(seed);
         }
     }
 }
