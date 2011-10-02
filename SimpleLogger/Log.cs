@@ -29,7 +29,6 @@ namespace Demoder.Common.SimpleLogger
 {
     public class Log
     {
-        private readonly string category;
         private readonly EventLogLevel minLogLevel;
         private readonly string prefix;
         private readonly ConsoleColor tagColor;
