@@ -25,19 +25,22 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Web.Script.Serialization;
 
 namespace Demoder.Common.Extensions
 {
-    public static class TypeExtensions
+    public static class StringExtensions
     {
-        public static object CreateInstance(this Type t)
+        /// <summary>
+        /// Converts a JSON string to object
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="json"></param>
+        /// <returns></returns>
+        public static T FromJson<T>(this string json)
         {
-            return Activator.CreateInstance(t);
-        }
-        public static object CreateInstance(this Type t, object[] args)
-        {
-            return Activator.CreateInstance(t, args);
+            var jss = new JavaScriptSerializer();
+            return jss.Deserialize<T>(json);
         }
     }
-
 }
