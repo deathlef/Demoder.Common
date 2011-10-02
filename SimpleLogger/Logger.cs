@@ -36,6 +36,8 @@ namespace Demoder.Common.SimpleLogger
         private readonly EventLogLevel minLogLevel;
         private readonly string prefix;
         private readonly ConsoleColor tagColor;
+        private readonly ConsoleColor defaultFgColor;
+
 
         public Logger(string category, EventLogLevel minLevel = EventLogLevel.Debug, string prefix = "", ConsoleColor tagColor = ConsoleColor.White)
         {
@@ -43,6 +45,7 @@ namespace Demoder.Common.SimpleLogger
             this.minLogLevel = minLevel;
             this.prefix = String.Format("{0,10}", prefix);
             this.tagColor = tagColor;
+            this.defaultFgColor = System.Console.ForegroundColor;
         }
 
         public void Console(string message, int skipFrames = 0)
@@ -118,33 +121,37 @@ namespace Demoder.Common.SimpleLogger
                 {
                     filename = "";
                 }
-
-                var fgColor = System.Console.ForegroundColor;
-                System.Console.ForegroundColor = this.tagColor;
-                System.Console.Write(this.prefix);
-                System.Console.ForegroundColor = fgColor;
-                System.Console.WriteLine(" {0} [{1}] ({2}:{3}/{4}) {5}: {6}",
-                    DateTime.Now.ToLongTimeString(),
-                    level,
-                    filename,
-                    frame.GetFileLineNumber(),
-                    frame.GetMethod().Name,
-                    this.category,
-                    message);
+                lock (System.Console.InputEncoding)
+                {
+                    System.Console.ForegroundColor = this.tagColor;
+                    System.Console.Write(this.prefix);
+                    System.Console.ForegroundColor = this.defaultFgColor;
+                
+                    System.Console.WriteLine(" {0} [{1}] ({2}:{3}/{4}) {5}: {6}",
+                        DateTime.Now.ToLongTimeString(),
+                        level,
+                        filename,
+                        frame.GetFileLineNumber(),
+                        frame.GetMethod().Name,
+                        this.category,
+                        message);
+                }
             }
             else
             {
-                var fgColor = System.Console.ForegroundColor;
-                System.Console.ForegroundColor = this.tagColor;
-                System.Console.Write(this.prefix);
-                System.Console.ForegroundColor = fgColor;
+                lock (System.Console.InputEncoding)
+                {
+                    System.Console.ForegroundColor = this.tagColor;
+                    System.Console.Write(this.prefix);
+                    System.Console.ForegroundColor = this.defaultFgColor;
 
-                System.Console.WriteLine(" {0} [{1}] {2,10}: {3}",
-                    DateTime.Now.ToLongTimeString(),
-                    level,
-                    this.category,
-                    message
-                    );
+                    System.Console.WriteLine(" {0} [{1}] {2,10}: {3}",
+                        DateTime.Now.ToLongTimeString(),
+                        level,
+                        this.category,
+                        message
+                        );
+                }
             }
 
         }
