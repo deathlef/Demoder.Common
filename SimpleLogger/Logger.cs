@@ -37,15 +37,17 @@ namespace Demoder.Common.SimpleLogger
         private readonly string prefix;
         private readonly ConsoleColor tagColor;
         private readonly ConsoleColor defaultFgColor;
+        private readonly int prefixReservedColumns;
 
 
-        public Logger(string category, EventLogLevel minLevel = EventLogLevel.Debug, string prefix = "", ConsoleColor tagColor = ConsoleColor.White)
+        public Logger(string category, EventLogLevel minLevel = EventLogLevel.Debug, string prefix = "", ConsoleColor tagColor = ConsoleColor.White, int prefixReservedColumns=20)
         {
             this.category = category;
             this.minLogLevel = minLevel;
             this.prefix = String.Format("{0,10}", prefix);
             this.tagColor = tagColor;
             this.defaultFgColor = System.Console.ForegroundColor;
+            this.prefixReservedColumns = prefixReservedColumns;
         }
 
         public void Console(string message, int skipFrames = 0)
@@ -105,7 +107,7 @@ namespace Demoder.Common.SimpleLogger
             {
                 doStackTrace = true;
             }
-            dynamic log;
+
             if (doStackTrace)
             {
                 // StackTrace output, skip first frame as that's irrelevant
@@ -123,37 +125,38 @@ namespace Demoder.Common.SimpleLogger
                 }
                 lock (System.Console.InputEncoding)
                 {
-                    System.Console.ForegroundColor = this.tagColor;
-                    System.Console.Write(this.prefix);
-                    System.Console.ForegroundColor = this.defaultFgColor;
-                
-                    System.Console.WriteLine(" {0} [{1}] ({2}:{3}/{4}) {5}: {6}",
+                    this.WriteToConsole(String.Format(" {0} [{1}] ({2}:{3}/{4}) {5}: {6}",
                         DateTime.Now.ToLongTimeString(),
                         level,
                         filename,
                         frame.GetFileLineNumber(),
                         frame.GetMethod().Name,
                         this.category,
-                        message);
+                        message));
                 }
             }
             else
             {
-                lock (System.Console.InputEncoding)
-                {
-                    System.Console.ForegroundColor = this.tagColor;
-                    System.Console.Write(this.prefix);
-                    System.Console.ForegroundColor = this.defaultFgColor;
-
-                    System.Console.WriteLine(" {0} [{1}] {2,10}: {3}",
+                    this.WriteToConsole(String.Format(" {0} [{1}] {2,10}: {3}",
                         DateTime.Now.ToLongTimeString(),
                         level,
                         this.category,
                         message
-                        );
+                        ));
                 }
-            }
+        }
 
+        private void WriteToConsole(string message)
+        {
+            lock (System.Console.InputEncoding)
+            {
+                System.Console.ForegroundColor = this.tagColor;
+                System.Console.Write("{0,"+this.prefixReservedColumns.ToString()+"}",this.prefix);
+                System.Console.ForegroundColor = this.defaultFgColor;
+
+                System.Console.WriteLine(message);
+
+            }
         }
     }
 }
