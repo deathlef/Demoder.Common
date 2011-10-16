@@ -35,6 +35,18 @@ namespace Demoder.Common.Serialization
 {
     public static class Xml
     {
+        /// <summary>
+        /// Last exception thrown by this XML library on this thread.
+        /// </summary>
+        [ThreadStatic]
+        public static Exception LastException = null;
+
+        private static void ReportException(Exception ex=null)
+        {
+            LastException = ex;
+        }
+
+
         #region Serialization
         /// <summary>
         /// Serializes an object into an already opened stream
@@ -149,19 +161,26 @@ namespace Demoder.Common.Serialization
             /// <returns></returns>
             public static bool Serialize(Type t, Stream stream, object obj, bool closeStream)
             {
-                if (stream == null) throw new ArgumentNullException("Stream");
-                if (obj == null) throw new ArgumentNullException("Obj");
+                if (stream == null) { throw new ArgumentNullException("Stream"); }
+                if (obj == null) { throw new ArgumentNullException("Obj"); }
+                ReportException(null);
                 try
                 {
                     XmlSerializer serializer = new XmlSerializer(t);
                     serializer.Serialize(stream, obj);
-                    if (closeStream) stream.Close();
                     return true;
                 }
                 catch (Exception ex)
                 {
-                    if (closeStream && stream != null) stream.Close();
+                    ReportException(ex);
                     return false;
+                }
+                finally
+                {
+                    if (closeStream && stream != null)
+                    {
+                        stream.Close();
+                    }
                 }
             }
 
@@ -177,6 +196,7 @@ namespace Demoder.Common.Serialization
             {
                 if (path == null) throw new ArgumentNullException("Path");
                 if (obj == null) throw new ArgumentNullException("Obj");
+                ReportException(null);
                 if (gzip)
                 {
                     using (FileStream fs = path.Create())
@@ -205,6 +225,7 @@ namespace Demoder.Common.Serialization
                     }
                     catch (Exception ex)
                     {
+                        ReportException(ex);
                         if (fs != null) fs.Close();
                         if (ms != null) ms.Close();
                         return false;
@@ -223,6 +244,7 @@ namespace Demoder.Common.Serialization
             public static object Deserialize(Type t, Stream stream, bool closeStream)
             {
                 if (stream == null) throw new ArgumentNullException("Stream");
+                ReportException(null);
                 try
                 {
                     XmlSerializer serializer = new XmlSerializer(t);
@@ -232,9 +254,15 @@ namespace Demoder.Common.Serialization
                 }
                 catch (Exception ex)
                 {
-                    if (stream != null && closeStream)
-                        stream.Close();
+                    ReportException(ex);
                     return null;
+                }
+                finally
+                {
+                    if (stream != null && closeStream)
+                    {
+                        stream.Close();
+                    }
                 }
             }
 
@@ -248,6 +276,7 @@ namespace Demoder.Common.Serialization
             public static object Deserialize(Type t, FileInfo path, bool gzip)
             {
                 if (path == null) throw new ArgumentNullException("Path");
+                ReportException(null);
 
                 if (gzip)
                 {
@@ -272,6 +301,7 @@ namespace Demoder.Common.Serialization
                     }
                     catch (Exception ex)
                     {
+                        ReportException(ex);
                         if (stream != null) stream.Close();
                         return null;
                     }
@@ -302,8 +332,9 @@ namespace Demoder.Common.Serialization
                     DownloadItem di = new DownloadItem(null, uris, null, null);
                     return Deserialize(t, new MemoryStream(DownloadManager.GetBinaryData(di, int.MaxValue)), true);
                 }
-                catch
+                catch (Exception ex)
                 {
+                    ReportException(ex);
                     return null;
                 }
             }
@@ -321,10 +352,12 @@ namespace Demoder.Common.Serialization
                 {
                     return Deserialize(t, new List<Uri>(new Uri[] { path }));
                 }
-                catch { return null; }
+                catch (Exception ex)
+                {
+                    ReportException(ex);
+                    return null;
+                }
             }
-
-
             #endregion deserialize
         }
     }
