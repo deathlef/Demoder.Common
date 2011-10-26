@@ -50,39 +50,39 @@ namespace Demoder.Common.SimpleLogger
             this.prefixReservedColumns = prefixReservedColumns;
         }
 
-        public void Console(string message, int skipFrames = 0)
+        public void Console(string message, int skipFrames = 0, ConsoleColor textColor = ConsoleColor.White)
         {
-            this.Log(EventLogLevel.Console, message, skipFrames + 2);
+            this.Log(EventLogLevel.Console, message, skipFrames + 2, textColor);
         }
 
-        public void Critical(string message, int skipFrames = 0)
+        public void Critical(string message, int skipFrames = 0, ConsoleColor textColor = ConsoleColor.White)
         {
-            this.Log(EventLogLevel.Critical, message, skipFrames + 2);
+            this.Log(EventLogLevel.Critical, message, skipFrames + 2, textColor);
         }
 
-        public void Serious(string message, int skipFrames = 0)
+        public void Serious(string message, int skipFrames = 0, ConsoleColor textColor = ConsoleColor.White)
         {
-            this.Log(EventLogLevel.Serious, message, skipFrames + 2);
+            this.Log(EventLogLevel.Serious, message, skipFrames + 2, textColor);
         }
 
-        public void Error(string message, int skipFrames = 0)
+        public void Error(string message, int skipFrames = 0, ConsoleColor textColor = ConsoleColor.White)
         {
-            this.Log(EventLogLevel.Error, message, skipFrames + 2);
+            this.Log(EventLogLevel.Error, message, skipFrames + 2, textColor);
         }
 
-        public void Warning(string message, int skipFrames = 0)
+        public void Warning(string message, int skipFrames = 0, ConsoleColor textColor = ConsoleColor.White)
         {
-            this.Log(EventLogLevel.Warning, message, skipFrames + 2);
+            this.Log(EventLogLevel.Warning, message, skipFrames + 2, textColor);
         }
 
-        public void Notice(string message, int skipFrames = 0)
+        public void Notice(string message, int skipFrames = 0, ConsoleColor textColor = ConsoleColor.White)
         {
-            this.Log(EventLogLevel.Notice, message, skipFrames + 2);
+            this.Log(EventLogLevel.Notice, message, skipFrames + 2, textColor);
         }
 
-        public void Debug(string message, int skipFrames = 0)
+        public void Debug(string message, int skipFrames = 0, ConsoleColor textColor = ConsoleColor.White)
         {
-            this.Log(EventLogLevel.Debug, message, skipFrames + 2);
+            this.Log(EventLogLevel.Debug, message, skipFrames + 2, textColor);
         }
 
         /// <summary>
@@ -92,7 +92,7 @@ namespace Demoder.Common.SimpleLogger
         /// <param name="category"></param>
         /// <param name="message"></param>
         /// <param name="skipFrames">Only relevant for level.Debug|level.Error. How many StackTrace frames to skip? If set to less than 0, will not do stack trace</param>
-        private void Log(EventLogLevel level, string message, int skipFrames = 1)
+        private void Log(EventLogLevel level, string message, int skipFrames = 1, ConsoleColor textColor = ConsoleColor.White)
         {
             if (level < this.minLogLevel)
             {
@@ -125,14 +125,16 @@ namespace Demoder.Common.SimpleLogger
                 }
                 lock (System.Console.InputEncoding)
                 {
-                    this.WriteToConsole(String.Format(" {0} [{1}] ({2}:{3}/{4}) {5}: {6}",
-                        DateTime.Now.ToLongTimeString(),
-                        level,
+                    string traceInfo = String.Format("({0}:{1}/{2})",
                         filename,
                         frame.GetFileLineNumber(),
-                        frame.GetMethod().Name,
+                        frame.GetMethod().Name);
+                    this.WriteToConsole(String.Format(" {0} [{1}] {2,50} {3,10}: {4}",
+                        DateTime.Now.ToLongTimeString(),
+                        level,
+                        traceInfo,
                         this.category,
-                        message));
+                        message), textColor);
                 }
             }
             else
@@ -142,20 +144,21 @@ namespace Demoder.Common.SimpleLogger
                         level,
                         this.category,
                         message
-                        ));
+                        ), textColor);
                 }
         }
 
-        private void WriteToConsole(string message)
+        private void WriteToConsole(string message, ConsoleColor textColor = ConsoleColor.White)
         {
             lock (System.Console.InputEncoding)
             {
                 System.Console.ForegroundColor = this.tagColor;
                 System.Console.Write("{0,"+this.prefixReservedColumns.ToString()+"}",this.prefix);
-                System.Console.ForegroundColor = this.defaultFgColor;
+                System.Console.ForegroundColor = textColor;
 
                 System.Console.WriteLine(message);
 
+                System.Console.ForegroundColor = this.defaultFgColor;
             }
         }
     }
