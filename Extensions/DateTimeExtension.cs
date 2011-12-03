@@ -85,6 +85,58 @@ namespace Demoder.Common.Extensions
             return obj.AddSeconds(seconds).AddMinutes(minutes).AddHours(hours).AddDays(days);
         }
 
+        public static string ToIso8601String(this DateTime dt, bool displaySeconds=true)
+        {
+            string year = dt.Year.ToString();
+            string month = dt.Month.ToString();
+            string day = dt.Day.ToString();
+
+            string hour = dt.Hour.ToString();
+            string minute = dt.Minute.ToString();
+            string second = dt.Second.ToString();
+
+            #region Make sure entries take right amount of space
+            while (year.Length < 4)
+            {
+                year = "0" + year;
+            }
+
+            while (month.Length < 2)
+            {
+                month = "0" + month;
+            }
+
+            while (day.Length < 2)
+            {
+                day = "0" + day;
+            }
+
+            while (hour.Length < 2)
+            {
+                hour = "0" + hour;
+            }
+
+            while (minute.Length < 2)
+            {
+                minute = "0" + minute;
+            }
+
+            while (second.Length < 2)
+            {
+                second = "0" + second;
+            }
+            #endregion
+
+            if (displaySeconds)
+            {
+                return String.Format("{0}-{1}-{2} {3}:{4}:{5}",
+                    year, month, day, hour, minute, second);
+            }
+
+            return String.Format("{0}-{1}-{2} {3}:{4}",
+                    year, month, day, hour, minute);
+        }
+
         public static string ToFriendlyString(this TimeSpan obj)
         {
             string ret = String.Empty;
