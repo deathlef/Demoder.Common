@@ -34,7 +34,7 @@ namespace Demoder.Common.Extensions
         /// </summary>
         /// <param name="obj"></param>
         /// <returns></returns>
-        public static long UnixTime(this DateTime obj)
+        public static long ToUnixTime(this DateTime obj)
         {
             DateTime dt = new DateTime(1970, 1, 1);
             TimeSpan ts = (obj.ToUniversalTime() - dt);
