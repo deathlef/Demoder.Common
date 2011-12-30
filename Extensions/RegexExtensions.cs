@@ -31,7 +31,12 @@ namespace Demoder.Common.Extensions
 {
     public static class RegexExtensions
     {
-       public static List<Dictionary<string, string>> GetMatchCollection(this Regex regex, string inputText)
+        /*
+         * Tips on how to use Regex: http://msdn.microsoft.com/en-us/library/az24scfc.aspx 
+         * 
+         */
+
+        public static List<Dictionary<string, string>> GetMatchCollection(this Regex regex, string inputText)
         {
             var ret = new List<Dictionary<string, string>>();
             foreach (Match match in regex.Matches(inputText))
