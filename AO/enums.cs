@@ -31,8 +31,7 @@ namespace Demoder.Common.AO
     public enum Dimension : int
     {
         Atlantean = 1,
-        Rimor = 2,
-        Dnw = 3
+        Rimor = 2
     }
 
     public enum Faction
