@@ -53,6 +53,7 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AO\PoRKd\Organization.cs" />
     <Compile Include="AO\Towerwars\DataClasses\TowerAttacks.cs" />
     <Compile Include="AO\Towerwars\DataClasses\TowerResults.cs" />
     <Compile Include="AO\Towerwars\DataClasses\TowerSites.cs" />
