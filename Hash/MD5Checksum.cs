@@ -113,77 +113,23 @@ namespace Demoder.Common.Hash
         #region static operators
         public static bool operator ==(MD5Checksum cs1, MD5Checksum cs2)
         {
-            //Check for null.
-            bool cs1_isnull = false;
-            try
-            {
-                cs1.ToString();
-            }
-            catch (NullReferenceException ex)
-            {
-                cs1_isnull = true;
-            }
-            catch (Exception ex) { }
+            // Check null
+            if (System.Object.ReferenceEquals(cs1, cs2)) { return true; }
+            if (System.Object.ReferenceEquals(cs1, null)) { return false; }
+            if (System.Object.ReferenceEquals(cs2, null)) { return false; }
 
-            bool cs2_isnull = false;
-            try
-            {
-                cs2.ToString();
-            }
-            catch (NullReferenceException ex)
-            {
-                cs2_isnull = true;
-            }
-            catch (Exception ex) { }
-
-            if (cs1_isnull == true && cs2_isnull == true)
-                return true;
-            if (cs1_isnull == true && cs2_isnull == false)
-                return false;
-            if (cs1_isnull == false && cs2_isnull == true)
-                return false;
-            //Done checking null
             if (cs1.String == cs2.String)
+            {
                 return true;
+            }
             else
+            {
                 return false;
+            }
         }
         public static bool operator !=(MD5Checksum cs1, MD5Checksum cs2)
         {
-            //Check for null.
-            bool cs1_isnull = false;
-            try
-            {
-                cs1.ToString();
-            }
-            catch (NullReferenceException ex)
-            {
-                cs1_isnull = true;
-            }
-            catch (Exception ex) { }
-
-            bool cs2_isnull = false;
-            try
-            {
-                cs2.ToString();
-            }
-            catch (NullReferenceException ex)
-            {
-                cs2_isnull = true;
-            }
-            catch (Exception ex) { }
-
-            if (cs1_isnull == true && cs2_isnull == true)
-                return false;
-            if (cs1_isnull == true && cs2_isnull == false)
-                return true;
-            if (cs1_isnull == false && cs2_isnull == true)
-                return true;
-            //Done checking null
-            if (cs1.String != cs2.String)
-                return true;
-            else
-                return false;
+            return !(cs1 == cs2);
         }
         #endregion
 
