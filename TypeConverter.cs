@@ -44,7 +44,7 @@ namespace Demoder.Common
             if (!TypeConverter.IsSupported(type))
                 throw new ArgumentException("Cannot convert to " + type.ToString());
             if (type.IsEnum)
-                return Enum.Parse(type, word);
+                return Enum.Parse(type, word, true);
             return ((IConvertible)word).ToType(type, CultureInfo.InvariantCulture);
         }
 
