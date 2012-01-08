@@ -48,37 +48,35 @@ namespace Demoder.Common
             return ((IConvertible)word).ToType(type, CultureInfo.InvariantCulture);
         }
 
-        public static string FindAcceptedValues(Type t)
+        public static string FindAcceptedValues(Type t, string minValue=null, string maxValue=null)
         {
             string formatValue = "a whole number between {0} and {1}";
             string formatFloating = "a decimal number between {0} and {1}";
             if (t.IsEnum)
                 return String.Join(", ", t.GetEnumNames());
             if (t == typeof(sbyte))
-                return String.Format(formatValue, sbyte.MinValue, sbyte.MaxValue);
+                return String.Format(formatValue, minValue == null ? sbyte.MinValue.ToString() : minValue, minValue == null ? sbyte.MaxValue.ToString() : maxValue);
             if (t == typeof(byte))
-                return String.Format(formatValue, byte.MinValue, byte.MaxValue);
+                return String.Format(formatValue, minValue == null ? byte.MinValue.ToString() : minValue, minValue == null ? byte.MaxValue.ToString() : maxValue);
             if (t == typeof(short))
-                return String.Format(formatValue, short.MinValue, short.MaxValue);
-            if (t == typeof(short))
-                return String.Format(formatValue, short.MinValue, short.MaxValue);
+                return String.Format(formatValue, minValue == null ? short.MinValue.ToString() : minValue, minValue == null ? short.MaxValue.ToString() : maxValue);
             if (t == typeof(ushort))
-                return String.Format(formatValue, ushort.MinValue, ushort.MaxValue);
+                return String.Format(formatValue, minValue == null ? ushort.MinValue.ToString() : minValue, minValue == null ? ushort.MaxValue.ToString() : maxValue);
             if (t == typeof(int))
-                return String.Format(formatValue, int.MinValue, int.MaxValue);
+                return String.Format(formatValue, minValue == null ? int.MinValue.ToString() : minValue, minValue == null ? int.MaxValue.ToString() : maxValue);
             if (t == typeof(uint))
-                return String.Format(formatValue, uint.MinValue, uint.MaxValue);
+                return String.Format(formatValue, minValue == null ? uint.MinValue.ToString() : minValue, minValue == null ? uint.MaxValue.ToString() : maxValue);
             if (t == typeof(long))
-                return String.Format(formatValue, long.MinValue, long.MaxValue);
+                return String.Format(formatValue, minValue == null ? long.MinValue.ToString() : minValue, minValue == null ? long.MaxValue.ToString() : maxValue);
             if (t == typeof(ulong))
-                return String.Format(formatValue, ulong.MinValue, ulong.MaxValue);
+                return String.Format(formatValue, minValue == null ? ulong.MinValue.ToString() : minValue, minValue == null ? ulong.MaxValue.ToString() : maxValue);
 
             if (t == typeof(float))
-                return String.Format(formatFloating, float.MinValue, float.MaxValue);
+                return String.Format(formatFloating, minValue == null ? float.MinValue.ToString() : minValue, minValue == null ? float.MaxValue.ToString() : maxValue);
             if (t == typeof(double))
-                return String.Format(formatFloating, double.MinValue, double.MaxValue);
+                return String.Format(formatFloating, minValue == null ? double.MinValue.ToString() : minValue, minValue == null ? double.MaxValue.ToString() : maxValue);
             if (t == typeof(decimal))
-                return String.Format(formatFloating, decimal.MinValue, decimal.MaxValue);
+                return String.Format(formatFloating, minValue == null ? decimal.MinValue.ToString() : minValue, minValue == null ? decimal.MaxValue.ToString() : maxValue);
 
             if (t == typeof(bool))
                 return String.Format("{0} or {1}", bool.FalseString, bool.TrueString);
