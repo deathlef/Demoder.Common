@@ -25,6 +25,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Reflection;
 
 namespace Demoder.Common.Extensions
 {
@@ -37,6 +38,13 @@ namespace Demoder.Common.Extensions
         public static object CreateInstance(this Type t, object[] args)
         {
             return Activator.CreateInstance(t, args);
+        }
+
+        public static object GetStaticFieldValue(this Type t, string fieldName)
+        {
+            var field = t.GetField(fieldName, BindingFlags.Public | BindingFlags.Static);
+            var value = field.GetValue(null);
+            return value;
         }
     }
 
