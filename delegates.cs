@@ -41,4 +41,6 @@ namespace Demoder.Common
     /// <param name="DownloaderInstance"></param>
     /// <param name="DownloadItem"></param>
     public delegate void DownloaderSlaveEventHandler(Downloader downloaderInstance, IDownloadItem downloadItem);
+
+    public delegate void QueueHelperDelegate<T>(T item);
 }
