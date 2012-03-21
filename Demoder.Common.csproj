@@ -101,6 +101,7 @@
     <Compile Include="SimpleLogger\Log.cs" />
     <Compile Include="SimpleLogger\Logger.cs" />
     <Compile Include="TypeConverter.cs" />
+    <Compile Include="VersionInfo.cs" />
     <Compile Include="Web\UriQueryBuilder.cs" />
   </ItemGroup>
   <ItemGroup>
