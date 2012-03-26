@@ -22,9 +22,10 @@ THE SOFTWARE.
 */
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.IO;
 using System.Security.Cryptography;
+using System.Security.Principal;
+using System.Text;
 
 namespace Demoder.Common
 {
@@ -98,6 +99,12 @@ namespace Demoder.Common
         }
         #endregion
 
+        public static bool IsUserAdministrator()
+        {
+            WindowsIdentity user = WindowsIdentity.GetCurrent();
+            WindowsPrincipal principal = new WindowsPrincipal(user);
+            return principal.IsInRole(WindowsBuiltInRole.Administrator);
+        }
         /// <summary>
         /// Get unixtime representing NOW
         /// </summary>
