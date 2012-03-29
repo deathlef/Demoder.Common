@@ -65,7 +65,7 @@ namespace Demoder.Common
         /// <returns></returns>
         public static VersionInfo GetInfo(Uri uri)
         {
-            var response = Xml.Deserialize<VersionInfo>(uri));
+            var response = Xml.Deserialize<VersionInfo>(uri);
             return response;
         }
 
