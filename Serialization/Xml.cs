@@ -29,7 +29,6 @@ using System.IO.Compression;
 using System.Net;
 using System.Xml.Serialization;
 using Demoder.Common;
-using Demoder.Common.Net;
 
 namespace Demoder.Common.Serialization
 {
@@ -114,21 +113,6 @@ namespace Demoder.Common.Serialization
         public static T Deserialize<T>(UriBuilder path) where T : class
         {
             return Deserialize<T>(path.Uri);
-        }
-
-        /// <summary>
-        /// Deserialize content of Uris.
-        /// </summary>
-        /// <typeparam name="T">Class type to parse as</typeparam>
-        /// <param name="uris">List of mirrors to try</param>
-        /// <returns></returns>
-        public static T Deserialize<T>(IEnumerable<Uri> uris) where T : class
-        {
-            object obj = Compat.Deserialize(typeof(T), uris);
-            if (obj == null)
-                return default(T);
-            else
-                return (T)obj;
         }
 
         /// <summary>
@@ -323,26 +307,6 @@ namespace Demoder.Common.Serialization
             /// Deserialize an URI
             /// </summary>
             /// <param name="t"></param>
-            /// <param name="uris"></param>
-            /// <returns></returns>
-            public static object Deserialize(Type t, IEnumerable<Uri> uris)
-            {
-                try
-                {
-                    DownloadItem di = new DownloadItem(null, uris, null, null);
-                    return Deserialize(t, new MemoryStream(DownloadManager.GetBinaryData(di, int.MaxValue)), true);
-                }
-                catch (Exception ex)
-                {
-                    ReportException(ex);
-                    return null;
-                }
-            }
-
-            /// <summary>
-            /// Deserialize an URI
-            /// </summary>
-            /// <param name="t"></param>
             /// <param name="path"></param>
             /// <returns></returns>
             public static object Deserialize(Type t, Uri path)
@@ -350,7 +314,11 @@ namespace Demoder.Common.Serialization
                 if (path == null) throw new ArgumentNullException("Path");
                 try
                 {
-                    return Deserialize(t, new List<Uri>(new Uri[] { path }));
+                    var webClient = new WebClient();
+                    var data = webClient.DownloadData(path.ToString());
+                    Stream stream = new MemoryStream(data);
+
+                    return Deserialize(t, stream, true);
                 }
                 catch (Exception ex)
                 {

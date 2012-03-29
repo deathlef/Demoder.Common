@@ -26,6 +26,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Demoder.Common.Web;
+using System.Net;
+using System.IO;
 
 namespace Demoder.Common.AO.PoRKd
 {
@@ -53,7 +55,9 @@ namespace Demoder.Common.AO.PoRKd
             qb.Set("bot", botTag);
             qb.Set("output", "plain");
             var uri = qb.ToUri(new Uri(apiURI));
-            var result = Net.DownloadManager.GetBinaryData(uri, 5000);
+            
+            var webClient = new WebClient();
+            var result = webClient.DownloadData(uri.ToString());
             if (result==null || result.Length==0) 
             {
                 throw new Exception("Returned data was empty.");
