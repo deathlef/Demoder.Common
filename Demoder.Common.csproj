@@ -92,9 +92,7 @@
   <ItemGroup>
     <Content Include="Licence.txt" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Debug\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>
