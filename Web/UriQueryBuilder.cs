@@ -35,7 +35,7 @@ namespace Demoder.Common.Web
 
         public void Set(string key, object value) 
         {
-            this.queryItems[key] = HttpUtility.UrlPathEncode(value.ToString());
+            this.queryItems[key] = Uri.EscapeDataString(value.ToString());
         }
 
         public void Delete(string key)
