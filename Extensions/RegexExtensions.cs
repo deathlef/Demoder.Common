@@ -36,6 +36,12 @@ namespace Demoder.Common.Extensions
          * 
          */
 
+        /// <summary>
+        /// Retrieves an associative dictionary with SubPatternName = Value.
+        /// </summary>
+        /// <param name="regex"></param>
+        /// <param name="inputText"></param>
+        /// <returns></returns>
         public static List<Dictionary<string, string>> GetMatchCollection(this Regex regex, string inputText)
         {
             var ret = new List<Dictionary<string, string>>();

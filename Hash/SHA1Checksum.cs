@@ -36,12 +36,14 @@ namespace Demoder.Common.Hash
         #region Members
         private ICheckSum checkSumStore;
         #endregion
+
         #region Constructors
         public SHA1Checksum(byte[] bytes) : this() { this.checkSumStore = new ChecksumHexStore(bytes); }
         public SHA1Checksum(string hex) : this() { this.checkSumStore = new ChecksumHexStore(hex); }
         public SHA1Checksum() { this.checkSumStore = null; }
         #endregion
         #region Interfaces
+
         #region ICheckSum Members
         /// <summary>
         /// Set or retrieve a byte representation of this class
@@ -70,18 +72,26 @@ namespace Demoder.Common.Hash
             get
             {
                 if (this.checkSumStore == null)
+                {
                     return String.Empty;
+                }
                 return this.checkSumStore.String;
             }
             set
             {
                 if (this.checkSumStore == null)
+                {
                     this.checkSumStore = new ChecksumHexStore(value);
+                }
                 else
+                {
                     this.checkSumStore.String = value;
+                }
             }
         }
         #endregion
+
+
         #region IEquatable<ICheckSum> Members
         public override bool Equals(object obj)
         {
@@ -90,19 +100,37 @@ namespace Demoder.Common.Hash
             {
                 other = (ICheckSum)obj;
             }
-            catch { return false; }
-            if (this.String == other.String)
-                return true;
-            else
+            catch
+            {
                 return false;
+            }
+
+            if (this.String == other.String)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        public override int GetHashCode()
+        {
+            if (this.Bytes == null) { return int.MaxValue; }
+            if (this.Bytes.Length < 4) { return int.MaxValue; }
+            return BitConverter.ToInt32(this.Bytes, 0);
         }
         #endregion
+
+
         #endregion Interfaces
 
         public override string ToString()
         {
             return this.String;
         }
+
 
         #region static operators
         public static bool operator ==(SHA1Checksum cs1, MD5Checksum cs2)
@@ -126,6 +154,8 @@ namespace Demoder.Common.Hash
             return !(cs1 == cs2);
         }
         #endregion
+
+
         #region Static Generate
         /// <summary>
         /// Get SHA1 hash of byte array
