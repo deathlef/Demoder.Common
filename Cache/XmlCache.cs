@@ -103,24 +103,28 @@ namespace Demoder.Common.Cache
         }
 
         public T Request(string url, params string[] args)
-        { return this.Request(XMLCacheFlags.Default, url, args); }
-
-        public T Request(XMLCacheFlags source, string url, params string[] args)
-        { return this.Request(source, new Uri[] { new Uri(url) }, args); }
-
-        public T Request(XMLCacheFlags source, string[] urls, params string[] args)
-        {
-            List<Uri> uris = new List<Uri>();
-            foreach (string s in urls)
-                uris.Add(new Uri(s));
-
-            return this.Request(source, uris.ToArray(), args);
+        { 
+            return this.Request(
+                XMLCacheFlags.Default, 
+                url, 
+                args);
         }
 
-        public T Request(XMLCacheFlags source, Uri[] urls, params string[] args)
+        public T Request(XMLCacheFlags source, string url, params string[] args)
+        { 
+            return this.Request(
+                source, 
+                new Uri(url), 
+                args); 
+        }
+
+        public T Request(XMLCacheFlags source, Uri uri, params string[] args)
         {
             if (args.Length == 0)
+            {
                 throw new ArgumentException("expecting at least 1 argument");
+            }
+
             // Construct path and filename
             string path = this.GetPath();
             string file = this.GetFilePath(args);
@@ -140,15 +144,12 @@ namespace Demoder.Common.Cache
             // Fetch fresh
             if ((source & XMLCacheFlags.ReadLive) != 0)
             {
-                //Perform parameter replacing on URIs, if any such syntax is specified in the URIs.
-                List<Uri> uris = new List<Uri>();
-                foreach (Uri uri in urls)
+                if (args.Length > 0)
                 {
-                    uris.Add(new Uri(string.Format(uri.ToString(), args)));
+                    uri = new Uri(String.Format(uri.ToString(), args));
                 }
-                urls = uris.ToArray();
 
-                obj = Xml.Deserialize<T>(urls);
+                obj = Xml.Deserialize<T>(uri);
                 if (obj != null && (source & XMLCacheFlags.WriteCache) != 0)
                 {
                     // Write cache

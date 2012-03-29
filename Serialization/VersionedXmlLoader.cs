@@ -55,7 +55,7 @@ using System.Text;
 using System.Xml.Serialization;
 using System.IO;
 using System.Xml;
-using Demoder.Common.Net;
+using System.Net;
 
 namespace Demoder.Common.Serialization
 {
@@ -127,12 +127,11 @@ namespace Demoder.Common.Serialization
             return vxl;
         }
 
-        public static VersionedXmlLoader Load(IEnumerable<Uri> uri)
+        public static VersionedXmlLoader Load(Uri uri)
         {
-            DownloadItem di = new DownloadItem(null, uri, null, null);
-            Demoder.Common.Net.DownloadManager.StaticDLM.Download(di);
-            di.Wait();
-            Stream stream = new MemoryStream(di.Data);
+            var webClient = new WebClient();
+            var data = webClient.DownloadData(uri.ToString());
+            Stream stream = new MemoryStream(data);
             return Load(stream);
         }
 
