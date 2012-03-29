@@ -94,13 +94,19 @@ namespace Demoder.Common.Hash
             }
             catch { return false; }
             if (this.String == other.String)
+            {
                 return true;
+            }
             else
+            {
                 return false;
+            }
         }
         public override int GetHashCode()
         {
-            return this.String.GetHashCode();
+            if (this.Bytes == null) { return int.MaxValue; }
+            if (this.Bytes.Length < 4) { return int.MaxValue-1; }
+            return BitConverter.ToInt32(this.Bytes, 0);
         }
         #endregion
         #endregion Interfaces
