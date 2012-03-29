@@ -48,10 +48,24 @@ namespace Demoder.Common
         [XmlAttribute("changelogUri")]
         public string ChangelogUri { get; set; }
         
-
-        public static VersionInfo GetInfo(string tool, Version currentVersion)
+        /// <summary>
+        /// Checks for updates for a given tool, located at the defined VersionInfo.BaseURI file structure.
+        /// </summary>
+        /// <param name="tool">Which tool to check for updates</param>
+        /// <returns></returns>
+        public static VersionInfo GetInfo(string tool)
         {
-            var response = Xml.Deserialize<VersionInfo>(new Uri(String.Format("{0}/{1}/xml/version.xml", BaseUri, tool)));
+            return GetInfo(new Uri(String.Format("{0}/{1}/xml/version.xml", BaseUri, tool)));
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="uri">Uri to update information</param>
+        /// <returns></returns>
+        public static VersionInfo GetInfo(Uri uri)
+        {
+            var response = Xml.Deserialize<VersionInfo>(uri));
             return response;
         }
 
