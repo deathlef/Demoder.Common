@@ -23,6 +23,7 @@ THE SOFTWARE.
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Security.Principal;
 using System.Text;
@@ -105,6 +106,16 @@ namespace Demoder.Common
             WindowsPrincipal principal = new WindowsPrincipal(user);
             return principal.IsInRole(WindowsBuiltInRole.Administrator);
         }
+
+        public static string MyTemporaryDirectory
+        {
+            get {
+                return Path.Combine(
+                    Path.GetTempPath(),
+                    Assembly.GetEntryAssembly().GetName().Name);
+            }
+        }
+
         /// <summary>
         /// Get unixtime representing NOW
         /// </summary>

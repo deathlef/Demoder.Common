@@ -20,37 +20,25 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Net;
+using System.Threading;
 
 namespace Demoder.Common.Extensions
 {
-    public static class NumberExtension
+    public static class WebClientExtensions
     {
-        /// <summary>
-        /// How many % is this instances value of the provided value?
-        /// </summary>
-        /// <param name="obj"></param>
-        /// <param name="value">Represents 100%</param>
-        /// <returns></returns>
-        public static double PercentOf(this int obj, int value)
+        public static WebClient WaitForReady(this WebClient client)
         {
-            return (((double)value) / ((double)obj)) * 100;
-        }
-
-        /// <summary>
-        /// How many % is the provided value of this instances value?
-        /// </summary>
-        /// <param name="obj"></param>
-        /// <param name="value">Represents ?%</param>
-        /// <returns></returns>
-        public static double Percent(this int obj, int value)
-        {
-            var onePercent = obj / 100f;
-            var percent = value / onePercent;
-            return percent;
+            while (client.IsBusy)
+            {
+                Thread.Sleep(25);
+            }
+            return client;
         }
     }
 }

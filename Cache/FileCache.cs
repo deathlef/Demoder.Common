@@ -29,6 +29,7 @@ using System.Xml.Serialization;
 
 using Demoder.Common.Hash;
 using Demoder.Common.Serialization;
+using System.Net;
 
 
 namespace Demoder.Common.Cache
@@ -62,14 +63,26 @@ namespace Demoder.Common.Cache
             this.cacheDataDirectory = new DirectoryInfo(Path.Combine(rootDirectory.FullName, "Data"));
             //Check if cache directories exist
             if (!this.cacheRootDirectory.Exists)
+            {
                 this.cacheRootDirectory.Create();
+            }
             if (!this.cacheIndexDirectory.Exists)
+            {
                 this.cacheIndexDirectory.Create();
+            }
             if (!this.cacheDataDirectory.Exists)
+            {
                 this.cacheDataDirectory.Create();
-
+            }
             //initialize the fsWatcher
             this.fsWatcher = new FileSystemWatcher(rootDirectory.FullName);
+
+            // Load all indexes.
+            foreach (var file in this.cacheIndexDirectory.GetFiles("*.xml"))
+            {
+                var index = Xml.Deserialize<CacheInfo>(file, false);
+                this.cacheIndex[index.Key] = index;
+            }
         }
         #endregion
         #region fsWatcher implementation
@@ -114,6 +127,12 @@ namespace Demoder.Common.Cache
                     return;
                 }
             }
+        }
+
+        public void WebClientDownloadDataCompleted(object sender, DownloadDataCompletedEventArgs e)
+        {
+            if (e.Error!=null || e.Cancelled) { return; }
+            this.Cache(e.UserState.ToString(), e.Result);
         }
 
         /// <summary>
