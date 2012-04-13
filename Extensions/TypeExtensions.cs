@@ -35,7 +35,7 @@ namespace Demoder.Common.Extensions
         {
             return Activator.CreateInstance(t);
         }
-        public static object CreateInstance(this Type t, object[] args)
+        public static object CreateInstance(this Type t, params object[] args)
         {
             return Activator.CreateInstance(t, args);
         }
