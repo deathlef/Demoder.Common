@@ -40,12 +40,23 @@ namespace Demoder.Common
         {
             if (type == typeof(string)) { return word; }
             if (String.IsNullOrEmpty(word))
+            {
                 throw new ArgumentException("Parameter lacks value");
+            }
             if (!TypeConverter.IsSupported(type))
+            {
                 throw new ArgumentException("Cannot convert to " + type.ToString());
+            }
             if (type.IsEnum)
+            {
                 return Enum.Parse(type, word, true);
+            }
             return ((IConvertible)word).ToType(type, CultureInfo.InvariantCulture);
+        }
+
+        public static T Convert<T>(string word)
+        {
+            return (T)Convert(typeof(T), word);
         }
 
         public static string FindAcceptedValues(Type t, string minValue=null, string maxValue=null)
