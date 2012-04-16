@@ -87,54 +87,14 @@ namespace Demoder.Common.Extensions
 
         public static string ToIso8601String(this DateTime dt, bool displaySeconds=true)
         {
-            string year = dt.Year.ToString();
-            string month = dt.Month.ToString();
-            string day = dt.Day.ToString();
-
-            string hour = dt.Hour.ToString();
-            string minute = dt.Minute.ToString();
-            string second = dt.Second.ToString();
-
-            #region Make sure entries take right amount of space
-            while (year.Length < 4)
-            {
-                year = "0" + year;
-            }
-
-            while (month.Length < 2)
-            {
-                month = "0" + month;
-            }
-
-            while (day.Length < 2)
-            {
-                day = "0" + day;
-            }
-
-            while (hour.Length < 2)
-            {
-                hour = "0" + hour;
-            }
-
-            while (minute.Length < 2)
-            {
-                minute = "0" + minute;
-            }
-
-            while (second.Length < 2)
-            {
-                second = "0" + second;
-            }
-            #endregion
-
             if (displaySeconds)
             {
-                return String.Format("{0}-{1}-{2} {3}:{4}:{5}",
-                    year, month, day, hour, minute, second);
+                return String.Format("{0:D4}-{1:D2}-{2:D2} {3:D2}:{4:D2}:{5:D2}",
+                    dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, dt.Second);
             }
 
-            return String.Format("{0}-{1}-{2} {3}:{4}",
-                    year, month, day, hour, minute);
+            return String.Format("{0:D4}-{1:D2}-{2:D2} {3:D2}:{4:D2}",
+                    dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute);
         }
 
         public static string ToFriendlyString(this TimeSpan obj)
