@@ -62,7 +62,6 @@
     <Compile Include="Cache\XmlCacheWrapper.cs" />
     <Compile Include="Extensions\WebClientExtensions.cs" />
     <Compile Include="Win32MessageCodes.cs" />
-    <Compile Include="CommandLineParameters.cs" />
     <Compile Include="Extensions\DateTimeExtension.cs" />
     <Compile Include="Extensions\IEnumerableExtensions.cs" />
     <Compile Include="Extensions\NumberExtension.cs" />
