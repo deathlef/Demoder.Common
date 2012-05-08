@@ -110,9 +110,11 @@ namespace Demoder.Common
         public static string MyTemporaryDirectory
         {
             get {
+                Assembly assembly = Assembly.GetEntryAssembly();
+                if (assembly == null) { assembly = Assembly.GetAssembly(typeof(Misc)); }
                 return Path.Combine(
                     Path.GetTempPath(),
-                    Assembly.GetEntryAssembly().GetName().Name);
+                    assembly.GetName().Name);
             }
         }
 
