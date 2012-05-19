@@ -38,16 +38,18 @@ namespace Demoder.Common.SimpleLogger
         private readonly ConsoleColor tagColor;
         private readonly ConsoleColor defaultFgColor;
         private readonly int prefixReservedColumns;
+        private readonly TextWriter logWriter = null;
 
 
-        public Logger(string category, EventLogLevel minLevel = EventLogLevel.Debug, string prefix = "", ConsoleColor tagColor = ConsoleColor.White, int prefixReservedColumns=20)
+        public Logger(string category, EventLogLevel minLevel = EventLogLevel.Debug, string prefix = "", ConsoleColor tagColor = ConsoleColor.White, int prefixReservedColumns=20, TextWriter logWriter=null)
         {
             this.category = category;
             this.minLogLevel = minLevel;
-            this.prefix = String.Format("{0,10}", prefix);
+            this.prefix = prefix;
             this.tagColor = tagColor;
             this.defaultFgColor = System.Console.ForegroundColor;
             this.prefixReservedColumns = prefixReservedColumns;
+            this.logWriter = logWriter;
         }
 
         public void Console(string message, int skipFrames = 0, ConsoleColor textColor = ConsoleColor.White)
@@ -152,13 +154,21 @@ namespace Demoder.Common.SimpleLogger
         {
             lock (System.Console.InputEncoding)
             {
+                var prefix = string.Format("{0,"+this.prefixReservedColumns.ToString()+"}",this.prefix);
+
                 System.Console.ForegroundColor = this.tagColor;
-                System.Console.Write("{0,"+this.prefixReservedColumns.ToString()+"}",this.prefix);
+                System.Console.Write(prefix);
                 System.Console.ForegroundColor = textColor;
 
                 System.Console.WriteLine(message);
 
                 System.Console.ForegroundColor = this.defaultFgColor;
+
+                // Write to logging stream, if applicable
+                if (this.logWriter != null)
+                {
+                    this.logWriter.WriteLine("{0} {1}", prefix, message);
+                }
             }
         }
     }

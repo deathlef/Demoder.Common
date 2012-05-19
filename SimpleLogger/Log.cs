@@ -24,6 +24,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.IO;
 
 namespace Demoder.Common.SimpleLogger
 {
@@ -32,14 +33,19 @@ namespace Demoder.Common.SimpleLogger
         private readonly EventLogLevel minLogLevel;
         private readonly string prefix;
         private readonly ConsoleColor tagColor;
+        private readonly TextWriter logWriter;
+        private readonly int prefixReservedColumns;
 
         private Dictionary<string, Logger> loggers = new Dictionary<string, Logger>(StringComparer.InvariantCultureIgnoreCase);
 
-        public Log(EventLogLevel minLevel = EventLogLevel.Debug, string prefix="", ConsoleColor tagColor = ConsoleColor.White)
+        public Log(EventLogLevel minLevel = EventLogLevel.Debug, string prefix="", ConsoleColor tagColor = ConsoleColor.White, int prefixReservedColumns=20, TextWriter logWriter=null)
         {
             this.minLogLevel = minLevel;
             this.prefix = String.Format("{0,10}",prefix);
             this.tagColor = tagColor;
+            this.prefixReservedColumns = prefixReservedColumns; 
+            this.logWriter = logWriter;
+            
         }
 
         public Logger this[string category]
@@ -50,7 +56,14 @@ namespace Demoder.Common.SimpleLogger
                 {
                     if (!this.loggers.ContainsKey(category))
                     {
-                        this.loggers.Add(category, new Logger(category, this.minLogLevel, this.prefix, this.tagColor));
+                        this.loggers.Add(category, 
+                            new Logger(
+                                category, 
+                                this.minLogLevel, 
+                                this.prefix, 
+                                this.tagColor, 
+                                this.prefixReservedColumns,
+                                this.logWriter));
                     }
                     return this.loggers[category];
                 }
