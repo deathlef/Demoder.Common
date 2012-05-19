@@ -41,7 +41,7 @@ namespace Demoder.Common.SimpleLogger
         public Log(EventLogLevel minLevel = EventLogLevel.Debug, string prefix="", ConsoleColor tagColor = ConsoleColor.White, int prefixReservedColumns=20, TextWriter logWriter=null)
         {
             this.minLogLevel = minLevel;
-            this.prefix = String.Format("{0,10}",prefix);
+            this.prefix = prefix;
             this.tagColor = tagColor;
             this.prefixReservedColumns = prefixReservedColumns; 
             this.logWriter = logWriter;
