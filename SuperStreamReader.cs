@@ -29,17 +29,31 @@ using System.IO;
 
 namespace Demoder.Common
 {
-    // TODO: Consider inheriting Stream instead.
-    public class SuperStreamReader : MemoryStream
+    public class SuperStreamReader : Stream
     {
         public Endianess Endianess { get; private set; }
-
+        public Stream BaseStream { get; private set; }
+        
+        #region Constructors
         public SuperStreamReader(byte[] bytes, Endianess endianess) 
-            : base(bytes)
+            : this(endianess)
         {
             if (bytes == null) { throw new ArgumentNullException("bytes"); }
+            this.BaseStream = new MemoryStream(bytes);
+        }
+
+        public SuperStreamReader(Stream stream, Endianess endianess)
+            : this(endianess)
+        {
+            this.BaseStream = stream;
+        }
+
+        private SuperStreamReader(Endianess endianess)
+        {
             this.Endianess = endianess;
         }
+
+        #endregion
 
         #region BinaryReader
         public byte[] ReadBytes(uint numBytes)
@@ -208,5 +222,63 @@ namespace Demoder.Common
         }
         #endregion
         #endregion
+
+        #region Stream implementation
+        public override bool CanRead { get { return this.BaseStream.CanRead; } }
+
+        public override bool CanSeek { get { return this.BaseStream.CanSeek; } }
+
+        public override bool CanWrite { get { return false; } }
+
+        public override void Flush()
+        {
+            this.BaseStream.Flush();
+        }
+
+        public override long Length { get { return this.BaseStream.Length; } }
+        public override long Position
+        {
+            get
+            {
+                return this.BaseStream.Position;
+            }
+            set
+            {
+                this.BaseStream.Position = value;
+            }
+        }
+
+        public override int Read(byte[] buffer, int offset, int count)
+        {
+            return this.BaseStream.Read(buffer, offset, count);
+        }
+
+        public override long Seek(long offset, SeekOrigin origin)
+        {
+            return this.BaseStream.Seek(offset, origin);
+        }
+
+        /// <summary>
+        /// Not implemented
+        /// </summary>
+        /// <param name="value"></param>
+        public override void SetLength(long value)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Not implemented
+        /// </summary>
+        /// <param name="buffer"></param>
+        /// <param name="offset"></param>
+        /// <param name="count"></param>
+        public override void Write(byte[] buffer, int offset, int count)
+        {
+            throw new NotImplementedException();
+        }
+        #endregion
+
+        
     }
 }
