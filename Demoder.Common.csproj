@@ -27,6 +27,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <NoWarn>414,659,660,661</NoWarn>
+    <DocumentationFile>bin\Debug\Demoder.Common.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -57,11 +58,21 @@
     <Compile Include="AO\Towerwars\DataClasses\TowerResults.cs" />
     <Compile Include="AO\Towerwars\DataClasses\TowerSites.cs" />
     <Compile Include="AO\enums.cs" />
+    <Compile Include="Attributes\StreamDataAttribute.cs" />
+    <Compile Include="Attributes\StreamDataStringAttribute.cs" />
     <Compile Include="BackgroundWorkerInputQueue.cs" />
     <Compile Include="Cache\FileCache.cs" />
     <Compile Include="Cache\XmlCache.cs" />
     <Compile Include="Cache\XmlCacheWrapper.cs" />
+    <Compile Include="enums.cs" />
     <Compile Include="Extensions\WebClientExtensions.cs" />
+    <Compile Include="SuperStreamReader.cs" />
+    <Compile Include="Serialization\StreamDataDefaultParser.cs" />
+    <Compile Include="Serialization\IStreamDataParser.cs" />
+    <Compile Include="Serialization\StreamData.cs" />
+    <Compile Include="Serialization\StreamDataInfo.cs" />
+    <Compile Include="Serialization\StreamDataParserTask.cs" />
+    <Compile Include="Serialization\StreamDataStringParser.cs" />
     <Compile Include="SysInfo.cs" />
     <Compile Include="Win32MessageCodes.cs" />
     <Compile Include="Extensions\DateTimeExtension.cs" />
