@@ -29,31 +29,132 @@ using System.IO;
 
 namespace Demoder.Common
 {
-    public class SuperStreamReader : Stream
+    /// <summary>
+    /// An endian-aware stream wrapper
+    /// </summary>
+    public class SuperStream : Stream
     {
         public Endianess Endianess { get; private set; }
         public Stream BaseStream { get; private set; }
         
         #region Constructors
-        public SuperStreamReader(byte[] bytes, Endianess endianess) 
-            : this(endianess)
+        /// <summary>
+        /// Creates a new instance using a MemoryStream populated by the specified bytes.
+        /// </summary>
+        /// <param name="bytes">Bytes to populate MemoryStream</param>
+        /// <param name="endianess">Endianess of data in the stream</param>
+        /// <param name="writeAble">Whether the stream is writeable</param>
+        public SuperStream(byte[] bytes, Endianess endianess, bool writeAble=true) 
         {
             if (bytes == null) { throw new ArgumentNullException("bytes"); }
-            this.BaseStream = new MemoryStream(bytes);
+            this.BaseStream = new MemoryStream(bytes, writeAble);
+            this.Endianess = endianess;
         }
 
-        public SuperStreamReader(Stream stream, Endianess endianess)
-            : this(endianess)
+        /// <summary>
+        /// Creates a new instance using the provided stream.
+        /// </summary>
+        /// <param name="stream">Endianess of data in the stream</param>
+        /// <param name="endianess"></param>
+        public SuperStream(Stream stream, Endianess endianess)
         {
             this.BaseStream = stream;
+            this.Endianess = endianess;
         }
-
-        private SuperStreamReader(Endianess endianess)
+        /// <summary>
+        /// Creates new instance using a empty, writeable MemoryStream.
+        /// </summary>
+        /// <param name="endianess">Endianess of data in the stream</param>
+        public SuperStream(Endianess endianess)
         {
+            this.BaseStream = new MemoryStream();
             this.Endianess = endianess;
         }
 
         #endregion
+
+        #region BinaryWriter
+        public void WriteBytes(byte[] bytes)
+        {
+            this.Write(bytes, 0, bytes.Length);
+        }
+        #endregion
+
+        #region Write signed integers
+        public void WriteInt16(Int16 value)
+        {
+            var bytes = this.CorrectEndianess(BitConverter.GetBytes(value));
+            this.WriteBytes(bytes);
+        }
+
+        public void WriteInt32(Int32 value)
+        {
+            var bytes = this.CorrectEndianess(BitConverter.GetBytes(value));
+            this.WriteBytes(bytes);
+        }
+
+        public void WriteInt64(Int64 value)
+        {
+            var bytes = this.CorrectEndianess(BitConverter.GetBytes(value));
+            this.WriteBytes(bytes);
+        }
+        #endregion
+
+        #region Write unsigned integers
+        public void WriteUInt16(UInt16 value)
+        {
+            var bytes = this.CorrectEndianess(BitConverter.GetBytes(value));
+            this.WriteBytes(bytes);
+        }
+
+        public void WriteUInt32(UInt32 value)
+        {
+            var bytes = this.CorrectEndianess(BitConverter.GetBytes(value));
+            this.WriteBytes(bytes);
+        }
+
+        public void WriteUInt64(UInt64 value)
+        {
+            var bytes = this.CorrectEndianess(BitConverter.GetBytes(value));
+            this.WriteBytes(bytes);
+        }
+        #endregion
+
+        #region Write floating point numbers
+        public void WriteSingle(Single value)
+        {
+            var bytes = this.CorrectEndianess(BitConverter.GetBytes(value));
+            this.WriteBytes(bytes);
+        }
+
+        public void WriteDouble(Double value)
+        {
+            var bytes = this.CorrectEndianess(BitConverter.GetBytes(value));
+            this.WriteBytes(bytes);
+        }
+        #endregion
+
+
+        public void WriteString(string value)
+        {
+            var bytes = ASCIIEncoding.ASCII.GetBytes(value);
+            this.WriteUInt32((uint)bytes.Length);
+            this.WriteBytes(bytes);
+        }
+
+        public void WriteCString(string value)
+        {
+            var bytes = ASCIIEncoding.ASCII.GetBytes(value);
+            if (bytes.Contains((byte)0)) 
+            { 
+                // String contains a null byte. 
+                // This is not allowed, as the string is terminated by a null byte.
+                throw new ArgumentException("Provided string contains a null byte, which is not allowed because the string is terminated by a null byte.", "value"); 
+            }
+            this.WriteBytes(bytes);
+            this.WriteByte(0);
+        }
+
 
         #region BinaryReader
         public byte[] ReadBytes(uint numBytes)
@@ -109,9 +210,7 @@ namespace Demoder.Common
         /// <summary>
         /// 32bit (4bytes) (float)
         /// </summary>
-        /// <param name="ms"></param>
-        /// <param name="endian"></param>
-        /// <returns></returns>
+        /// <returns><seealso cref="float"/></returns>
         public float ReadSingle()
         {
             var bytes = CorrectEndianess(this.ReadBytes(4));
@@ -121,8 +220,6 @@ namespace Demoder.Common
         /// <summary>
         /// 64bit (8bytes)
         /// </summary>
-        /// <param name="ms"></param>
-        /// <param name="endian"></param>
         /// <returns></returns>
         public double ReadDouble()
         {
@@ -141,10 +238,15 @@ namespace Demoder.Common
             return this.ReadString(strLen);
         }
 
+        /// <summary>
+        /// Reads a string of specified length
+        /// </summary>
+        /// <param name="length"></param>
+        /// <returns></returns>
         public string ReadString(uint length)
         {
             char nb = Convert.ToChar(0);
-            var bytes = this.CorrectEndianess(this.ReadBytes(length));
+            var bytes = this.ReadBytes(length);
             var str = Encoding.ASCII.GetString(bytes);
             return str.Trim(nb);
         }
@@ -157,8 +259,8 @@ namespace Demoder.Common
         /// <returns></returns>
         public string ReadCString()
         {
+            var sb = new StringBuilder();
             char nb = (Char)0;
-            string outString = String.Empty;
             
             while (!this.EOF)
             {
@@ -168,10 +270,10 @@ namespace Demoder.Common
                     // Break on NullByte.
                     break;
                 }
-                outString += chr;
+                sb.Append(chr);
             }
-            
-            return outString;
+
+            return sb.ToString();
         }
 
 
@@ -206,8 +308,8 @@ namespace Demoder.Common
             var lolData = ((double)this.ReadInt32());
             var lolRes = (lolData / lolModifier) - 1;
 
-            var ret = (Int32)Math.Round(lolRes);
-            additionalData = (int)((lolRes - ret) * lolModifier);
+            var ret = (Int32)Math.Floor(lolRes);
+            additionalData = (int)Math.Round((lolRes - ret) * lolModifier);
             return ret;
         }
 
@@ -220,15 +322,31 @@ namespace Demoder.Common
             int extra;
             return this.ReadLolTeger32(out extra, lolModifier);
         }
+
+
+        public void WriteLolTeger32(int value, int additionalData, double lolModifier = 1009)
+        {
+            if (additionalData >= lolModifier) { throw new ArgumentOutOfRangeException("Additional data must have a value less than lolModifier.", "additionalData"); }
+
+            int lolTeger = (int)((value + 1) * lolModifier) + additionalData;
+            this.WriteInt32(lolTeger);            
+        }
+
+        public void WriteLolTeger32(int value, double lolModifier = 1009)
+        {
+            this.WriteLolTeger32(value, 1, lolModifier);
+        }
         #endregion
         #endregion
+
+
 
         #region Stream implementation
         public override bool CanRead { get { return this.BaseStream.CanRead; } }
 
         public override bool CanSeek { get { return this.BaseStream.CanSeek; } }
 
-        public override bool CanWrite { get { return false; } }
+        public override bool CanWrite { get { return this.BaseStream.CanWrite; } }
 
         public override void Flush()
         {
@@ -258,24 +376,15 @@ namespace Demoder.Common
             return this.BaseStream.Seek(offset, origin);
         }
 
-        /// <summary>
-        /// Not implemented
-        /// </summary>
-        /// <param name="value"></param>
+
         public override void SetLength(long value)
         {
-            throw new NotImplementedException();
+            this.BaseStream.SetLength(value);
         }
 
-        /// <summary>
-        /// Not implemented
-        /// </summary>
-        /// <param name="buffer"></param>
-        /// <param name="offset"></param>
-        /// <param name="count"></param>
         public override void Write(byte[] buffer, int offset, int count)
         {
-            throw new NotImplementedException();
+            this.BaseStream.Write(buffer, offset, count);
         }
         #endregion
 

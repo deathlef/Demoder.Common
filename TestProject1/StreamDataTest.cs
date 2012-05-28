@@ -21,20 +21,24 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-using Demoder.Common;
+using Demoder.Common.Serialization;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using Demoder.Common;
+using Demoder.Common.Tests.TestData;
+using System.IO;
+using System.Linq;
 
 namespace Demoder.Common.Tests
 {
     
     
     /// <summary>
-    ///This is a test class for MathsTest and is intended
-    ///to contain all MathsTest Unit Tests
+    ///This is a test class for StreamDataTest and is intended
+    ///to contain all StreamDataTest Unit Tests
     ///</summary>
     [TestClass()]
-    public class MathsTest
+    public class StreamDataTest
     {
 
 
@@ -88,59 +92,48 @@ namespace Demoder.Common.Tests
 
 
         /// <summary>
-        ///A test for Percent
+        ///A test for Create
         ///</summary>
         [TestMethod()]
-        public void PercentTestA()
+        public void CreateTest()
         {
-            int MaxValue = 100;
-            int CurrentValue = 25;
-            int expected = 25;
-            int actual;
-            actual = Maths.Percent(MaxValue, CurrentValue);
+            Type t = typeof(int);
+            SuperStream ms = new SuperStream(Endianess.Little);
+            var expected = new StreamDataTestData { A = -15, B = "Test one!", C = "Test two!" };
+            ms.WriteInt32(expected.A);
+            ms.WriteString(expected.B);
+            ms.WriteCString(expected.C);
+            
+            ms.Position = 0;
+            
+            StreamDataTestData actual;
+            actual = StreamData.Create<StreamDataTestData>(ms);
             Assert.AreEqual(expected, actual);
         }
 
         /// <summary>
-        ///A test for Percent
+        ///A test for Serialize
         ///</summary>
         [TestMethod()]
-        public void PercentTestB()
+        public void SerializeTest()
         {
-            int MaxValue = 200; 
-            int CurrentValue = 50;
-            int expected = 25;
-            int actual;
-            actual = Maths.Percent(MaxValue, CurrentValue);
-            Assert.AreEqual(expected, actual);
-        }
 
-        /// <summary>
-        ///A test for DePercent
-        ///</summary>
-        [TestMethod()]
-        public void DePercentTestA()
-        {
-            int MaxValue = 100;
-            int Percent = 25;
-            int expected = 25;
-            int actual;
-            actual = Maths.DePercent(MaxValue, Percent);
-            Assert.AreEqual(expected, actual);
-        }
+            SuperStream expectedStream = new SuperStream(Endianess.Little);
+            var expectedObject = new StreamDataTestData { A = -15, B = "Test one!", C = "Test two!" };
+            expectedStream.WriteInt32(expectedObject.A);
+            expectedStream.WriteString(expectedObject.B);
+            expectedStream.WriteCString(expectedObject.C);
+            var expected = ((MemoryStream)expectedStream.BaseStream).ToArray();
 
-        /// <summary>
-        ///A test for DePercent
-        ///</summary>
-        [TestMethod()]
-        public void DePercentTestB()
-        {
-            int MaxValue = 200;
-            int Percent = 25;
-            int expected = 50;
-            int actual;
-            actual = Maths.DePercent(MaxValue, Percent);
-            Assert.AreEqual(expected, actual);
+            var actualStream = new SuperStream(Endianess.Little);
+            StreamData.Serialize(expectedObject, actualStream);
+
+            var actual = ((MemoryStream)actualStream.BaseStream).ToArray();
+
+            Assert.IsTrue(actual.SequenceEqual(expected));
+
+            
+
         }
     }
 }

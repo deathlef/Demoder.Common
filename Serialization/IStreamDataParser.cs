@@ -40,6 +40,8 @@ namespace Demoder.Common.Serialization
         /// <param name="task">Task to perform</param>
         /// <param name="value">Deserialized data object</param>
         /// <returns>true on success, false on failure</returns>
-        bool Parse(StreamDataParserTask task, out dynamic value);
+        bool GetObject(StreamDataParserTask task, out object value);
+
+        bool WriteObject(StreamDataParserTask task, object value);
     }
 }

@@ -30,15 +30,25 @@ namespace Demoder.Common.Serialization
 {
     public class StreamDataParserTask
     {
-        public SuperStreamReader Stream{get;private set;}
-        public Type ReadType { get; private set; }
+        /// <summary>
+        /// Stream to read from or write to.
+        /// </summary>
+        public SuperStream Stream{get;private set;}
+        /// <summary>
+        /// Type which is read from or written to stream
+        /// </summary>
+        public Type StreamType { get; private set; }
         public Attribute[] Attributes { get; private set; }
+
+        /// <summary>
+        /// Propertys data type
+        /// </summary>
         internal Type DataType { get; private set; }
 
-        internal StreamDataParserTask(SuperStreamReader stream, Type readType, Type dataType, Attribute[] attributes)
+        internal StreamDataParserTask(SuperStream stream, Type readType, Type dataType, Attribute[] attributes)
         {
             this.Stream = stream;
-            this.ReadType = readType;
+            this.StreamType = readType;
             this.Attributes = attributes;
             this.DataType = dataType;
         }

@@ -88,7 +88,7 @@ namespace Demoder.Common.Serialization
         /// <typeparam name="T"></typeparam>
         /// <param name="ms"></param>
         /// <returns></returns>
-        public static T Create<T>(SuperStreamReader ms)
+        public static T Create<T>(SuperStream ms)
         {
             var obj = Activator.CreateInstance<T>();
             return (T)Populate(obj, ms);
@@ -100,7 +100,7 @@ namespace Demoder.Common.Serialization
         /// <typeparam name="T"></typeparam>
         /// <param name="ms"></param>
         /// <returns></returns>
-        public static dynamic Create(Type t, SuperStreamReader ms)
+        public static dynamic Create(Type t, SuperStream ms)
         {
             var obj = Activator.CreateInstance(t);
             return Populate(obj, ms);
@@ -112,7 +112,7 @@ namespace Demoder.Common.Serialization
         /// <param name="obj"></param>
         /// <param name="ms"></param>
         /// <returns></returns>
-        public static object Populate(object obj, SuperStreamReader ms)
+        public static object Populate(object obj, SuperStream ms)
         {
             var properties = GetProperties(obj.GetType());
             dynamic value;
@@ -146,6 +146,39 @@ namespace Demoder.Common.Serialization
                 pi.PropertyInfo.SetValue(obj, value, null);
             }
             return obj;
+        }
+
+        /// <summary>
+        /// Write a given object to stream
+        /// </summary>
+        /// <param name="obj">Object to write</param>
+        /// <param name="ms">Stream to write to</param>
+        public static void Serialize(object obj, SuperStream ms)
+        {
+            var properties = GetProperties(obj.GetType());
+            // Parse spell arguments
+            foreach (var pi in properties)
+            {
+                dynamic value=pi.PropertyInfo.GetValue(obj, null);
+                StreamDataParserTask task = new StreamDataParserTask(ms, pi.ReadType, pi.DataType, pi.Attributes);
+                if (pi.IsArray)
+                { 
+                    for (int i = 0; i < pi.Entries; i++)
+                    {
+                        
+                        if (!WriteParserData(task, value[i]))
+                        {
+                            throw new Exception();
+                        }
+                    }
+                    continue;
+                }
+
+                if (!WriteParserData(task, value))
+                {
+                    throw new Exception();
+                }
+            }
         }
 
         public static string[] GetDebugInfo(object obj)
@@ -231,24 +264,24 @@ namespace Demoder.Common.Serialization
             // Get the right parser
             lock (streamDataParsers)
             {
-                if (streamDataParsers.ContainsKey(task.ReadType))
+                if (streamDataParsers.ContainsKey(task.StreamType))
                 {
-                    parser = streamDataParsers[task.ReadType];
+                    parser = streamDataParsers[task.StreamType];
                 }
             }
 
             // Retrieve value from the designated parser.
             if (parser == null)
             {
-                result = defaultDataParser.Parse(task, out tmpVal);
+                result = defaultDataParser.GetObject(task, out tmpVal);
             }
             else
             {
-                result = parser.Parse(task, out tmpVal);
+                result = parser.GetObject(task, out tmpVal);
             }
 
             // Cast value, if necessary.
-            if (task.ReadType != task.DataType)
+            if (task.StreamType != task.DataType)
             {
                 value = Convert.ChangeType(tmpVal, task.DataType);
             }
@@ -256,6 +289,45 @@ namespace Demoder.Common.Serialization
             {
                 value = tmpVal;
             }
+
+            return result;
+        }
+
+
+
+        private static bool WriteParserData(StreamDataParserTask task, object value)
+        {
+            IStreamDataParser parser = null;
+            dynamic tmpVal;
+            // Cast value, if necessary.
+            if (task.StreamType != task.DataType)
+            {
+                tmpVal = Convert.ChangeType(value, task.StreamType);
+            }
+            else
+            {
+                tmpVal = value;
+            }
+
+            bool result;
+            // Get the right parser
+            lock (streamDataParsers)
+            {
+                if (streamDataParsers.ContainsKey(task.StreamType))
+                {
+                    parser = streamDataParsers[task.StreamType];
+                }
+            }
+
+            // Retrieve value from the designated parser.
+            if (parser == null)
+            {
+                result = defaultDataParser.WriteObject(task, tmpVal);
+            }
+            else
+            {
+                result = parser.WriteObject(task, tmpVal);
+            }            
 
             return result;
         }
