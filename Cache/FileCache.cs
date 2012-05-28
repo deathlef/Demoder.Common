@@ -94,7 +94,7 @@ namespace Demoder.Common.Cache
         {
             lock (this.cacheIndex)
             {
-                string md5 = MD5Checksum.Generate(data).String;
+                string md5 = MD5Checksum.Generate(data).ToString();
                 //Is this data the same as the old?
                 if (this.cacheIndex.ContainsKey(key))
                     if (this.cacheIndex[key].Hash == md5)
@@ -150,7 +150,7 @@ namespace Demoder.Common.Cache
                 {
                     byte[] bytes = File.ReadAllBytes(this.GetDataFileName(key));
                     //Ensure the index is up to date.
-                    string md5 = MD5Checksum.Generate(bytes).String;
+                    string md5 = MD5Checksum.Generate(bytes).ToString();
                     if (md5 != this.cacheIndex[key].Hash)
                         this.Cache(key, bytes);
                     return bytes;

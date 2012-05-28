@@ -25,47 +25,40 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Demoder.Common.Attributes;
-using Demoder.Common;
+using System.Security.Cryptography;
+using System.IO;
 
-namespace Demoder.Common.Tests.TestData
+namespace Demoder.Common.Hash
 {
-
-    public class StreamDataTestData
+    public class SHA512Checksum : Checksum
     {
-        public StreamDataTestData()
+        public SHA512Checksum(byte[] checksum)
         {
-            this.D = new List<int>();
+            this.Bytes = checksum;
         }
 
-        [StreamData(0)]
-        public int A { get; set; }
-
-        [StreamData(1)]
-        [StreamDataString(StringType.Normal)]
-        public string B { get; set; }
-
-        [StreamData(2)]
-        [StreamDataString(StringType.CString)]
-        public string C { get; set; }
-
-        [StreamData(3)]
-        public IList<int> D { get; set; }
-
-        public override bool Equals(object obj)
+        public SHA512Checksum(string checksumHex)
+            : base(checksumHex)
         {
-            if (Object.ReferenceEquals(obj, this)) { return true; }
-            if (Object.ReferenceEquals(obj, null)) { return false; }
-            if (obj is StreamDataTestData)
-            {
-                var obj2 = obj as StreamDataTestData;
-                if (obj2.A != this.A) { return false; }
-                if (obj2.B != this.B) { return false; }
-                if (obj2.C != this.C) { return false; }
-                if (!obj2.D.SequenceEqual(this.D)) { return false; }
-                return true;
-            }
-            return base.Equals(obj);
         }
+
+        #region Static stuff
+        public static SHA512Checksum Generate(byte[] input)
+        {
+            var SHA512 = new SHA512CryptoServiceProvider();
+            return new SHA512Checksum(SHA512.ComputeHash(input));
+        }
+
+        public static SHA512Checksum Generate(string input)
+        {
+            return Generate(Encoding.Default.GetBytes(input));
+        }
+
+        public static SHA512Checksum Generate(Stream input)
+        {
+            var SHA512 = new SHA512CryptoServiceProvider();
+            return new SHA512Checksum(SHA512.ComputeHash(input));
+        }
+        #endregion
     }
 }

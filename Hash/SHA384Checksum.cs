@@ -25,47 +25,40 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Demoder.Common.Attributes;
-using Demoder.Common;
+using System.Security.Cryptography;
+using System.IO;
 
-namespace Demoder.Common.Tests.TestData
+namespace Demoder.Common.Hash
 {
-
-    public class StreamDataTestData
+    public class SHA384Checksum : Checksum
     {
-        public StreamDataTestData()
+        public SHA384Checksum(byte[] checksum)
         {
-            this.D = new List<int>();
+            this.Bytes = checksum;
         }
 
-        [StreamData(0)]
-        public int A { get; set; }
-
-        [StreamData(1)]
-        [StreamDataString(StringType.Normal)]
-        public string B { get; set; }
-
-        [StreamData(2)]
-        [StreamDataString(StringType.CString)]
-        public string C { get; set; }
-
-        [StreamData(3)]
-        public IList<int> D { get; set; }
-
-        public override bool Equals(object obj)
+        public SHA384Checksum(string checksumHex)
+            : base(checksumHex)
         {
-            if (Object.ReferenceEquals(obj, this)) { return true; }
-            if (Object.ReferenceEquals(obj, null)) { return false; }
-            if (obj is StreamDataTestData)
-            {
-                var obj2 = obj as StreamDataTestData;
-                if (obj2.A != this.A) { return false; }
-                if (obj2.B != this.B) { return false; }
-                if (obj2.C != this.C) { return false; }
-                if (!obj2.D.SequenceEqual(this.D)) { return false; }
-                return true;
-            }
-            return base.Equals(obj);
         }
+
+        #region Static stuff
+        public static SHA384Checksum Generate(byte[] input)
+        {
+            var SHA384 = new SHA384CryptoServiceProvider();
+            return new SHA384Checksum(SHA384.ComputeHash(input));
+        }
+
+        public static SHA384Checksum Generate(string input)
+        {
+            return Generate(Encoding.Default.GetBytes(input));
+        }
+
+        public static SHA384Checksum Generate(Stream input)
+        {
+            var SHA384 = new SHA384CryptoServiceProvider();
+            return new SHA384Checksum(SHA384.ComputeHash(input));
+        }
+        #endregion
     }
 }

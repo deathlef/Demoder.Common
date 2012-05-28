@@ -28,6 +28,7 @@ using Demoder.Common;
 using Demoder.Common.Tests.TestData;
 using System.IO;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace Demoder.Common.Tests
 {
@@ -40,8 +41,6 @@ namespace Demoder.Common.Tests
     [TestClass()]
     public class StreamDataTest
     {
-
-
         private TestContext testContextInstance;
 
         /// <summary>
@@ -99,10 +98,21 @@ namespace Demoder.Common.Tests
         {
             Type t = typeof(int);
             SuperStream ms = new SuperStream(Endianess.Little);
-            var expected = new StreamDataTestData { A = -15, B = "Test one!", C = "Test two!" };
+            var expected = new StreamDataTestData
+            {
+                A = -15,
+                B = "Test one!",
+                C = "Test two!",
+                D = new List<int>(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 })
+            };
             ms.WriteInt32(expected.A);
             ms.WriteString(expected.B);
             ms.WriteCString(expected.C);
+            ms.WriteUInt32((uint)expected.D.Count);
+            foreach (var i in expected.D)
+            {
+                ms.WriteInt32(i);
+            }
             
             ms.Position = 0;
             
@@ -119,10 +129,21 @@ namespace Demoder.Common.Tests
         {
 
             SuperStream expectedStream = new SuperStream(Endianess.Little);
-            var expectedObject = new StreamDataTestData { A = -15, B = "Test one!", C = "Test two!" };
+            var expectedObject = new StreamDataTestData
+            {
+                A = -15,
+                B = "Test one!",
+                C = "Test two!",
+                D = new List<int>(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 })
+            };
             expectedStream.WriteInt32(expectedObject.A);
             expectedStream.WriteString(expectedObject.B);
             expectedStream.WriteCString(expectedObject.C);
+            expectedStream.WriteUInt32((uint)expectedObject.D.Count);
+            foreach (var i in expectedObject.D)
+            {
+                expectedStream.WriteInt32(i);
+            }
             var expected = ((MemoryStream)expectedStream.BaseStream).ToArray();
 
             var actualStream = new SuperStream(Endianess.Little);
@@ -131,9 +152,6 @@ namespace Demoder.Common.Tests
             var actual = ((MemoryStream)actualStream.BaseStream).ToArray();
 
             Assert.IsTrue(actual.SequenceEqual(expected));
-
-            
-
         }
     }
 }

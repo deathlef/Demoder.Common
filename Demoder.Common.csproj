@@ -66,6 +66,13 @@
     <Compile Include="Cache\XmlCacheWrapper.cs" />
     <Compile Include="enums.cs" />
     <Compile Include="Extensions\WebClientExtensions.cs" />
+    <Compile Include="Hash\Checksum.cs" />
+    <Compile Include="Hash\MD5Checksum.cs" />
+    <Compile Include="Hash\SHA1Checksum.cs" />
+    <Compile Include="Hash\SHA256Checksum.cs" />
+    <Compile Include="Hash\SHA384Checksum.cs" />
+    <Compile Include="Hash\SHA512Checksum.cs" />
+    <Compile Include="Serialization\StreamDataChecksumParser.cs" />
     <Compile Include="SuperStream.cs" />
     <Compile Include="Serialization\StreamDataDefaultParser.cs" />
     <Compile Include="Serialization\IStreamDataParser.cs" />
@@ -80,13 +87,9 @@
     <Compile Include="Extensions\NumberExtension.cs" />
     <Compile Include="Extensions\RegexExtensions.cs" />
     <Compile Include="Extensions\TypeExtensions.cs" />
-    <Compile Include="Hash\ICheckSum.cs" />
     <Compile Include="delegates.cs" />
     <Compile Include="FormatString.cs" />
     <Compile Include="Forms.cs" />
-    <Compile Include="Hash\ChecksumHexStore.cs" />
-    <Compile Include="Hash\MD5Checksum.cs" />
-    <Compile Include="Hash\SHA1Checksum.cs" />
     <Compile Include="Maths.cs" />
     <Compile Include="Misc.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

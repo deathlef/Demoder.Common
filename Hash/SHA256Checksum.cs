@@ -20,22 +20,45 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
+
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using System.Security.Cryptography;
+using System.IO;
 
 namespace Demoder.Common.Hash
 {
-    public interface ICheckSum
+    public class SHA256Checksum : Checksum
     {
-        /// <summary>
-        /// Byte array representing the checksum.
-        /// </summary>
-        byte[] Bytes { get; set; }
+        public SHA256Checksum(byte[] checksum)
+        {
+            this.Bytes = checksum;
+        }
 
-        /// <summary>
-        /// String representing the checksum
-        /// </summary>
-        string String { get; set; }
+        public SHA256Checksum(string checksumHex)
+            : base(checksumHex)
+        {
+        }
+
+        #region Static stuff
+        public static SHA256Checksum Generate(byte[] input)
+        {
+            var sha256 = new SHA256CryptoServiceProvider();
+            return new SHA256Checksum(sha256.ComputeHash(input));
+        }
+
+        public static SHA256Checksum Generate(string input)
+        {
+            return Generate(Encoding.Default.GetBytes(input));
+        }
+
+        public static SHA256Checksum Generate(Stream input)
+        {
+            var sha256 = new SHA256CryptoServiceProvider();
+            return new SHA256Checksum(sha256.ComputeHash(input));
+        }
+        #endregion
     }
 }

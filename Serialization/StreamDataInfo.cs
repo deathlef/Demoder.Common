@@ -34,6 +34,7 @@ namespace Demoder.Common.Serialization
     {
         public PropertyInfo PropertyInfo { get; private set; }
         public bool IsArray { get; private set; }
+        public bool IsList { get; private set; }
         public uint Entries { get; private set; }
         public Type ReadType { get; private set; }
         public Type DataType { get; private set; }
@@ -48,12 +49,22 @@ namespace Demoder.Common.Serialization
                 PropertyInfo = pi,
                 Entries = attr.Entries,
                 IsArray = pi.PropertyType.IsArray,
+                IsList = false,
                 ReadType = attr.ReadType,
                 Attributes = (from a in pi.GetCustomAttributes(true)
                               where a.GetType() != typeof(StreamDataAttribute)
                               where a is Attribute
                               select a as Attribute).ToArray()
             };
+
+            #region Check if it's a IList.
+            if (pi.PropertyType.IsGenericType && 
+                pi.PropertyType.GetGenericTypeDefinition() == typeof(IList<>))
+            {
+                sdi.IsList = true;
+            }
+            
+            #endregion
 
             #region Validate input and assign proper DataType
             if (sdi.ReadType != null && sdi.ReadType.IsArray)
@@ -78,6 +89,10 @@ namespace Demoder.Common.Serialization
                 throw new ArgumentException(String.Format("{0}->{1}: [StreamDataAttribute] specified Entries={2}, but property is not an array type.",
                     pi.DeclaringType.FullName, pi.Name, sdi.Entries));
             }
+            else if (sdi.IsList)
+            {
+                sdi.DataType = pi.PropertyType.GetGenericArguments().First();
+            }
             else
             {
                 sdi.DataType = pi.PropertyType;
@@ -88,6 +103,8 @@ namespace Demoder.Common.Serialization
                 sdi.ReadType = sdi.DataType;
             }
             #endregion
+
+            
 
             return sdi;
         }
