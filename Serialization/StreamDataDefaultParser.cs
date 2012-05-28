@@ -42,60 +42,60 @@ namespace Demoder.Common.Serialization
             }
         }
 
-        public bool Parse(StreamDataParserTask task, out dynamic value)
+        public bool GetObject(StreamDataParserTask task, out object value)
         {
-            if (task.ReadType == typeof(Byte))
+            if (task.StreamType == typeof(Byte))
             {
                 value= (byte)task.Stream.ReadByte();
                 return true;
             }
 
-            if (task.ReadType == typeof(Int64))
+            if (task.StreamType == typeof(Int64))
             {
                 value= task.Stream.ReadInt64();
                 return true;
             }
-            if (task.ReadType == typeof(UInt64))
+            if (task.StreamType == typeof(UInt64))
             {
                 value= task.Stream.ReadUInt64();
                 return true;
             }
 
-            if (task.ReadType == typeof(Int32))
+            if (task.StreamType == typeof(Int32))
             {
                 value =  task.Stream.ReadInt32();
                 return true;
             }
-            if (task.ReadType == typeof(UInt32))
+            if (task.StreamType == typeof(UInt32))
             {
                 value= task.Stream.ReadUInt32();
                 return true;
             }
 
-            if (task.ReadType == typeof(Int16)) 
+            if (task.StreamType == typeof(Int16)) 
             {
                 value = task.Stream.ReadInt16();
                 return true;
             }
-            if (task.ReadType == typeof(UInt16))
+            if (task.StreamType == typeof(UInt16))
             {
                 value = task.Stream.ReadUInt16();
                 return true;
             }
 
-            if (task.ReadType == typeof(Single))
+            if (task.StreamType == typeof(Single))
             {
                 value = task.Stream.ReadSingle();
                 return true;
             }
 
-            if (task.ReadType == typeof(Double))
+            if (task.StreamType == typeof(Double))
             {
                 value = task.Stream.ReadDouble();
                 return true;
             }
 
-            if (task.ReadType == typeof(bool))
+            if (task.StreamType == typeof(bool))
             {
                 var val = task.Stream.ReadUInt32();
                 if (val == 0)
@@ -114,25 +114,112 @@ namespace Demoder.Common.Serialization
                 }
             }
 
-            if (task.ReadType.IsEnum)
+            if (task.StreamType.IsEnum)
             {
                 var flags = task.Stream.ReadUInt32();
-                value = Enum.ToObject(task.ReadType, flags);
+                value = Enum.ToObject(task.StreamType, flags);
                 return true;
             }
 
             // Test if type has StreamDataAttribute on properties.
             // This allows nesting of StreamData-aware task.DataTypes
-            var props = StreamData.GetProperties(task.ReadType);
+            var props = StreamData.GetProperties(task.StreamType);
             if (props.Length == 0)
             {
                 value = null;
                 return false;
             }
 
-            value = StreamData.Create(task.ReadType, task.Stream);
+            value = StreamData.Create(task.StreamType, task.Stream);
             // Need to add error condition here.
             return true;
         }
+
+        #region IStreamDataParser Members
+
+
+        public bool WriteObject(StreamDataParserTask task, object value)
+        {
+            if (task.StreamType == typeof(Byte))
+            {
+                task.Stream.WriteByte((byte)value);
+                return true;
+            }
+
+            if (task.StreamType == typeof(Int64))
+            {
+                task.Stream.WriteInt64((Int64)value);
+                return true;
+            }
+            if (task.StreamType == typeof(UInt64))
+            {
+                task.Stream.WriteUInt64((UInt64)value);
+                return true;
+            }
+
+            if (task.StreamType == typeof(Int32))
+            {
+                task.Stream.WriteInt32((Int32)value);
+                return true;
+            }
+            if (task.StreamType == typeof(UInt32))
+            {
+                task.Stream.WriteUInt32((UInt32)value);
+                return true;
+            }
+
+            if (task.StreamType == typeof(Int16))
+            {
+                task.Stream.WriteInt16((Int16)value);
+                return true;
+            }
+            if (task.StreamType == typeof(UInt16))
+            {
+                task.Stream.WriteUInt16((UInt16)value);
+                return true;
+            }
+
+            if (task.StreamType == typeof(Single))
+            {
+                task.Stream.WriteSingle((Single)value);
+                return true;
+            }
+
+            if (task.StreamType == typeof(Double))
+            {
+                task.Stream.WriteDouble((Double)value);
+                return true;
+            }
+
+            if (task.StreamType == typeof(bool))
+            {
+                // If bool is true, write 1. Otherwise, write 0.
+                int val = ((bool)value) ? 1 : 0;
+                task.Stream.WriteInt32(val);
+            }
+
+            if (task.StreamType.IsEnum)
+            {
+                var flags = task.Stream.ReadUInt32();
+                value = Enum.ToObject(task.StreamType, flags);
+                return true;
+            }
+
+            // Test if type has StreamDataAttribute on properties.
+            // This allows nesting of StreamData-aware task.DataTypes
+            var props = StreamData.GetProperties(task.StreamType);
+            if (props.Length == 0)
+            {
+                value = null;
+                return false;
+            }
+
+            value = StreamData.Create(task.StreamType, task.Stream);
+            // Need to add error condition here.
+            return true;
+
+        }
+
+        #endregion
     }
 }

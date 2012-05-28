@@ -36,20 +36,14 @@ namespace Demoder.Common.Serialization
         #region IDataParser Members
         public Type[] SupportedTypes { get { return new Type[] { typeof(string) }; } }
 
-        public bool Parse(StreamDataParserTask task, out dynamic value)
+        public bool GetObject(StreamDataParserTask task, out dynamic value)
         {
-            StringType strType = StringType.Normal;
-            {
-                var streamAttr = task.Attributes.FirstOrDefault(a => a is StreamDataStringAttribute) as StreamDataStringAttribute;
-                if (streamAttr != null)
-                {
-                    strType = streamAttr.Type;
-                }
-            }
+            var strType = this.GetStringType(task.Attributes);
+
             switch (strType)
             {
                 case StringType.CString:
-                    value= task.Stream.ReadCString();
+                    value = task.Stream.ReadCString();
                     return true;
                 default:
                     value = task.Stream.ReadString();
@@ -57,6 +51,32 @@ namespace Demoder.Common.Serialization
             }
         }
 
+        public bool WriteObject(StreamDataParserTask task, object value)
+        {
+            var strType = this.GetStringType(task.Attributes);
+
+            switch (strType)
+            {
+                case StringType.CString:
+                    task.Stream.WriteCString((string)value);
+                    return true;
+                default:
+                    task.Stream.WriteString((string)value);
+                    return true;
+            }
+        }
+
         #endregion
+
+        private StringType GetStringType(Attribute[] attributes)
+        {
+            StringType strType = StringType.Normal;
+            var attr = attributes.FirstOrDefault(a => a is StreamDataStringAttribute) as StreamDataStringAttribute;
+            if (attr != null)
+            {
+                strType = attr.Type;
+            }
+            return strType;
+        }
     }
 }
