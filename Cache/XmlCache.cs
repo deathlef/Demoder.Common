@@ -97,7 +97,7 @@ namespace Demoder.Common.Cache
         public XMLCache(string path, int duration, int timeout)
         {
             this.path = path;
-            this.subPath = MD5Checksum.Generate(typeof(T).FullName).String;
+            this.subPath = MD5Checksum.Generate(typeof(T).FullName).ToString();
             this.duration = duration;
             this.timeout = timeout;
         }
@@ -215,7 +215,7 @@ namespace Demoder.Common.Cache
 
         public string GetFile(params string[] args)
         {
-            return MD5Checksum.Generate(String.Join(";", args)).String + ".xml";
+            return MD5Checksum.Generate(String.Join(";", args)).ToString() + ".xml";
         }
 
         public string GetFilePath(params string[] args)

@@ -35,13 +35,13 @@ namespace Demoder.Common.Serialization
         /// </summary>
         public SuperStream Stream{get;private set;}
         /// <summary>
-        /// Type which is read from or written to stream
+        /// Type which is read from or written to stream.
         /// </summary>
         public Type StreamType { get; private set; }
         public Attribute[] Attributes { get; private set; }
 
         /// <summary>
-        /// Propertys data type
+        /// Propertys data type. IParameterParser should ignore this.
         /// </summary>
         internal Type DataType { get; private set; }
 

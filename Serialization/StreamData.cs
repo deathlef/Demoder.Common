@@ -119,14 +119,12 @@ namespace Demoder.Common.Serialization
             // Parse spell arguments
             foreach (var pi in properties)
             {
-                StreamDataParserTask task;
+                StreamDataParserTask task = new StreamDataParserTask(ms, pi.ReadType, pi.DataType, pi.Attributes);
                 if (pi.IsArray)
                 {
                     var arr = new ArrayList();
                     for (int i = 0; i < pi.Entries; i++)
-                    {
-                        task = new StreamDataParserTask(ms, pi.ReadType, pi.DataType, pi.Attributes);
-                        
+                    {                     
                         if (!GetParserData(task, out value))
                         {
                             throw new Exception();
@@ -138,12 +136,29 @@ namespace Demoder.Common.Serialization
                     pi.PropertyInfo.SetValue(obj, arr2, null);
                     continue;
                 }
-                task = new StreamDataParserTask(ms, pi.ReadType, pi.DataType, pi.Attributes);
-                if (!GetParserData(task, out value))
+                else if (pi.IsList)
                 {
-                    throw new Exception();
+                    dynamic list = Activator.CreateInstance(typeof(List<>).MakeGenericType(pi.DataType));
+                    var entries = task.Stream.ReadUInt32();
+                    for (uint i = 0; i < entries; i++)
+                    {
+                        if (!GetParserData(task, out value))
+                        {
+                            throw new Exception();
+                        }
+                        list.Add(value);
+                    }
+                    pi.PropertyInfo.SetValue(obj, list, null);
                 }
-                pi.PropertyInfo.SetValue(obj, value, null);
+                else
+                {
+                    if (!GetParserData(task, out value))
+                    {
+                        throw new Exception();
+                    }
+                    pi.PropertyInfo.SetValue(obj, value, null);
+                    continue;
+                }
             }
             return obj;
         }
@@ -165,7 +180,6 @@ namespace Demoder.Common.Serialization
                 { 
                     for (int i = 0; i < pi.Entries; i++)
                     {
-                        
                         if (!WriteParserData(task, value[i]))
                         {
                             throw new Exception();
@@ -173,10 +187,25 @@ namespace Demoder.Common.Serialization
                     }
                     continue;
                 }
-
-                if (!WriteParserData(task, value))
+                else if (pi.IsList)
                 {
-                    throw new Exception();
+                    dynamic list = pi.PropertyInfo.GetValue(obj, null);
+                    task.Stream.WriteUInt32((uint)list.Count);
+                    foreach (var entry in list)
+                    {
+                        if (!WriteParserData(task, entry))
+                        {
+                            throw new Exception();
+                        }
+                    }
+                    continue;
+                }
+                else
+                {
+                    if (!WriteParserData(task, value))
+                    {
+                        throw new Exception();
+                    }
                 }
             }
         }
