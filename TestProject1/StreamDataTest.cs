@@ -103,7 +103,9 @@ namespace Demoder.Common.Tests
                 A = -15,
                 B = "Test one!",
                 C = "Test two!",
-                D = new List<int>(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 })
+                D = new List<int>(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }),
+                E = ByteEnum.Hello,
+                F = LongEnum.Max
             };
             ms.WriteInt32(expected.A);
             ms.WriteString(expected.B);
@@ -113,6 +115,9 @@ namespace Demoder.Common.Tests
             {
                 ms.WriteInt32(i);
             }
+
+            ms.WriteByte((byte)ByteEnum.Hello);
+            ms.WriteInt64((Int64)LongEnum.Max);
             
             ms.Position = 0;
             
@@ -134,7 +139,9 @@ namespace Demoder.Common.Tests
                 A = -15,
                 B = "Test one!",
                 C = "Test two!",
-                D = new List<int>(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 })
+                D = new List<int>(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }),
+                E = ByteEnum.Hello,
+                F = LongEnum.Max
             };
             expectedStream.WriteInt32(expectedObject.A);
             expectedStream.WriteString(expectedObject.B);
@@ -144,6 +151,9 @@ namespace Demoder.Common.Tests
             {
                 expectedStream.WriteInt32(i);
             }
+            expectedStream.WriteByte((byte)ByteEnum.Hello);
+            expectedStream.WriteInt64((Int64)LongEnum.Max;
+
             var expected = ((MemoryStream)expectedStream.BaseStream).ToArray();
 
             var actualStream = new SuperStream(Endianess.Little);

@@ -52,6 +52,12 @@ namespace Demoder.Common.Tests.TestData
         [StreamData(3)]
         public IList<int> D { get; set; }
 
+        [StreamData(4)]
+        public ByteEnum E { get; set; }
+
+        [StreamData(5)]
+        public LongEnum F { get; set; }
+
         public override bool Equals(object obj)
         {
             if (Object.ReferenceEquals(obj, this)) { return true; }
@@ -67,5 +73,19 @@ namespace Demoder.Common.Tests.TestData
             }
             return base.Equals(obj);
         }
+    }
+
+    public enum ByteEnum : byte
+    {
+        None=0,
+        Hello=128,
+        Max=255
+    }
+
+    public enum LongEnum : long
+    {
+        None=0,
+        Hello=4000000000,
+        Max=9223372036854775807
     }
 }

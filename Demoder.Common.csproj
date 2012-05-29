@@ -73,6 +73,7 @@
     <Compile Include="Hash\SHA384Checksum.cs" />
     <Compile Include="Hash\SHA512Checksum.cs" />
     <Compile Include="Serialization\StreamDataChecksumParser.cs" />
+    <Compile Include="Serialization\StreamDataVersionParser.cs" />
     <Compile Include="SuperStream.cs" />
     <Compile Include="Serialization\StreamDataDefaultParser.cs" />
     <Compile Include="Serialization\IStreamDataParser.cs" />
