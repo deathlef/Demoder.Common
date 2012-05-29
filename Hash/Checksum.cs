@@ -25,6 +25,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.IO;
 
 namespace Demoder.Common.Hash
 {
@@ -101,7 +102,7 @@ namespace Demoder.Common.Hash
 
             // Handle normal cases.
             int[] integers = new int[this.Bytes.Length / 4];
-            var ms = new SuperStream(this.Bytes, BitConverter.IsLittleEndian ? Endianess.Little : Endianess.Big);
+            var ms = new SuperStream(new MemoryStream(this.Bytes), BitConverter.IsLittleEndian ? Endianess.Little : Endianess.Big);
             for (int i = 0; i<integers.Length; i++)
             {
                 integers[i] = ms.ReadInt32();

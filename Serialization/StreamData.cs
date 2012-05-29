@@ -64,6 +64,11 @@ namespace Demoder.Common.Serialization
             RegisterStreamDataParsers(Assembly.GetAssembly(typeof(StreamData)));
         }
 
+        /// <summary>
+        /// Retrieve all StreamData properties contained within type.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
         public static StreamDataInfo[] GetProperties(Type type)
         {
             lock (cachedProperties)
@@ -210,6 +215,11 @@ namespace Demoder.Common.Serialization
             }
         }
 
+        /// <summary>
+        /// Retrieve human-readable display of PropertyName=Value
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
         public static string[] GetDebugInfo(object obj)
         {
             var values = new List<string>();
@@ -231,6 +241,10 @@ namespace Demoder.Common.Serialization
         }
 
         #region Stream dataparser registration
+        /// <summary>
+        /// Find and utilize all StreamDataParsers within assembly
+        /// </summary>
+        /// <param name="assembly"></param>
         public static void RegisterStreamDataParsers(Assembly assembly)
         {
             if (Log != null)
@@ -248,6 +262,10 @@ namespace Demoder.Common.Serialization
             }
         }
 
+        /// <summary>
+        /// Register a specific StreamDataParser.
+        /// </summary>
+        /// <param name="parser"></param>
         private static void RegisterStreamDataParser(Type parser)
         {
             var instance = (IStreamDataParser)Activator.CreateInstance(parser);
@@ -284,6 +302,12 @@ namespace Demoder.Common.Serialization
 
 
         #region Helper methods
+        /// <summary>
+        /// Retrieve data as described by task
+        /// </summary>
+        /// <param name="task">How to retrieve value</param>
+        /// <param name="value">Value</param>
+        /// <returns></returns>
         private static bool GetParserData(StreamDataParserTask task, out dynamic value)
         {
             IStreamDataParser parser = null;
@@ -323,7 +347,12 @@ namespace Demoder.Common.Serialization
         }
 
 
-
+        /// <summary>
+        /// Write data as described by task
+        /// </summary>
+        /// <param name="task">How to serialize object</param>
+        /// <param name="value">Object to serialize</param>
+        /// <returns></returns>
         private static bool WriteParserData(StreamDataParserTask task, object value)
         {
             IStreamDataParser parser = null;
