@@ -36,21 +36,9 @@ namespace Demoder.Common
     {
         public Endianess Endianess { get; private set; }
         public Stream BaseStream { get; private set; }
+        private SuperStream alternateEndian { get; set; }
         
         #region Constructors
-        /// <summary>
-        /// Creates a new instance using a MemoryStream populated by the specified bytes.
-        /// </summary>
-        /// <param name="bytes">Bytes to populate MemoryStream</param>
-        /// <param name="endianess">Endianess of data in the stream</param>
-        /// <param name="writeAble">Whether the stream is writeable</param>
-        public SuperStream(byte[] bytes, Endianess endianess, bool writeAble=true) 
-        {
-            if (bytes == null) { throw new ArgumentNullException("bytes"); }
-            this.BaseStream = new MemoryStream(bytes, writeAble);
-            this.Endianess = endianess;
-        }
-
         /// <summary>
         /// Creates a new instance using the provided stream.
         /// </summary>
@@ -72,6 +60,23 @@ namespace Demoder.Common
         }
 
         #endregion
+
+        /// <summary>
+        /// Returns this instance if endianess matches, or a wrapper instance with the specified endianess.<br/>
+        /// Stream position is synced between streams!
+        /// 
+        /// </summary>
+        /// <param name="endianess"></param>
+        /// <returns></returns>
+        public SuperStream AsEndian(Endianess endianess)
+        {
+            if (this.Endianess == endianess) { return this; }
+            if (this.alternateEndian == null)
+            {
+                this.alternateEndian = new SuperStream(this.BaseStream, endianess);
+            }
+            return this.alternateEndian;
+        }
 
         #region BinaryWriter
         public void WriteBytes(byte[] bytes)
