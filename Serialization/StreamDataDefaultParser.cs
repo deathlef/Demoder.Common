@@ -44,60 +44,156 @@ namespace Demoder.Common.Serialization
 
         public bool GetObject(StreamDataParserTask task, out object value)
         {
-            if (task.StreamType == typeof(Byte))
+            return GetValue(task.StreamType, task.Stream, out value);
+        }
+
+        #region IStreamDataParser Members
+
+
+        public bool WriteObject(StreamDataParserTask task, object value)
+        {
+            return WriteValue(task.StreamType, task.Stream, value);
+
+        }
+
+        private bool WriteValue(Type dataType, SuperStream stream, object value)
+        {
+            if (dataType == typeof(Byte))
             {
-                value= (byte)task.Stream.ReadByte();
+                stream.WriteByte((byte)value);
                 return true;
             }
 
-            if (task.StreamType == typeof(Int64))
+            if (dataType == typeof(Int64))
             {
-                value= task.Stream.ReadInt64();
+                stream.WriteInt64((Int64)value);
                 return true;
             }
-            if (task.StreamType == typeof(UInt64))
+            if (dataType == typeof(UInt64))
             {
-                value= task.Stream.ReadUInt64();
-                return true;
-            }
-
-            if (task.StreamType == typeof(Int32))
-            {
-                value =  task.Stream.ReadInt32();
-                return true;
-            }
-            if (task.StreamType == typeof(UInt32))
-            {
-                value= task.Stream.ReadUInt32();
+                stream.WriteUInt64((UInt64)value);
                 return true;
             }
 
-            if (task.StreamType == typeof(Int16)) 
+            if (dataType == typeof(Int32))
             {
-                value = task.Stream.ReadInt16();
+                stream.WriteInt32((Int32)value);
                 return true;
             }
-            if (task.StreamType == typeof(UInt16))
+            if (dataType == typeof(UInt32))
             {
-                value = task.Stream.ReadUInt16();
-                return true;
-            }
-
-            if (task.StreamType == typeof(Single))
-            {
-                value = task.Stream.ReadSingle();
+                stream.WriteUInt32((UInt32)value);
                 return true;
             }
 
-            if (task.StreamType == typeof(Double))
+            if (dataType == typeof(Int16))
             {
-                value = task.Stream.ReadDouble();
+                stream.WriteInt16((Int16)value);
+                return true;
+            }
+            if (dataType == typeof(UInt16))
+            {
+                stream.WriteUInt16((UInt16)value);
                 return true;
             }
 
-            if (task.StreamType == typeof(bool))
+            if (dataType == typeof(Single))
             {
-                var val = task.Stream.ReadUInt32();
+                stream.WriteSingle((Single)value);
+                return true;
+            }
+
+            if (dataType == typeof(Double))
+            {
+                stream.WriteDouble((Double)value);
+                return true;
+            }
+
+            if (dataType == typeof(bool))
+            {
+                // If bool is true, write 1. Otherwise, write 0.
+                int val = ((bool)value) ? 1 : 0;
+                stream.WriteInt32(val);
+            }
+
+            if (dataType.IsEnum)
+            {
+                dynamic storeValue = Convert.ChangeType(value, Enum.GetUnderlyingType(dataType));
+                return this.WriteValue(storeValue.GetType(), stream, storeValue);
+            }
+
+            // Test if type has StreamDataAttribute on properties.
+            // This allows nesting of StreamData-aware task.DataTypes
+            var props = StreamData.GetProperties(dataType);
+            if (props.Length == 0)
+            {
+                return false;
+            }
+
+            StreamData.Serialize(value, stream);
+            // Need to add error condition here.
+            return true;
+        }
+
+        #endregion
+
+        #region Helper methods
+        private bool GetValue(Type dataType, SuperStream stream, out object value)
+        {
+            if (dataType == typeof(Byte))
+            {
+                value = (byte)stream.ReadByte();
+                return true;
+            }
+
+            if (dataType == typeof(Int64))
+            {
+                value = stream.ReadInt64();
+                return true;
+            }
+            if (dataType == typeof(UInt64))
+            {
+                value = stream.ReadUInt64();
+                return true;
+            }
+
+            if (dataType == typeof(Int32))
+            {
+                value = stream.ReadInt32();
+                return true;
+            }
+            if (dataType == typeof(UInt32))
+            {
+                value = stream.ReadUInt32();
+                return true;
+            }
+
+            if (dataType == typeof(Int16))
+            {
+                value = stream.ReadInt16();
+                return true;
+            }
+            if (dataType == typeof(UInt16))
+            {
+                value = stream.ReadUInt16();
+                return true;
+            }
+
+            if (dataType == typeof(Single))
+            {
+                value = stream.ReadSingle();
+                return true;
+            }
+
+            if (dataType == typeof(Double))
+            {
+                value = stream.ReadDouble();
+                return true;
+            }
+
+            if (dataType == typeof(bool))
+            {
+                var val = stream.ReadUInt32();
                 if (val == 0)
                 {
                     value = false;
@@ -114,111 +210,37 @@ namespace Demoder.Common.Serialization
                 }
             }
 
-            if (task.StreamType.IsEnum)
+            if (dataType.IsEnum)
             {
-                var flags = task.Stream.ReadUInt32();
-                value = Enum.ToObject(task.StreamType, flags);
+                object readValue;
+                // Read the enums underlying type
+                if (!this.GetValue(Enum.GetUnderlyingType(dataType), stream, out readValue))
+                {
+                    value = null;
+                    return false;
+                }
+                // Parse enum using the read value.
+                value = Enum.ToObject(dataType, readValue);
                 return true;
             }
 
             // Test if type has StreamDataAttribute on properties.
             // This allows nesting of StreamData-aware task.DataTypes
-            var props = StreamData.GetProperties(task.StreamType);
+            var props = StreamData.GetProperties(dataType);
             if (props.Length == 0)
             {
                 value = null;
                 return false;
             }
 
-            value = StreamData.Create(task.StreamType, task.Stream);
-            // Need to add error condition here.
-            return true;
-        }
-
-        #region IStreamDataParser Members
-
-
-        public bool WriteObject(StreamDataParserTask task, object value)
-        {
-            if (task.StreamType == typeof(Byte))
+            value = StreamData.Create(dataType, stream);
+            if (value == null)
             {
-                task.Stream.WriteByte((byte)value);
-                return true;
-            }
-
-            if (task.StreamType == typeof(Int64))
-            {
-                task.Stream.WriteInt64((Int64)value);
-                return true;
-            }
-            if (task.StreamType == typeof(UInt64))
-            {
-                task.Stream.WriteUInt64((UInt64)value);
-                return true;
-            }
-
-            if (task.StreamType == typeof(Int32))
-            {
-                task.Stream.WriteInt32((Int32)value);
-                return true;
-            }
-            if (task.StreamType == typeof(UInt32))
-            {
-                task.Stream.WriteUInt32((UInt32)value);
-                return true;
-            }
-
-            if (task.StreamType == typeof(Int16))
-            {
-                task.Stream.WriteInt16((Int16)value);
-                return true;
-            }
-            if (task.StreamType == typeof(UInt16))
-            {
-                task.Stream.WriteUInt16((UInt16)value);
-                return true;
-            }
-
-            if (task.StreamType == typeof(Single))
-            {
-                task.Stream.WriteSingle((Single)value);
-                return true;
-            }
-
-            if (task.StreamType == typeof(Double))
-            {
-                task.Stream.WriteDouble((Double)value);
-                return true;
-            }
-
-            if (task.StreamType == typeof(bool))
-            {
-                // If bool is true, write 1. Otherwise, write 0.
-                int val = ((bool)value) ? 1 : 0;
-                task.Stream.WriteInt32(val);
-            }
-
-            if (task.StreamType.IsEnum)
-            {
-                var flags = task.Stream.ReadUInt32();
-                value = Enum.ToObject(task.StreamType, flags);
-                return true;
-            }
-
-            // Test if type has StreamDataAttribute on properties.
-            // This allows nesting of StreamData-aware task.DataTypes
-            var props = StreamData.GetProperties(task.StreamType);
-            if (props.Length == 0)
-            {
-                value = null;
                 return false;
             }
-
-            value = StreamData.Create(task.StreamType, task.Stream);
-            // Need to add error condition here.
             return true;
-
         }
+
 
         #endregion
     }
