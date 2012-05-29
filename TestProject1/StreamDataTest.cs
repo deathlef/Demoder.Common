@@ -152,7 +152,7 @@ namespace Demoder.Common.Tests
                 expectedStream.WriteInt32(i);
             }
             expectedStream.WriteByte((byte)ByteEnum.Hello);
-            expectedStream.WriteInt64((Int64)LongEnum.Max;
+            expectedStream.WriteInt64((Int64)LongEnum.Max);
 
             var expected = ((MemoryStream)expectedStream.BaseStream).ToArray();
 
