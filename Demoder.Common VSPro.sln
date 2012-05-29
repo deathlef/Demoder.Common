@@ -3,14 +3,14 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Demoder.Common", "Demoder.Common.csproj", "{AC7BB3A1-A0E3-4931-9661-2BA4DB418B6F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestProject1", "TestProject1\TestProject1.csproj", "{E031C896-57AA-44A6-B0A4-0595034AA1D8}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{6D58354D-0230-494F-9395-19303BE1D451}"
 	ProjectSection(SolutionItems) = preProject
 		Demoder.Common VSPro.vsmdi = Demoder.Common VSPro.vsmdi
 		Local.testsettings = Local.testsettings
 		TraceAndTestImpact.testsettings = TraceAndTestImpact.testsettings
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Demoder.Common.Tests", "TestProject1\Demoder.Common.Tests.csproj", "{E031C896-57AA-44A6-B0A4-0595034AA1D8}"
 EndProject
 Global
 	GlobalSection(TestCaseManagementSettings) = postSolution
