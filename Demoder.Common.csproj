@@ -59,6 +59,8 @@
     <Compile Include="AO\Towerwars\DataClasses\TowerResults.cs" />
     <Compile Include="AO\Towerwars\DataClasses\TowerSites.cs" />
     <Compile Include="AO\enums.cs" />
+    <Compile Include="Attributes\SettingAttribute.cs" />
+    <Compile Include="Attributes\SettingOptionAttribute.cs" />
     <Compile Include="Attributes\StreamDataAttribute.cs" />
     <Compile Include="Attributes\StreamDataStringAttribute.cs" />
     <Compile Include="BackgroundWorkerInputQueue.cs" />
