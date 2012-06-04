@@ -40,6 +40,8 @@ namespace Demoder.Common.AO.Towerwars.DataClasses
     [Serializable]
     public class TowerSite 
     {
+        [XmlAttribute("zoneID")]
+        public uint ZoneID;
         [XmlAttribute("zone")]
         public string Zone;
         [XmlAttribute("id")]
@@ -52,6 +54,11 @@ namespace Demoder.Common.AO.Towerwars.DataClasses
         public int MinLevel;
         [XmlAttribute("maxlevel")]
         public int MaxLevel;
+
+        [XmlAttribute("centerX")]
+        public int CenterX;
+        [XmlAttribute("centerY")]
+        public int CenterY;
 
         public override string ToString()
         {

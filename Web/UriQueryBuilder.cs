@@ -26,10 +26,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Web;
+using System.Dynamic;
 
 namespace Demoder.Common.Web
 {
-    public class UriQueryBuilder
+    public class UriQueryBuilder : DynamicObject
     {
         private Dictionary<string, string> queryItems = new Dictionary<string, string>();
 
@@ -76,5 +77,26 @@ namespace Demoder.Common.Web
             ub.Query = this.ToString();
             return ub.Uri;
         }
+
+        public override bool TryGetMember(GetMemberBinder binder, out object result)
+        {
+            string res;
+            var success= this.queryItems.TryGetValue(binder.Name, out res);
+            result = res;
+            return success;
+        }
+
+        public override bool TrySetMember(SetMemberBinder binder, object value)
+        {
+            if (value == null)
+            {
+                this.queryItems[binder.Name] = null;
+            }
+            else
+            {
+                this.queryItems[binder.Name] = value.ToString();
+            }
+            return true;
+        }        
     }
 }
