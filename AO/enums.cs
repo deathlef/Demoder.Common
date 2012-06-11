@@ -30,8 +30,10 @@ namespace Demoder.Common.AO
 {
     public enum Dimension : int
     {
+        Unknown = 0,
         Atlantean = 1,
-        Rimor = 2
+        Rimor = 2,
+        Testlive=9,
     }
 
     public enum Faction
