@@ -28,10 +28,33 @@ using System.Text;
 
 namespace Demoder.Common.Cache
 {
-    public interface ICacheTarget
+    public class CacheBase
     {
-        void Store(CacheEntry cacheEntry, params object[] identifiers);
-        CacheEntry Retrieve(params object[] identifiers);
-        void RemoveStaleItems();
+        /// <summary>
+        /// Default duration to cache items for
+        /// </summary>
+        protected TimeSpan DefaultDuration { get; set; }
+
+        protected ICacheTarget Cache { get; set; }
+
+        protected CacheBase()
+        {
+        }
+
+        /// <summary>
+        /// When is the provided item due to expire?
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        protected DateTime ExpireTime(object obj)
+        {
+            if (obj is ICacheExpity)
+            {
+                return (obj as ICacheExpity).CacheUntil;
+            }
+            return DateTime.Now.Add(this.DefaultDuration);
+        }
+
+
     }
 }

@@ -166,4 +166,29 @@ namespace Demoder.Common
         Bit62 = 4611686018427387904,
         Bit63 = 18446744073709551615,
     }
+
+    [Flags]
+    public enum CacheFlags
+    {
+        /// <summary>
+        /// Retrieve the object from recent cache
+        /// </summary>
+        ReadCache = 0x01,
+        /// <summary>
+        /// Write the object to recent cache if pulled from live data source
+        /// </summary>
+        WriteCache = 0x02,
+        /// <summary>
+        /// Retrieve the object from live data source
+        /// </summary>
+        ReadLive = 0x04,
+        /// <summary>
+        /// Retrieve the object from cache as last resort, regardless of age
+        /// </summary>
+        ReadExpired = 0x08,
+        /// <summary>
+        /// The default flags
+        /// </summary>
+        Default = ReadCache | WriteCache | ReadLive
+    }
 }
