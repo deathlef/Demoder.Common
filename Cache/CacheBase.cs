@@ -35,7 +35,7 @@ namespace Demoder.Common.Cache
         /// </summary>
         protected TimeSpan DefaultDuration { get; set; }
 
-        protected ICacheTarget Cache { get; set; }
+        protected ICacheTarget CacheTarget { get; set; }
 
         protected CacheBase()
         {

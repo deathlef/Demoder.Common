@@ -69,7 +69,7 @@ namespace Demoder.Common.Cache
         [Obsolete]
         public XMLCache(string path, int duration, int timeout)
         {
-            this.Cache = new FileCacheTarget(new DirectoryInfo(Path.Combine(path, MD5Checksum.Generate(typeof(T).FullName).ToString())));
+            this.CacheTarget = new FileCacheTarget(new DirectoryInfo(Path.Combine(path, MD5Checksum.Generate(typeof(T).FullName).ToString())));
             this.DefaultDuration = new TimeSpan(0, duration, 0);
         }
 
@@ -80,7 +80,7 @@ namespace Demoder.Common.Cache
         /// <param name="duration">Cache items for this duration</param>
         public XMLCache(DirectoryInfo cacheDirectory, TimeSpan duration)
         {
-            this.Cache = new FileCacheTarget(cacheDirectory);
+            this.CacheTarget = new FileCacheTarget(cacheDirectory);
             this.DefaultDuration = duration;
         }
 
@@ -90,7 +90,7 @@ namespace Demoder.Common.Cache
         /// <param name="cache">Used to store data</param>
         public XMLCache(ICacheTarget cache)
         {
-            this.Cache = cache;
+            this.CacheTarget = cache;
         }
 
         #endregion
@@ -120,7 +120,7 @@ namespace Demoder.Common.Cache
 
             
             // Read cache entry, if any.
-            var ce = this.Cache.Retrieve(args);
+            var ce = this.CacheTarget.Retrieve(args);
 
             var obj = default(T);
             if ((source.HasFlag(CacheFlags.ReadCache) && !ce.IsExpired && ce.Data!=null))
@@ -171,7 +171,7 @@ namespace Demoder.Common.Cache
             var ms = new MemoryStream();
             Xml.Serialize<T>(ms, obj, false);
 
-            this.Cache.Store(
+            this.CacheTarget.Store(
                 new CacheEntry(ms.ToArray()) { Expirity = this.ExpireTime(obj) },
                 args);
             return true;
