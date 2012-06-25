@@ -95,6 +95,7 @@ namespace Demoder.Common.Serialization
         /// <returns></returns>
         public static T Create<T>(SuperStream ms)
         {
+            
             var obj = Activator.CreateInstance<T>();
             return (T)Populate(obj, ms);
         }
@@ -302,6 +303,19 @@ namespace Demoder.Common.Serialization
 
 
         #region Helper methods
+
+        private static IStreamDataParser GetParser(Type dataType)
+        {
+            lock (streamDataParsers)
+            {
+                if (streamDataParsers.ContainsKey(dataType))
+                {
+                    return streamDataParsers[dataType];
+                }
+                return defaultDataParser;
+            }
+        }
+
         /// <summary>
         /// Retrieve data as described by task
         /// </summary>
@@ -310,29 +324,12 @@ namespace Demoder.Common.Serialization
         /// <returns></returns>
         private static bool GetParserData(StreamDataParserTask task, out dynamic value)
         {
-            IStreamDataParser parser = null;
+            IStreamDataParser parser = GetParser(task.StreamType);
 
             dynamic tmpVal;
             bool result;
-            // Get the right parser
-            lock (streamDataParsers)
-            {
-                if (streamDataParsers.ContainsKey(task.StreamType))
-                {
-                    parser = streamDataParsers[task.StreamType];
-                }
-            }
-
-            // Retrieve value from the designated parser.
-            if (parser == null)
-            {
-                result = defaultDataParser.GetObject(task, out tmpVal);
-            }
-            else
-            {
-                result = parser.GetObject(task, out tmpVal);
-            }
-
+            result = parser.GetObject(task, out tmpVal);
+            
             // Cast value, if necessary.
             if (task.StreamType != task.DataType)
             {
@@ -355,7 +352,7 @@ namespace Demoder.Common.Serialization
         /// <returns></returns>
         private static bool WriteParserData(StreamDataParserTask task, object value)
         {
-            IStreamDataParser parser = null;
+            IStreamDataParser parser = GetParser(task.StreamType);
             dynamic tmpVal;
             // Cast value, if necessary.
             if (task.StreamType != task.DataType)
@@ -367,26 +364,7 @@ namespace Demoder.Common.Serialization
                 tmpVal = value;
             }
 
-            bool result;
-            // Get the right parser
-            lock (streamDataParsers)
-            {
-                if (streamDataParsers.ContainsKey(task.StreamType))
-                {
-                    parser = streamDataParsers[task.StreamType];
-                }
-            }
-
-            // Retrieve value from the designated parser.
-            if (parser == null)
-            {
-                result = defaultDataParser.WriteObject(task, tmpVal);
-            }
-            else
-            {
-                result = parser.WriteObject(task, tmpVal);
-            }            
-
+            var result = parser.WriteObject(task, tmpVal);      
             return result;
         }
         #endregion

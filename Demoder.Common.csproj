@@ -65,6 +65,9 @@
     <Compile Include="Attributes\StreamDataStringAttribute.cs" />
     <Compile Include="BackgroundWorkerInputQueue.cs" />
     <Compile Include="Cache\FileCache.cs" />
+    <Compile Include="Cache\CacheEntry.cs" />
+    <Compile Include="Cache\ICacheExpity.cs" />
+    <Compile Include="Cache\ICacheTarget.cs" />
     <Compile Include="Cache\XmlCache.cs" />
     <Compile Include="Cache\XmlCacheWrapper.cs" />
     <Compile Include="enums.cs" />
@@ -76,6 +79,7 @@
     <Compile Include="Hash\SHA384Checksum.cs" />
     <Compile Include="Hash\SHA512Checksum.cs" />
     <Compile Include="Serialization\StreamDataChecksumParser.cs" />
+    <Compile Include="Serialization\StreamDataDateTimeParser.cs" />
     <Compile Include="Serialization\StreamDataVersionParser.cs" />
     <Compile Include="SuperStream.cs" />
     <Compile Include="Serialization\StreamDataDefaultParser.cs" />

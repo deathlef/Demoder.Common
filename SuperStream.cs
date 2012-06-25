@@ -32,11 +32,12 @@ namespace Demoder.Common
     /// <summary>
     /// An endian-aware stream wrapper
     /// </summary>
-    public class SuperStream : Stream
+    public class SuperStream : Stream, IDisposable
     {
         public Endianess Endianess { get; private set; }
         public Stream BaseStream { get; private set; }
         private SuperStream alternateEndian { get; set; }
+        public bool DisposeBaseStream { get; set; }
         
         #region Constructors
         /// <summary>
@@ -393,6 +394,17 @@ namespace Demoder.Common
         }
         #endregion
 
-        
+        void IDisposable.Dispose()
+        {
+            this.Dispose();
+        }
+        public void Dispose()
+        {
+            if (this.DisposeBaseStream)
+            {
+                this.BaseStream.Dispose();
+            }
+            base.Dispose();
+        }
     }
 }

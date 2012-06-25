@@ -84,23 +84,45 @@ namespace Demoder.Common.Cache
     public class XMLCache<T>
         where T : class
     {
-        public string Path { get { return this.path; } }
-        public int Duration { get { return this.duration; } }
-        public int Timeout { get { return this.timeout; } }
+        private ICacheTarget cache;
 
+        public TimeSpan Duration { get; private set; }
+
+        #region Constructors
         /// <summary>
         /// Initializes a new XMLCache object
         /// </summary>
         /// <param name="path">The absolute or relative path to the directory to store the cache files in</param>
         /// <param name="duration">The duration of the cache should hold objects for in minutes</param>
-        /// <param name="timeout">The timeout of connecting to the web in miliseconds</param>
+        /// <param name="timeout">[Ignored]</param>
+        [Obsolete]
         public XMLCache(string path, int duration, int timeout)
         {
-            this.path = path;
-            this.subPath = MD5Checksum.Generate(typeof(T).FullName).ToString();
-            this.duration = duration;
-            this.timeout = timeout;
+            this.cache = new FileCache(new DirectoryInfo(Path.Combine(path, MD5Checksum.Generate(typeof(T).FullName).ToString())));
+            this.Duration = new TimeSpan(0, duration, 0);
         }
+
+        /// <summary>
+        /// Initializes a new FileCache-backed instance
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="duration">Cache items for this duration</param>
+        public XMLCache(DirectoryInfo cacheDirectory, TimeSpan duration)
+        {
+            this.cache = new FileCache(cacheDirectory);
+            this.Duration = duration;
+        }
+
+        /// <summary>
+        /// Creates an instance backed by specified cache target
+        /// </summary>
+        /// <param name="cache">Used to store data</param>
+        public XMLCache(ICacheTarget cache)
+        {
+            this.cache = cache;
+        }
+
+        #endregion
 
         public T Request(string url, params string[] args)
         { 
@@ -125,24 +147,22 @@ namespace Demoder.Common.Cache
                 throw new ArgumentException("expecting at least 1 argument");
             }
 
-            // Construct path and filename
-            string path = this.GetPath();
-            string file = this.GetFilePath(args);
-            // Check if a cached entry exists
-            T obj = null;
-            if ((source & XMLCacheFlags.ReadCache) != 0 && IsCached(true, file))
+            
+            // Read cache entry, if any.
+            var ce = this.cache.Retrieve(args);
+
+            var obj = default(T);
+            if ((source.HasFlag(XMLCacheFlags.ReadCache) && !ce.IsExpired && ce.Data!=null))
             {
-                lock (this)
-                {
-                    obj = Xml.Deserialize<T>(new FileInfo(file), false);
-                }
+                // Cache entry appears to be valid.
+                obj = Xml.Deserialize<T>(ce.ToStream(), true);
                 if (obj != null)
                 {
                     return obj;
                 }
             }
-            // Fetch fresh
-            if ((source & XMLCacheFlags.ReadLive) != 0)
+
+            if (source.HasFlag(XMLCacheFlags.ReadLive))
             {
                 if (args.Length > 0)
                 {
@@ -150,25 +170,22 @@ namespace Demoder.Common.Cache
                 }
 
                 obj = Xml.Deserialize<T>(uri);
-                if (obj != null && (source & XMLCacheFlags.WriteCache) != 0)
+
+                if (obj != null)
                 {
-                    // Write cache
-                    if (!Directory.Exists(path))
+                    if (source.HasFlag(XMLCacheFlags.WriteCache))
                     {
-                        Directory.CreateDirectory(path);
+                        this.Cache(obj, args);
                     }
-                    lock (this)
-                    {
-                        Xml.Serialize<T>(new FileInfo(file), obj, false);
-                    }
+                    return obj;
                 }
             }
+
             // Retreive old copy from cache
-            if (obj == null && (source & XMLCacheFlags.ReadExpired) != 0)
+            if (obj == null && (source.HasFlag(XMLCacheFlags.ReadExpired)))
             {
-                if (IsCached(false, file))
-                    lock (this)
-                        obj = Xml.Deserialize<T>(new FileInfo(file), false);
+                obj = Xml.Deserialize<T>(ce.ToStream(), true);
+                return obj;
             }
             // Finally, return the object
             return obj;
@@ -176,56 +193,26 @@ namespace Demoder.Common.Cache
 
         public bool Cache(T obj, params string[] args)
         {
-            if (obj == null) return false;
-            string path = this.GetPath();
-            string file = this.GetFilePath(args);
-            if (!Directory.Exists(path))
-                Directory.CreateDirectory(path);
-            lock (this)
-                return Xml.Serialize<T>(new FileInfo(file), obj, false);
-        }
-
-        public bool IsCached(params string[] args) { return this.IsCached(true, args); }
-        public bool IsCached(bool checkDuration, params string[] args) { return this.IsCached(checkDuration, this.GetFilePath(args)); }
-        private bool IsCached(bool checkDuration, string file)
-        {
-            lock (this)
+            if (obj == null)
             {
-                if (File.Exists(file))
-                {
-                    if (!checkDuration) return true;
-                    // Check file age
-                    TimeSpan time = DateTime.Now - File.GetLastWriteTime(file);
-                    if (time.TotalMinutes <= this.Duration)
-                    {
-                        return true;
-                    }
-                }
+                return false;
             }
-            return false;
+            var ms = new MemoryStream();
+            Xml.Serialize<T>(ms, obj, false);
+
+            this.cache.Store(
+                new CacheEntry(ms.ToArray()) { Expirity = this.GetExpirity(obj) },
+                args);
+            return true;
         }
 
-        public string GetPath()
+        private DateTime GetExpirity(T obj)
         {
-            string basePath = this.path;
-            if (String.IsNullOrWhiteSpace(basePath)) { basePath = "."; }
-
-            return System.IO.Path.Combine(basePath, this.subPath);
+            if (obj is ICacheExpity)
+            {
+                return (obj as ICacheExpity).CacheUntil;
+            }
+            return DateTime.Now.Add(this.Duration);
         }
-
-        public string GetFile(params string[] args)
-        {
-            return MD5Checksum.Generate(String.Join(";", args)).ToString() + ".xml";
-        }
-
-        public string GetFilePath(params string[] args)
-        {
-            return System.IO.Path.Combine(this.GetPath(), this.GetFile(args));
-        }
-
-        private string path;
-        private string subPath;
-        private int duration;
-        private int timeout;
     }
 }
