@@ -24,6 +24,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using Demoder.Common.Hash;
+using System.Collections.Concurrent;
 
 namespace Demoder.Common.Cache
 {
@@ -34,13 +36,10 @@ namespace Demoder.Common.Cache
         /// <summary>
         /// Minutes to hold items in cache.
         /// </summary>
-        private int cacheTime = 1440;
-        /// <summary>
-        /// Timeout for HTTP connections in milliseconds
-        /// </summary>
-        private int fetchTimeout = 2000;
-        private Dictionary<Type, Object> xmlCache = new Dictionary<Type, Object>();
+        private TimeSpan cacheTime = new TimeSpan(24, 0, 0);
+        private ConcurrentDictionary<Type, Object> xmlCache = new ConcurrentDictionary<Type, Object>();
         #endregion
+
         #region Constructors
         /// <summary>
         /// Initializes the cache wrapper
@@ -62,10 +61,12 @@ namespace Demoder.Common.Cache
         /// <returns></returns>
         public XMLCache<T> Get<T>() where T : class
         {
-            if (!this.xmlCache.ContainsKey(typeof(T)))
-                return this.Create<T>(this.cacheTime, this.fetchTimeout);
-            else
-                return (XMLCache<T>)this.xmlCache[typeof(T)];
+            dynamic ret;
+            if (!this.xmlCache.TryGetValue(typeof(T), out ret))
+            {
+                return this.Create<T>(this.cacheTime);
+            }
+            return ret;
         }
 
         /// <summary>
@@ -73,21 +74,33 @@ namespace Demoder.Common.Cache
         /// </summary>
         /// <typeparam name="T">Class the XMLCache object is caching</typeparam>
         /// <param name="cacheTime">Time in minutes to keep items in cache</param>
-        /// <param name="fetchTimeout">Timeout for HTTP connections, in milliseconds</param>
+        /// <param name="fetchTimeout">Ignored</param>
         /// <returns></returns>
+        [Obsolete]
         public XMLCache<T> Create<T>(int cacheTime, int fetchTimeout) where T : class
         {
-            if (this.xmlCache.ContainsKey(typeof(T)))
-                return this.Get<T>();
-            lock (this.xmlCache)
+            return this.Create<T>(new TimeSpan(0, cacheTime, 0));
+        }
+
+        /// <summary>
+        /// Creates an instance of XMLCache for this type.
+        /// </summary>
+        /// <typeparam name="T">Class the XMLCache object is caching</typeparam>
+        /// <param name="cacheTime">Time in minutes to keep items in cache</param>
+        /// <returns></returns>
+        public XMLCache<T> Create<T>(TimeSpan cacheTime) where T : class
+        {
+            dynamic ret;
+            if (this.xmlCache.TryGetValue(typeof(T), out ret))
             {
-                XMLCache<T> ret = new XMLCache<T>(
-                    this.rootDirectory.FullName,
-                    cacheTime, 
-                    fetchTimeout);
-                this.xmlCache.Add(typeof(T), ret); //Add to internal list.
                 return ret;
             }
+
+            var subDir = Path.Combine(this.rootDirectory.FullName, MD5Checksum.Generate(typeof(T).FullName).ToString());
+            ret = new XMLCache<T>(
+                new DirectoryInfo(subDir),
+                cacheTime);
+            return (XMLCache<T>)this.xmlCache.GetOrAdd(typeof(T), ret); //Add to internal list.            
         }
         #endregion
     }

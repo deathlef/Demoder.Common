@@ -23,205 +23,127 @@ THE SOFTWARE.
 
 using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Linq;
 using System.Text;
-using System.Xml.Serialization;
-
+using System.IO;
 using Demoder.Common.Hash;
 using Demoder.Common.Serialization;
-using System.Net;
-
 
 namespace Demoder.Common.Cache
 {
-    public class FileCache
+    public class FileCache : ICacheTarget
     {
-        #region members
-        /// <summary>
-        /// This is an index of all the cached data
-        /// </summary>
-        private Dictionary<string, CacheInfo> cacheIndex = new Dictionary<string, CacheInfo>();
-        /// <summary>
-        /// Monitors the cache directory for changes
-        /// </summary>
-        private FileSystemWatcher fsWatcher;
-
-        private DirectoryInfo cacheRootDirectory;
-        private DirectoryInfo cacheIndexDirectory;
-        private DirectoryInfo cacheDataDirectory;
-        #endregion
-        #region Constructors
-        /// <summary>
-        /// Initializes the URL cache
-        /// </summary>
-        /// <param name="rootDirectory">Directory used for storage</param>
-        public FileCache(DirectoryInfo rootDirectory)
+        private DirectoryInfo CacheDirectory { get; set; }
+        public static DirectoryInfo DefaultCacheRootDirectory
         {
-            //Define cache directories
-            this.cacheRootDirectory = rootDirectory;
-            this.cacheIndexDirectory = new DirectoryInfo(Path.Combine(rootDirectory.FullName, "Index"));
-            this.cacheDataDirectory = new DirectoryInfo(Path.Combine(rootDirectory.FullName, "Data"));
-            //Check if cache directories exist
-            if (!this.cacheRootDirectory.Exists)
+            get
             {
-                this.cacheRootDirectory.Create();
-            }
-            if (!this.cacheIndexDirectory.Exists)
-            {
-                this.cacheIndexDirectory.Create();
-            }
-            if (!this.cacheDataDirectory.Exists)
-            {
-                this.cacheDataDirectory.Create();
-            }
-            //initialize the fsWatcher
-            this.fsWatcher = new FileSystemWatcher(rootDirectory.FullName);
-
-            // Load all indexes.
-            foreach (var file in this.cacheIndexDirectory.GetFiles("*.xml"))
-            {
-                var index = Xml.Deserialize<CacheInfo>(file, false);
-                this.cacheIndex[index.Key] = index;
-            }
-        }
-        #endregion
-        #region fsWatcher implementation
-
-        #endregion
-
-        #region Methods
-        public void Cache(string key, byte[] data)
-        {
-            lock (this.cacheIndex)
-            {
-                string md5 = MD5Checksum.Generate(data).ToString();
-                //Is this data the same as the old?
-                if (this.cacheIndex.ContainsKey(key))
-                    if (this.cacheIndex[key].Hash == md5)
-                        return;
-
-                //If we made it here, it's a change to the old value.
-                CacheInfo ci = new CacheInfo(key, md5);
-                FileInfo dataFile = new FileInfo(this.GetDataFileName(key));
-                FileInfo indexFile = new FileInfo(this.GetIndexFileName(key));
-                try
-                {
-                    //Update the cache.
-                    File.WriteAllBytes(dataFile.FullName, data); //Write the data
-                    Xml.Serialize<CacheInfo>(indexFile, ci, false); //Write the index
-                    this.cacheIndex[key] = ci; //Store index in memory
-                }
-                catch
-                {
-                    //If something fails with the caching, remove the cache entry.
-                    if (this.cacheIndex.ContainsKey(key))
-                    {
-                        this.cacheIndex.Remove(key);
-                    }
-                    try
-                    {
-                        indexFile.Delete();
-                        dataFile.Delete();
-                    }
-                    catch { return; }
-                    return;
-                }
+                return new DirectoryInfo(Path.Combine(Misc.MyTemporaryDirectory, "FileCache"));
             }
         }
 
-        public void WebClientDownloadDataCompleted(object sender, DownloadDataCompletedEventArgs e)
+        public FileCache(DirectoryInfo cacheRootDirectory, string cacheName = "")
         {
-            if (e.Error!=null || e.Cancelled) { return; }
-            this.Cache(e.UserState.ToString(), e.Result);
+            if (String.IsNullOrWhiteSpace(cacheName))
+            {
+                this.CacheDirectory = cacheRootDirectory;
+            }
+            else
+            {
+                this.CacheDirectory = new DirectoryInfo(Path.Combine(cacheRootDirectory.FullName, cacheName));
+            }
+            if (!this.CacheDirectory.Exists)
+            {
+                this.CacheDirectory.Create();
+            }
         }
 
         /// <summary>
-        /// Reads a file from cache.
+        /// Retrieves the path & name of the cache entry file
         /// </summary>
-        /// <param name="key">ID of file to read</param>
+        /// <param name="identifiers"></param>
         /// <returns></returns>
-        public byte[] Read(string key)
+        private FileInfo GetCacheEntryFile(params object[] identifiers)
         {
-            lock (this.cacheIndex)
+            if (identifiers == null) { throw new ArgumentNullException("identifiers"); }
+            if (identifiers.Length == 0) { throw new ArgumentException("You must provide at least one identifier for the cache entry.", "identifiers"); }
+
+            var sb = new StringBuilder();
+            foreach (var id in identifiers)
             {
-                if (!this.cacheIndex.ContainsKey(key))
-                    return null;
-                else
+                sb.Append(id.ToString());
+            }
+            var md5 = MD5Checksum.Generate(sb.ToString()).ToString();
+            return new FileInfo(
+                Path.Combine(
+                    this.CacheDirectory.FullName,
+                    md5.Substring(0, 2),
+                    md5 + ".cachefile"));
+        }
+
+        public void Store(CacheEntry cacheEntry, params object[] identifiers)
+        {
+            lock (this.CacheDirectory)
+            {
+                var file = this.GetCacheEntryFile(identifiers);
+                if (!file.Directory.Exists) { file.Directory.Create(); }
+
+                using (var stream = new SuperStream(
+                                        new FileStream(file.FullName, FileMode.Create, FileAccess.Write, FileShare.None), 
+                                        Endianess.Little) 
+                                        { 
+                                             DisposeBaseStream = true 
+                                        })
                 {
-                    byte[] bytes = File.ReadAllBytes(this.GetDataFileName(key));
-                    //Ensure the index is up to date.
-                    string md5 = MD5Checksum.Generate(bytes).ToString();
-                    if (md5 != this.cacheIndex[key].Hash)
-                        this.Cache(key, bytes);
-                    return bytes;
+                    StreamData.Serialize(cacheEntry, stream);
                 }
             }
         }
 
-        public DateTime Time(string key)
+        public CacheEntry Retrieve(params object[] identifiers)
         {
-            lock (this.cacheIndex)
+            lock (this.CacheDirectory)
             {
-                if (this.cacheIndex.ContainsKey(key))
-                    return new FileInfo(this.GetDataFileName(key)).LastWriteTime;
-                else
-                    return default(DateTime);
-            }
-        }
-
-        private string GetIndexFileName(string key)
-        {
-            return Path.Combine(this.cacheIndexDirectory.FullName, MD5Checksum.Generate(key) + ".xml");
-        }
-        private string GetDataFileName(string key)
-        {
-            return Path.Combine(this.cacheDataDirectory.FullName, MD5Checksum.Generate(key) + ".data");
-        }
-        #endregion
-
-        #region data classes
-        public class CacheInfo
-        {
-            #region members
-            private string key = default(string);
-            private string hash = default(string);
-            #endregion
-            #region constructors
-            public CacheInfo()
-            {
-            }
-            public CacheInfo(string key, string md5Hash)
-            {
-                this.key = key;
-                this.hash = md5Hash;
-            }
-            #endregion
-            #region accessors
-            /// <summary>
-            /// Unique key of the data
-            /// </summary>
-            public string Key
-            {
-                get { return this.key; }
-                set
+                var file = this.GetCacheEntryFile(identifiers);
+                if (!file.Exists)
                 {
-                    if (this.key == default(string))
-                        this.key = value;
-                    else
-                        throw new InvalidOperationException("Key may not be changed after initialization of object.");
+                    return new CacheEntry { Data = null, Expirity = DateTime.MinValue };
+                }
+                using (var stream = new SuperStream(file.OpenRead(), Endianess.Little) { DisposeBaseStream = true })
+                {
+                    return StreamData.Create<CacheEntry>(stream);
                 }
             }
-
-            /// <summary>
-            /// Hash value of the data
-            /// </summary>
-            public string Hash
-            {
-                get { return this.hash; }
-                set { this.hash = value; }
-            }
-            #endregion
         }
-        #endregion
+
+        public void RemoveStaleItems()
+        {
+            lock (this.CacheDirectory)
+            {
+                foreach (var dir in this.CacheDirectory.GetDirectories())
+                {
+                    foreach (var file in dir.GetFiles("*.cachefile", SearchOption.TopDirectoryOnly))
+                    {
+                        if (this.IsStale(file))
+                        {
+                            file.Delete();
+                        }
+                    }
+                }
+            }
+        }
+
+        private bool IsStale(FileInfo file)
+        {
+            // Create a read stream
+            using (var stream = new SuperStream(file.OpenRead(), Endianess.Little) { DisposeBaseStream = true })
+            {
+                // Find out of this entry should be removed
+                // by reading a DateTime object (first parameter) 
+                // from the file.
+                var dt = Misc.Unixtime(stream.ReadInt64());
+                return dt < DateTime.Now;
+            }
+        }
     }
 }
