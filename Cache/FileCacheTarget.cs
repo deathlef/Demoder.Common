@@ -31,7 +31,7 @@ using Demoder.Common.Serialization;
 
 namespace Demoder.Common.Cache
 {
-    public class FileCache : ICacheTarget
+    public class FileCacheTarget : ICacheTarget
     {
         private DirectoryInfo CacheDirectory { get; set; }
         public static DirectoryInfo DefaultCacheRootDirectory
@@ -42,7 +42,7 @@ namespace Demoder.Common.Cache
             }
         }
 
-        public FileCache(DirectoryInfo cacheRootDirectory, string cacheName = "")
+        public FileCacheTarget(DirectoryInfo cacheRootDirectory, string cacheName = "")
         {
             if (String.IsNullOrWhiteSpace(cacheName))
             {

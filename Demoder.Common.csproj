@@ -64,7 +64,8 @@
     <Compile Include="Attributes\StreamDataAttribute.cs" />
     <Compile Include="Attributes\StreamDataStringAttribute.cs" />
     <Compile Include="BackgroundWorkerInputQueue.cs" />
-    <Compile Include="Cache\FileCache.cs" />
+    <Compile Include="Cache\CacheBase.cs" />
+    <Compile Include="Cache\FileCacheTarget.cs" />
     <Compile Include="Cache\CacheEntry.cs" />
     <Compile Include="Cache\ICacheExpity.cs" />
     <Compile Include="Cache\ICacheTarget.cs" />

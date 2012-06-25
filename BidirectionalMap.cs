@@ -99,5 +99,7 @@ namespace Demoder.Common
                 this.t2T1[t2] = t1;
             }
         }
+
+        public int Count { get { return this.t1T2.Count; } }
     }
 }
