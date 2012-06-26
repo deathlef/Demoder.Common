@@ -54,6 +54,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="MathsTest.cs" />
+    <Compile Include="MemoryCacheTargetTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StreamDataTest.cs" />
     <Compile Include="SuperStreamTest.cs" />

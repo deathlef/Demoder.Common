@@ -65,15 +65,7 @@ namespace Demoder.Common.Cache
         /// <returns></returns>
         private FileInfo GetCacheEntryFile(params object[] identifiers)
         {
-            if (identifiers == null) { throw new ArgumentNullException("identifiers"); }
-            if (identifiers.Length == 0) { throw new ArgumentException("You must provide at least one identifier for the cache entry.", "identifiers"); }
-
-            var sb = new StringBuilder();
-            foreach (var id in identifiers)
-            {
-                sb.Append(id.ToString());
-            }
-            var md5 = MD5Checksum.Generate(sb.ToString()).ToString();
+            var md5 = CacheBase.GetChecksum(identifiers).ToString();
             return new FileInfo(
                 Path.Combine(
                     this.CacheDirectory.FullName,
@@ -107,7 +99,7 @@ namespace Demoder.Common.Cache
                 var file = this.GetCacheEntryFile(identifiers);
                 if (!file.Exists)
                 {
-                    return new CacheEntry { Data = null, Expirity = DateTime.MinValue };
+                    return CacheEntry.Empty;
                 }
                 using (var stream = new SuperStream(file.OpenRead(), Endianess.Little) { DisposeBaseStream = true })
                 {
