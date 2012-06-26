@@ -53,5 +53,34 @@ namespace Demoder.Common.Cache
         {
             return new MemoryStream(Data.ToArray());
         }
+
+        public override bool Equals(object obj)
+        {
+            if (!(obj is CacheEntry))
+            {
+                return base.Equals(obj);
+            }
+            var o = obj as CacheEntry;
+            if (!o.Expirity.Equals(this.Expirity)) { return false; }
+            if (o.Data == null && this.Data != null) { return false; }
+            if (o.Data != null && this.Data == null) { return false; }
+            if (!o.Data.SequenceEqual(this.Data)) { return false; }
+            return true;
+        }
+
+        public override int GetHashCode()
+        {
+            if (this.Data == null) { return 0; }
+            if (this.Data.Count == 1) { return this.Data[0]; }
+
+            var hash = this.Data[0];
+            for (int i = 1; i < this.Data.Count; i++)
+            {
+                hash ^= this.Data[i];
+            }
+            return hash;
+        }
+
+        public static CacheEntry Empty { get { return new CacheEntry { Data = null, Expirity = DateTime.MinValue }; } }
     }
 }

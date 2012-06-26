@@ -69,6 +69,7 @@
     <Compile Include="Cache\CacheEntry.cs" />
     <Compile Include="Cache\ICacheExpity.cs" />
     <Compile Include="Cache\ICacheTarget.cs" />
+    <Compile Include="Cache\MemoryCacheTarget.cs" />
     <Compile Include="Cache\XmlCache.cs" />
     <Compile Include="Cache\XmlCacheWrapper.cs" />
     <Compile Include="enums.cs" />

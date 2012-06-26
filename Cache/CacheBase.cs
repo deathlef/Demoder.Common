@@ -25,6 +25,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Demoder.Common.Hash;
 
 namespace Demoder.Common.Cache
 {
@@ -55,6 +56,22 @@ namespace Demoder.Common.Cache
             return DateTime.Now.Add(this.DefaultDuration);
         }
 
+        /// <summary>
+        /// Generates a hash from the provided identifiers
+        /// </summary>
+        /// <param name="identifiers"></param>
+        /// <returns></returns>
+        public static MD5Checksum GetChecksum(object[] identifiers)
+        {
+            if (identifiers == null) { throw new ArgumentNullException("identifiers"); }
+            if (identifiers.Length == 0) { throw new ArgumentException("You must provide at least one identifier for the cache entry.", "identifiers"); }
 
+            var sb = new StringBuilder();
+            foreach (var id in identifiers)
+            {
+                sb.Append(id.ToString());
+            }
+            return MD5Checksum.Generate(sb.ToString());
+        }
     }
 }
