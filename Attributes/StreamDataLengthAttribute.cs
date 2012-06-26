@@ -28,15 +28,19 @@ using System.Text;
 
 namespace Demoder.Common.Attributes
 {
-    [AttributeUsage(AttributeTargets.Property, AllowMultiple=false, Inherited=true)]
-    public class StreamDataStringAttribute : Attribute
+    [AttributeUsage(AttributeTargets.Property)]
+    public class StreamDataLengthAttribute : Attribute
     {
-        public StringType Type { get; private set; }
-        public StringEncoding Encoding { get; private set; }
-        public StreamDataStringAttribute(StringType type, StringEncoding encoding = StringEncoding.ASCII)
+        public LengthType Type { get; private set; }
+        public StreamDataLengthAttribute(LengthType type)
         {
             this.Type = type;
-            this.Encoding = encoding;
         }
+    }
+
+    public enum LengthType
+    {
+        UInt16=-1,
+        UInt32 = 0,
     }
 }

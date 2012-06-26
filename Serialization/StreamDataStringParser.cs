@@ -39,14 +39,20 @@ namespace Demoder.Common.Serialization
         public bool GetObject(StreamDataParserTask task, out dynamic value)
         {
             var strType = this.GetStringType(task.Attributes);
+            var lengthType = LengthType.UInt32;
+            var lengthAttr = task.Attributes.FirstOrDefault(a => a is StreamDataLengthAttribute) as StreamDataLengthAttribute;
+            if (lengthAttr != null)
+            {
+                lengthType = lengthAttr.Type;
+            }
 
             switch (strType)
             {
                 case StringType.CString:
-                    value = task.Stream.ReadCString();
+                    value = task.Stream.ReadCString(this.GetStringEncoding(task.Attributes));
                     return true;
                 default:
-                    value = task.Stream.ReadString();
+                    value = task.Stream.ReadString(lengthType, this.GetStringEncoding(task.Attributes));
                     return true;
             }
         }
@@ -55,13 +61,23 @@ namespace Demoder.Common.Serialization
         {
             var strType = this.GetStringType(task.Attributes);
 
+            var lengthType = LengthType.UInt32;
+            var lengthAttr = task.Attributes.FirstOrDefault(a => a is StreamDataLengthAttribute) as StreamDataLengthAttribute;
+            if (lengthAttr != null)
+            {
+                lengthType = lengthAttr.Type;
+            }
+
             switch (strType)
             {
                 case StringType.CString:
-                    task.Stream.WriteCString((string)value);
+                    task.Stream.WriteCString((string)value, this.GetStringEncoding(task.Attributes));
                     return true;
                 default:
-                    task.Stream.WriteString((string)value);
+                    task.Stream.WriteString(
+                        (string)value,  
+                        this.GetStringEncoding(task.Attributes),
+                        lengthType);
                     return true;
             }
         }
@@ -77,6 +93,28 @@ namespace Demoder.Common.Serialization
                 strType = attr.Type;
             }
             return strType;
+        }
+
+        private Encoding GetStringEncoding(Attribute[] attributes)
+        {
+            StringEncoding encoding = StringEncoding.ASCII;
+            var attr = attributes.FirstOrDefault(a => a is StreamDataStringAttribute) as StreamDataStringAttribute;
+            if (attr != null)
+            {
+                encoding = attr.Encoding;
+            }
+
+
+            switch (encoding)
+            {
+                default:
+                case StringEncoding.ASCII:
+                    return Encoding.ASCII;
+                case StringEncoding.Unicode:
+                    return Encoding.Unicode;
+                case StringEncoding.UTF8:
+                    return Encoding.UTF8;
+            }
         }
     }
 }

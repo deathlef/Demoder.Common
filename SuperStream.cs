@@ -26,6 +26,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
+using System.Threading;
+using System.Diagnostics;
+using Demoder.Common.Attributes;
 
 namespace Demoder.Common
 {
@@ -141,21 +144,42 @@ namespace Demoder.Common
         #endregion
 
 
-        public void WriteString(string value)
+        public void WriteString(string value, LengthType lengthType = LengthType.UInt32)
         {
-            var bytes = ASCIIEncoding.ASCII.GetBytes(value);
-            this.WriteUInt32((uint)bytes.Length);
+            this.WriteString(value, Encoding.ASCII, lengthType);
+        }
+           
+        public void WriteString(string value, Encoding encoding, LengthType lengthType = LengthType.UInt32)
+        {
+            var bytes = encoding.GetBytes(value);
+            switch (lengthType)
+            {
+                case LengthType.UInt16:
+                    this.WriteUInt16((ushort)bytes.Length);
+                    break;
+                default:
+                case LengthType.UInt32:
+                    this.WriteUInt32((uint)bytes.Length);
+                    break;
+            }
             this.WriteBytes(bytes);
         }
 
+
         public void WriteCString(string value)
         {
-            var bytes = ASCIIEncoding.ASCII.GetBytes(value);
-            if (bytes.Contains((byte)0)) 
-            { 
+            this.WriteCString(value, Encoding.ASCII);
+        }
+
+        public void WriteCString(string value, Encoding encoding)
+        {
+
+            var bytes = encoding.GetBytes(value);
+            if (bytes.Contains((byte)0))
+            {
                 // String contains a null byte. 
                 // This is not allowed, as the string is terminated by a null byte.
-                throw new ArgumentException("Provided string contains a null byte, which is not allowed because the string is terminated by a null byte.", "value"); 
+                throw new ArgumentException("Provided string contains a null byte, which is not allowed because the string is terminated by a null byte.", "value");
             }
             this.WriteBytes(bytes);
             this.WriteByte(0);
@@ -163,10 +187,35 @@ namespace Demoder.Common
 
 
         #region BinaryReader
-        public byte[] ReadBytes(uint numBytes)
+        /// <summary>
+        /// Read specified amount of bytes, and block thread up to timeout milliseconds.
+        /// </summary>
+        /// <param name="numBytes">Number of bytes to read</param>
+        /// <param name="timeout">Maximum amount of milliseconds to block thread while waiting for bytes</param>
+        /// <returns></returns>
+        public byte[] ReadBytes(uint numBytes, int timeout=-1)
         {
+            Stopwatch sw = null;
+            if (timeout != -1)
+            {
+                sw = Stopwatch.StartNew();
+            }
             byte[] bytes = new byte[numBytes];
-            this.Read(bytes, 0, (int)numBytes);
+            int readBytes = 0;
+            do
+            {
+                readBytes += this.Read(bytes, readBytes, (int)numBytes);
+                if (readBytes == numBytes) { break; }
+
+                if (sw != null)
+                {
+                    if (sw.ElapsedMilliseconds > timeout)
+                    {
+                        break;
+                    }
+                }
+                Thread.Sleep(10);
+            } while (readBytes < numBytes);
             return bytes;
         }
 
@@ -240,8 +289,28 @@ namespace Demoder.Common
         /// <returns></returns>
         public string ReadString()
         {
-            var strLen =this.ReadUInt32();
-            return this.ReadString(strLen);
+            return this.ReadString(LengthType.UInt32);
+        }
+
+        public string ReadString(LengthType lengthType)
+        {
+            return this.ReadString(lengthType, Encoding.ASCII);
+        }
+
+        public string ReadString(LengthType lengthType, Encoding encoding)
+        {
+            uint length;
+            switch (lengthType)
+            {
+                case LengthType.UInt16:
+                    length = this.ReadUInt16();
+                    break;
+                default:
+                case LengthType.UInt32:
+                    length = this.ReadUInt32();
+                    break;
+            }
+            return this.ReadString(length, encoding);
         }
 
         /// <summary>
@@ -251,9 +320,14 @@ namespace Demoder.Common
         /// <returns></returns>
         public string ReadString(uint length)
         {
+            return this.ReadString(length, Encoding.ASCII);
+        }
+
+        public string ReadString(uint length, Encoding encoding)
+        {
             char nb = Convert.ToChar(0);
             var bytes = this.ReadBytes(length);
-            var str = Encoding.ASCII.GetString(bytes);
+            var str = encoding.GetString(bytes);
             return str.Trim(nb);
         }
 
@@ -265,21 +339,27 @@ namespace Demoder.Common
         /// <returns></returns>
         public string ReadCString()
         {
-            var sb = new StringBuilder();
+            return this.ReadCString(Encoding.ASCII);
+        }
+
+
+        public string ReadCString(Encoding encoding)
+        {
+            var sb = new List<byte>();
             char nb = (Char)0;
             
             while (!this.EOF)
             {
-                var chr = (Char)this.ReadByte();
-                if (chr == nb)
+                var b = (byte)this.ReadByte();
+                if (b == nb)
                 {
                     // Break on NullByte.
                     break;
                 }
-                sb.Append(chr);
+                sb.Add(b);
             }
 
-            return sb.ToString();
+            return encoding.GetString(sb.ToArray());
         }
 
 

@@ -145,8 +145,20 @@ namespace Demoder.Common.Serialization
                 else if (pi.IsList)
                 {
                     dynamic list = Activator.CreateInstance(typeof(List<>).MakeGenericType(pi.DataType));
-                    var entries = task.Stream.ReadUInt32();
-                    for (uint i = 0; i < entries; i++)
+                    
+                    ulong entries;
+                    switch (GetIListLengthType(pi))
+                    {
+                        case LengthType.UInt16:
+                            entries = task.Stream.ReadUInt16();
+                            break;
+                        default:
+                        case LengthType.UInt32:
+                            entries = task.Stream.ReadUInt32();
+                            break;
+                    }
+                    
+                    for (ulong i = 0; i < entries; i++)
                     {
                         if (!GetParserData(task, out value))
                         {
@@ -167,6 +179,16 @@ namespace Demoder.Common.Serialization
                 }
             }
             return obj;
+        }
+
+        private static LengthType GetIListLengthType(StreamDataInfo sdi)
+        {
+            var countType = sdi.Attributes.FirstOrDefault(a => a is StreamDataLengthAttribute) as StreamDataLengthAttribute;
+            if (countType == null)
+            {
+                return LengthType.UInt32;
+            }
+            return countType.Type;
         }
 
         /// <summary>
@@ -196,7 +218,19 @@ namespace Demoder.Common.Serialization
                 else if (pi.IsList)
                 {
                     dynamic list = pi.PropertyInfo.GetValue(obj, null);
-                    task.Stream.WriteUInt32((uint)list.Count);
+
+                    switch (GetIListLengthType(pi))
+                    {
+                        case LengthType.UInt16:
+                            task.Stream.WriteUInt16((ushort)list.Count);
+                            break;
+                        default:
+                        case LengthType.UInt32:
+                            task.Stream.WriteUInt32((uint)list.Count);
+                            break;
+                    }
+
+                    
                     foreach (var entry in list)
                     {
                         if (!WriteParserData(task, entry))

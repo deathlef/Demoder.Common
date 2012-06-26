@@ -191,4 +191,11 @@ namespace Demoder.Common
         /// </summary>
         Default = ReadCache | WriteCache | ReadLive
     }
+
+    public enum StringEncoding
+    {
+        ASCII,
+        UTF8,
+        Unicode
+    }
 }
