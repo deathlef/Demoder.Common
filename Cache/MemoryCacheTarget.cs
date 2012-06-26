@@ -71,27 +71,36 @@ namespace Demoder.Common.Cache
 
         public void Store(CacheEntry cacheEntry, params object[] identifiers)
         {
+            if (cacheEntry.Data == null) { return; }
+
+            MemoryCacheEntry newEntry = new MemoryCacheEntry(cacheEntry);
+            var size = newEntry.Data.Count + 24;
+            if (size > this.MaxSize)
+            {
+                // Data is larger than our maximum size.
+                return;
+            }
+
+            var md5 = CacheBase.GetChecksum(identifiers);
+
+            if (this.Available < 0)
+            {
+                this.RemoveStaleItems();
+                this.Trim(size);
+            }
+
+            if (this.entries.ContainsKey(md5))
+            {
+                MemoryCacheEntry ce;
+                this.entries.TryRemove(md5, out ce);
+                lock (this)
+                {
+                    this.Size -= ce.Data.Count + 24;
+                }
+            }
+            this.entries.TryAdd(md5, newEntry);
             lock (this)
             {
-                if (cacheEntry.Data == null) { return; }
-
-                MemoryCacheEntry newEntry = new MemoryCacheEntry(cacheEntry);
-                var size = newEntry.Data.Count + 24;
-                if (size > this.MaxSize)
-                {
-                    // Data is larger than our maximum size.
-                    return;
-                }
-
-                var md5 = CacheBase.GetChecksum(identifiers);
-
-                if (this.Available < 0)
-                {
-                    this.RemoveStaleItems();
-                    this.Trim(size);
-                }
-                
-                this.entries.AddOrUpdate(md5, newEntry, (key, oldValue) => oldValue = newEntry);
                 this.Size += size;
             }
         }
@@ -136,7 +145,7 @@ namespace Demoder.Common.Cache
                 {
                     return;
                 }
-                foreach (var kvp in this.entries.OrderBy(kvp=>kvp.Value.LastAccess).ToArray())
+                foreach (var kvp in this.entries.OrderBy(kvp => kvp.Value.LastAccess).ToArray())
                 {
                     if (this.Available >= targetFreeSpace)
                     {
