@@ -42,6 +42,12 @@
   <PropertyGroup>
     <RunPostBuildEvent>Always</RunPostBuildEvent>
   </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>Demoder.Common.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.VisualBasic" />
@@ -62,6 +68,7 @@
     <Compile Include="Attributes\SettingAttribute.cs" />
     <Compile Include="Attributes\SettingOptionAttribute.cs" />
     <Compile Include="Attributes\StreamDataAttribute.cs" />
+    <Compile Include="Attributes\StreamDataLengthAttribute.cs" />
     <Compile Include="Attributes\StreamDataStringAttribute.cs" />
     <Compile Include="BackgroundWorkerInputQueue.cs" />
     <Compile Include="Cache\CacheBase.cs" />
@@ -70,6 +77,7 @@
     <Compile Include="Cache\ICacheExpity.cs" />
     <Compile Include="Cache\ICacheTarget.cs" />
     <Compile Include="Cache\MemoryCacheTarget.cs" />
+    <Compile Include="Cache\VoidCacheTarget.cs" />
     <Compile Include="Cache\XmlCache.cs" />
     <Compile Include="Cache\XmlCacheWrapper.cs" />
     <Compile Include="enums.cs" />
@@ -119,7 +127,9 @@
   <ItemGroup>
     <Content Include="Licence.txt" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="Demoder.Common.snk" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>

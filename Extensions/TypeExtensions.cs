@@ -46,6 +46,16 @@ namespace Demoder.Common.Extensions
             var value = field.GetValue(null);
             return value;
         }
+
+
+        public static T GetAttribute<T>(this Type t, bool inherit = false)
+        {
+            return t.GetAttributes<T>(inherit).FirstOrDefault();
+        }
+        public static T[] GetAttributes<T>(this Type t, bool inherit=false)
+        {
+            return t.GetCustomAttributes(typeof(T), inherit) as T[];
+        }
     }
 
 }
