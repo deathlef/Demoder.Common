@@ -126,47 +126,41 @@ namespace Demoder.Common.Serialization
             foreach (var pi in properties)
             {
                 StreamDataParserTask task = new StreamDataParserTask(ms, pi.ReadType, pi.DataType, pi.Attributes);
-                if (pi.IsArray)
-                {
-                    var arr = new ArrayList();
-                    for (int i = 0; i < pi.Entries; i++)
-                    {                     
-                        if (!GetParserData(task, out value))
-                        {
-                            throw new Exception();
-                        }
-                        arr.Add(value);
-                    }
 
-                    var arr2 = arr.ToArray(pi.ReadType);
-                    pi.PropertyInfo.SetValue(obj, arr2, null);
-                    continue;
-                }
-                else if (pi.IsList)
+                if (pi.IsCollection)
                 {
-                    dynamic list = Activator.CreateInstance(typeof(List<>).MakeGenericType(pi.DataType));
-                    
-                    ulong entries;
-                    switch (GetIListLengthType(pi))
+                    var entries = pi.ReadContentLength(ms);
+
+                    if (pi.IsArray)
                     {
-                        case LengthType.UInt16:
-                            entries = task.Stream.ReadUInt16();
-                            break;
-                        default:
-                        case LengthType.UInt32:
-                            entries = task.Stream.ReadUInt32();
-                            break;
-                    }
-                    
-                    for (ulong i = 0; i < entries; i++)
-                    {
-                        if (!GetParserData(task, out value))
+                        var arr = new ArrayList();
+                        for (ulong i = 0; i < entries; i++)
                         {
-                            throw new Exception();
+                            if (!GetParserData(task, out value))
+                            {
+                                throw new Exception();
+                            }
+                            arr.Add(value);
                         }
-                        list.Add(value);
+
+                        var arr2 = arr.ToArray(pi.ReadType);
+                        pi.PropertyInfo.SetValue(obj, arr2, null);
+                        continue;
                     }
-                    pi.PropertyInfo.SetValue(obj, list, null);
+                    else if (pi.IsList)
+                    {
+                        dynamic list = Activator.CreateInstance(typeof(List<>).MakeGenericType(pi.DataType));
+
+                        for (ulong i = 0; i < entries; i++)
+                        {
+                            if (!GetParserData(task, out value))
+                            {
+                                throw new Exception();
+                            }
+                            list.Add(value);
+                        }
+                        pi.PropertyInfo.SetValue(obj, list, null);
+                    }
                 }
                 else
                 {
@@ -181,16 +175,6 @@ namespace Demoder.Common.Serialization
             return obj;
         }
 
-        private static LengthType GetIListLengthType(StreamDataInfo sdi)
-        {
-            var countType = sdi.Attributes.FirstOrDefault(a => a is StreamDataLengthAttribute) as StreamDataLengthAttribute;
-            if (countType == null)
-            {
-                return LengthType.UInt32;
-            }
-            return countType.Type;
-        }
-
         /// <summary>
         /// Write a given object to stream
         /// </summary>
@@ -202,43 +186,48 @@ namespace Demoder.Common.Serialization
             // Parse spell arguments
             foreach (var pi in properties)
             {
-                dynamic value=pi.PropertyInfo.GetValue(obj, null);
+                dynamic value = pi.PropertyInfo.GetValue(obj, null);
                 StreamDataParserTask task = new StreamDataParserTask(ms, pi.ReadType, pi.DataType, pi.Attributes);
-                if (pi.IsArray)
-                { 
-                    for (int i = 0; i < pi.Entries; i++)
-                    {
-                        if (!WriteParserData(task, value[i]))
-                        {
-                            throw new Exception();
-                        }
-                    }
-                    continue;
-                }
-                else if (pi.IsList)
+
+                if (pi.IsCollection)
                 {
-                    dynamic list = pi.PropertyInfo.GetValue(obj, null);
-
-                    switch (GetIListLengthType(pi))
+                    // Find actual length of collection.
+                    ulong length;
+                    if (pi.IsArray)
                     {
-                        case LengthType.UInt16:
-                            task.Stream.WriteUInt16((ushort)list.Count);
-                            break;
-                        default:
-                        case LengthType.UInt32:
-                            task.Stream.WriteUInt32((uint)list.Count);
-                            break;
+                        length = (ulong)value.Length;
+                    }
+                    else if (pi.IsList)
+                    {
+                        length = (ulong)value.Count;
+                    }
+                    else
+                    {
+                        throw new Exception("Property is collection, but not array nor list.");
                     }
 
-                    
-                    foreach (var entry in list)
+                    // Write length, and return written length. (Entries= will override length of collection if set)
+                    length = pi.WriteContentLength(ms, length);
+
+                    dynamic enumerable = pi.PropertyInfo.GetValue(obj, null);
+                    ulong count = 0;
+                    foreach (var entry in enumerable)
                     {
+                        // Make sure we do not write more entries than we've declared
+                        count++;
+                        if (count > length)
+                        {
+                            throw new Exception("Collection contains more items than ");
+                        }
+
+                        // Write enry.
                         if (!WriteParserData(task, entry))
                         {
                             throw new Exception();
                         }
                     }
                     continue;
+
                 }
                 else
                 {

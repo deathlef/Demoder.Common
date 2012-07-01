@@ -42,7 +42,7 @@ namespace Demoder.Common.Cache
         public DateTime Expirity { get; set; }
 
         [StreamData(200)]
-        public IList<byte> Data { get; set; }
+        public List<byte> Data { get; set; }
 
         /// <summary>
         /// Has this entry expired?

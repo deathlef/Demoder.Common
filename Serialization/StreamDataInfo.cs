@@ -35,6 +35,7 @@ namespace Demoder.Common.Serialization
         public PropertyInfo PropertyInfo { get; private set; }
         public bool IsArray { get; private set; }
         public bool IsList { get; private set; }
+        public bool IsCollection { get { return this.IsArray || this.IsList; } }
         public uint Entries { get; private set; }
         public Type ReadType { get; private set; }
         public Type DataType { get; private set; }
@@ -42,13 +43,59 @@ namespace Demoder.Common.Serialization
 
         private StreamDataInfo() { }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ms"></param>
+        /// <returns></returns>
+        internal ulong ReadContentLength(SuperStream stream)
+        {
+            var countType = this.Attributes.FirstOrDefault(a => a is StreamDataCollectionLengthAttribute) as StreamDataCollectionLengthAttribute;
+
+            if (countType == null)
+            {
+                return this.Entries;
+            }
+
+            switch (countType.Type)
+            {
+                case LengthType.Byte:
+                    return (byte)stream.ReadByte();
+                case LengthType.UInt16:
+                    return stream.ReadUInt16();
+                default:
+                case LengthType.UInt32:
+                    return stream.ReadUInt32();
+            }
+        }
+
+        internal ulong WriteContentLength(SuperStream stream, ulong length)
+        {
+            var countType = this.Attributes.FirstOrDefault(a => a is StreamDataCollectionLengthAttribute) as StreamDataCollectionLengthAttribute;
+            if (countType == null) { return this.Entries; }
+            switch (countType.Type)
+            {
+                case LengthType.Byte:
+                    stream.WriteByte((byte)length);
+                    break;
+                case LengthType.UInt16:
+                    stream.WriteUInt16((ushort)length);
+                    break;
+                default:
+                case LengthType.UInt32:
+                    stream.WriteUInt32((uint)length);
+                    break;
+            }
+            return length;
+        }
+
         public static StreamDataInfo Create(PropertyInfo pi, StreamDataAttribute attr)
         {
             var sdi = new StreamDataInfo
             {
                 PropertyInfo = pi,
                 Entries = attr.Entries,
-                IsArray = pi.PropertyType.IsArray,
+                IsArray = false,
                 IsList = false,
                 ReadType = attr.ReadType,
                 Attributes = (from a in pi.GetCustomAttributes(true)
@@ -57,12 +104,14 @@ namespace Demoder.Common.Serialization
                               select a as Attribute).ToArray()
             };
 
+            sdi.IsArray = pi.PropertyType.IsArray;
             #region Check if it's a IList.
             if (pi.PropertyType.IsGenericType && 
-                pi.PropertyType.GetGenericTypeDefinition() == typeof(IList<>))
+                pi.PropertyType.GetGenericTypeDefinition() == typeof(List<>))
             {
                 sdi.IsList = true;
             }
+
             
             #endregion
 
@@ -73,21 +122,9 @@ namespace Demoder.Common.Serialization
                     pi.DeclaringType.FullName, pi.Name, sdi.ReadType.Name, sdi.ReadType.MemberType));
             }
 
-            if (sdi.Entries == 0)
-            {
-                // Entries==0 is always invalid.
-                throw new ArgumentException(String.Format("{0}->{1}: [StreamDataAttribute] specified Entries={2}.",
-                    pi.DeclaringType.FullName, pi.Name, sdi.Entries));
-            }
-            else if (sdi.IsArray)
+            if (sdi.IsArray)
             {
                 sdi.DataType = pi.PropertyType.GetElementType();
-            }
-            else if (sdi.Entries != 1)
-            {
-                // If it's not an array and entries are not 1, there's something wrong and we should shout out about it.
-                throw new ArgumentException(String.Format("{0}->{1}: [StreamDataAttribute] specified Entries={2}, but property is not an array type.",
-                    pi.DeclaringType.FullName, pi.Name, sdi.Entries));
             }
             else if (sdi.IsList)
             {
@@ -103,8 +140,21 @@ namespace Demoder.Common.Serialization
                 sdi.ReadType = sdi.DataType;
             }
             #endregion
-
-            
+            #region Verify that collections have correct parameters
+            if (sdi.IsCollection)
+            {
+                if (sdi.Entries != 0 && sdi.Attributes.FirstOrDefault(a => a is StreamDataCollectionLengthAttribute) != null)
+                {
+                    throw new ArgumentException(String.Format("{0}->{1}: Cannot specify both [StreamDataCollectionLengthAttribute] and [StreamDataAttribute].Entries>0.",
+                    pi.DeclaringType.FullName, pi.Name, sdi.Entries));
+                }
+                if (sdi.Entries == 0 && sdi.Attributes.FirstOrDefault(a => a is StreamDataCollectionLengthAttribute) == null)
+                {
+                    throw new ArgumentException(String.Format("{0}->{1}: Collection must have either [StreamDataCollectionLengthAttribute] or [StreamDataAttribute] specifying Entries>0.",
+                    pi.DeclaringType.FullName, pi.Name, sdi.Entries));
+                }
+            }
+            #endregion
 
             return sdi;
         }

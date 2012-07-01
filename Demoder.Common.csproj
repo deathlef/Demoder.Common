@@ -68,6 +68,7 @@
     <Compile Include="Attributes\SettingAttribute.cs" />
     <Compile Include="Attributes\SettingOptionAttribute.cs" />
     <Compile Include="Attributes\StreamDataAttribute.cs" />
+    <Compile Include="Attributes\StreamDataCollectionLengthAttribute.cs" />
     <Compile Include="Attributes\StreamDataLengthAttribute.cs" />
     <Compile Include="Attributes\StreamDataStringAttribute.cs" />
     <Compile Include="BackgroundWorkerInputQueue.cs" />

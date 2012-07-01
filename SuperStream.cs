@@ -204,6 +204,10 @@ namespace Demoder.Common
             int readBytes = 0;
             do
             {
+                if (this.EOF)
+                {
+                    throw new Exception("EOF reached before reading requested amount of bytes.");
+                }
                 readBytes += this.Read(bytes, readBytes, (int)numBytes);
                 if (readBytes == numBytes) { break; }
 
@@ -325,6 +329,10 @@ namespace Demoder.Common
 
         public string ReadString(uint length, Encoding encoding)
         {
+            if (length == 0)
+            {
+                return String.Empty;
+            }
             char nb = Convert.ToChar(0);
             var bytes = this.ReadBytes(length);
             var str = encoding.GetString(bytes);
@@ -367,7 +375,11 @@ namespace Demoder.Common
         {
             get
             {
-                return this.Position >= this.Length;
+                if (this.BaseStream.CanSeek)
+                {
+                    return this.Position >= this.Length;
+                }
+                return (!this.BaseStream.CanRead && !this.BaseStream.CanWrite);
             }
         }
 

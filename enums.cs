@@ -46,6 +46,13 @@ namespace Demoder.Common
         Big
     }
 
+    public enum LengthType
+    {
+        Byte = -2,
+        UInt16 = -1,
+        UInt32 = 0,
+    }
+
     /// <summary>
     /// Default enumerator for storing flag values.
     /// </summary>

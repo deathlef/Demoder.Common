@@ -32,48 +32,12 @@ namespace Demoder.Common.Attributes
     /// Indicates how to determine the length of data, such as a string.
     /// </summary>
     [AttributeUsage(AttributeTargets.Property)]
-    public class StreamDataLengthAttribute : Attribute
+    public class StreamDataCollectionLengthAttribute : Attribute
     {
         public LengthType Type { get; private set; }
-        public StreamDataLengthAttribute(LengthType type)
+        public StreamDataCollectionLengthAttribute(LengthType type)
         {
             this.Type = type;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="ms"></param>
-        /// <returns></returns>
-        internal ulong ReadContentLength(SuperStream stream)
-        {
-            switch (this.Type)
-            {
-                case LengthType.Byte:
-                    return (byte)stream.ReadByte();
-                case LengthType.UInt16:
-                    return stream.ReadUInt16();
-                default:
-                case LengthType.UInt32:
-                    return stream.ReadUInt32();
-            }
-        }
-
-        internal void WriteContentLength(SuperStream stream, ulong length)
-        {
-            switch (this.Type)
-            {
-                case LengthType.Byte:
-                    stream.WriteByte((byte)length);
-                    break;
-                case LengthType.UInt16:
-                    stream.WriteUInt16((ushort)length);
-                    break;
-                default:
-                case LengthType.UInt32:
-                    stream.WriteUInt32((uint)length);
-                    break;
-            }
         }
     }
 }
