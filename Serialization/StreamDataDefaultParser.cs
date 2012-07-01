@@ -53,7 +53,6 @@ namespace Demoder.Common.Serialization
         public bool WriteObject(StreamDataParserTask task, object value)
         {
             return WriteValue(task.StreamType, task.Stream, value);
-
         }
 
         private bool WriteValue(Type dataType, SuperStream stream, object value)

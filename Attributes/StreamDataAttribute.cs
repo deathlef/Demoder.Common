@@ -90,7 +90,7 @@ namespace Demoder.Common.Attributes
         public StreamDataAttribute(uint order)
         {
             this.Order = order;
-            this.Entries = 1;
+            this.Entries = 0;
         }
     }
 }
