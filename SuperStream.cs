@@ -306,6 +306,9 @@ namespace Demoder.Common
             uint length;
             switch (lengthType)
             {
+                case LengthType.Byte:
+                    length = (byte)this.ReadByte();
+                    break;
                 case LengthType.UInt16:
                     length = this.ReadUInt16();
                     break;
@@ -322,12 +325,12 @@ namespace Demoder.Common
         /// </summary>
         /// <param name="length"></param>
         /// <returns></returns>
-        public string ReadString(uint length)
+        public string ReadString(uint length, bool trim=true)
         {
-            return this.ReadString(length, Encoding.ASCII);
+            return this.ReadString(length, Encoding.ASCII, trim);
         }
 
-        public string ReadString(uint length, Encoding encoding)
+        public string ReadString(uint length, Encoding encoding, bool trim=true)
         {
             if (length == 0)
             {
@@ -336,7 +339,14 @@ namespace Demoder.Common
             char nb = Convert.ToChar(0);
             var bytes = this.ReadBytes(length);
             var str = encoding.GetString(bytes);
-            return str.Trim(nb);
+            if (trim)
+            {
+                return str.Trim(nb);
+            }
+            else
+            {
+                return str;
+            }
         }
 
         // TODO: Check if this needs to account for endianess

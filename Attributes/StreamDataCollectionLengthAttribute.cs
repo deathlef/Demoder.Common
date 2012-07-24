@@ -35,6 +35,7 @@ namespace Demoder.Common.Attributes
     public class StreamDataCollectionLengthAttribute : Attribute
     {
         public LengthType Type { get; private set; }
+
         public StreamDataCollectionLengthAttribute(LengthType type)
         {
             this.Type = type;
