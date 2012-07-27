@@ -74,7 +74,7 @@ namespace Demoder.Common.Cache
             if (cacheEntry.Data == null) { return; }
 
             MemoryCacheEntry newEntry = new MemoryCacheEntry(cacheEntry);
-            var size = newEntry.Data.Count + 24;
+            var size = newEntry.Data.Length + 24;
             if (size > this.MaxSize)
             {
                 // Data is larger than our maximum size.
@@ -95,7 +95,7 @@ namespace Demoder.Common.Cache
                 this.entries.TryRemove(md5, out ce);
                 lock (this)
                 {
-                    this.Size -= ce.Data.Count + 24;
+                    this.Size -= ce.Data.Length + 24;
                 }
             }
             this.entries.TryAdd(md5, newEntry);

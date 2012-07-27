@@ -35,14 +35,15 @@ namespace Demoder.Common.Cache
         public CacheEntry(){}
         public CacheEntry(byte[] data)
         {
-            this.Data = new List<byte>(data);
+            this.Data = data;
         }
 
         [StreamData(100)]
         public DateTime Expirity { get; set; }
 
         [StreamData(200)]
-        public List<byte> Data { get; set; }
+        [StreamDataCollectionLength(LengthType.UInt32)]
+        public byte[] Data { get; set; }
 
         /// <summary>
         /// Has this entry expired?
@@ -71,10 +72,10 @@ namespace Demoder.Common.Cache
         public override int GetHashCode()
         {
             if (this.Data == null) { return 0; }
-            if (this.Data.Count == 1) { return this.Data[0]; }
+            if (this.Data.Length == 1) { return this.Data[0]; }
 
             var hash = this.Data[0];
-            for (int i = 1; i < this.Data.Count; i++)
+            for (int i = 1; i < this.Data.Length; i++)
             {
                 hash ^= this.Data[i];
             }
