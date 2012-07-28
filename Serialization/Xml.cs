@@ -99,9 +99,13 @@ namespace Demoder.Common.Serialization
         {
             object obj = Compat.Deserialize(typeof(T), path, gzip);
             if (obj == null)
+            {
                 return default(T);
+            }
             else
+            {
                 return (T)obj;
+            }
         }
 
         /// <summary>
@@ -125,10 +129,21 @@ namespace Demoder.Common.Serialization
         {
             object obj = Compat.Deserialize(typeof(T), path);
             if (obj == null)
+            {
                 return default(T);
+            }
             else
+            {
                 return (T)obj;
+            }
         }
+
+        public static T Deserialize<T>(string xml, Encoding encoding)
+            where T : class
+        {
+            return (T)Compat.Deserialize(typeof(T), xml, encoding);
+        }
+
         #endregion
 
 
@@ -218,6 +233,23 @@ namespace Demoder.Common.Serialization
             }
             #endregion
             #region Deserialize
+
+            public static object Deserialize(Type t, string xml, Encoding encoding)
+            {
+                try
+                {
+                    using (MemoryStream ms = new MemoryStream(encoding.GetBytes(xml)))
+                    {
+                        return Deserialize(t, ms, true);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ReportException(ex);
+                    return null;
+                }
+            }
+
             /// <summary>
             /// Deserialize a stream
             /// </summary>
