@@ -264,6 +264,16 @@ namespace Demoder.Common.Serialization
             return values.ToArray();
         }
 
+        public static object[] GetPropertyValues(object obj)
+        {
+            var values = new List<object>();
+            foreach (var p in GetProperties(obj.GetType()))
+            {
+                values.Add(p.PropertyInfo.GetValue(obj, null));
+            }
+            return values.ToArray();
+        }
+
         #region Stream dataparser registration
         /// <summary>
         /// Find and utilize all StreamDataParsers within assembly

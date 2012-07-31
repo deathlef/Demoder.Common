@@ -28,13 +28,13 @@ using System.IO;
 
 namespace Demoder.Common.SimpleLogger
 {
-    public class Log
+    public class Log : IDisposable
     {
-        private readonly EventLogLevel minLogLevel;
-        private readonly string prefix;
-        private readonly ConsoleColor tagColor;
-        private readonly TextWriter logWriter;
-        private readonly int prefixReservedColumns;
+        private EventLogLevel minLogLevel;
+        private string prefix;
+        private ConsoleColor tagColor;
+        private TextWriter logWriter;
+        private int prefixReservedColumns;
 
         private Dictionary<string, Logger> loggers = new Dictionary<string, Logger>(StringComparer.InvariantCultureIgnoreCase);
 
@@ -69,5 +69,24 @@ namespace Demoder.Common.SimpleLogger
                 }
             }
         }
+
+        #region IDisposable Members
+
+        public void Dispose()
+        {
+            foreach (var log in this.loggers.Values)
+            {
+                log.Dispose();
+            }
+            this.loggers.Clear();
+            this.loggers = null;
+            if (this.logWriter != null)
+            {
+                this.logWriter.Dispose();
+                
+            }            
+        }
+
+        #endregion
     }
 }
