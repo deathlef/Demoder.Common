@@ -30,15 +30,15 @@ using System.IO;
 
 namespace Demoder.Common.SimpleLogger
 {
-    public class Logger
+    public class Logger : IDisposable
     {
-        private readonly string category;
-        private readonly EventLogLevel minLogLevel;
-        private readonly string prefix;
-        private readonly ConsoleColor tagColor;
-        private readonly ConsoleColor defaultFgColor;
-        private readonly int prefixReservedColumns;
-        private readonly TextWriter logWriter = null;
+        private string category;
+        private EventLogLevel minLogLevel;
+        private string prefix;
+        private ConsoleColor tagColor;
+        private ConsoleColor defaultFgColor;
+        private int prefixReservedColumns;
+        private TextWriter logWriter = null;
 
 
         public Logger(string category, EventLogLevel minLevel = EventLogLevel.Debug, string prefix = "", ConsoleColor tagColor = ConsoleColor.White, int prefixReservedColumns=20, TextWriter logWriter=null)
@@ -171,5 +171,18 @@ namespace Demoder.Common.SimpleLogger
                 }
             }
         }
+
+        #region IDisposable Members
+
+        public void Dispose()
+        {
+            if (this.logWriter != null)
+            {
+                this.logWriter.Dispose();
+                this.logWriter = null;
+            }
+        }
+
+        #endregion
     }
 }
