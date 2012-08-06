@@ -172,6 +172,11 @@ namespace Demoder.Common.Serialization
                     continue;
                 }
             }
+            if (typeof(IStreamDataFinalizer).IsAssignableFrom(obj.GetType()))
+            {
+                IStreamDataFinalizer fin = (IStreamDataFinalizer)obj;
+                fin.OnDeserialize();
+            }
             return obj;
         }
 
@@ -182,6 +187,11 @@ namespace Demoder.Common.Serialization
         /// <param name="ms">Stream to write to</param>
         public static void Serialize(object obj, SuperStream ms)
         {
+            if (typeof(IStreamDataFinalizer).IsAssignableFrom(obj.GetType()))
+            {
+                IStreamDataFinalizer fin = (IStreamDataFinalizer)obj;
+                fin.OnSerialize();
+            }
             var properties = GetProperties(obj.GetType());
             // Parse spell arguments
             foreach (var pi in properties)

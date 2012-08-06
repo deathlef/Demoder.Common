@@ -21,7 +21,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,37 +29,18 @@ using System.Text;
 namespace Demoder.Common.Serialization
 {
     /// <summary>
-    /// Allows (de)serialization of Version objects.
+    /// If this interface is implemented, it will be executed before serializing, and after deserializing an object.
     /// </summary>
-    public class StreamDataVersionParser : IStreamDataParser
+    public interface IStreamDataFinalizer
     {
-        #region IStreamDataParser Members
+        /// <summary>
+        /// Executed after deserialization of object.
+        /// </summary>
+        void OnDeserialize();
 
-        public Type[] SupportedTypes { get { return new Type[] { typeof(Version) }; } }
-
-        public bool GetObject(StreamDataParserTask task, out object value)
-        {
-            var a = task.Stream.ReadInt32();
-            var b = task.Stream.ReadInt32();
-            var c = task.Stream.ReadInt32();
-            var d = task.Stream.ReadInt32();
-
-            value = new Version(a, b, c, d);
-            return true;
-        }
-
-        public bool WriteObject(StreamDataParserTask task, object value)
-        {
-            var ver = value as Version;
-            task.Stream.WriteInt32(ver.Major);
-            task.Stream.WriteInt32(ver.Minor);
-            task.Stream.WriteInt32(ver.Build);
-            task.Stream.WriteInt32(ver.Revision);
-
-            return true;
-        }
-
-        #endregion
-
+        /// <summary>
+        /// Executed before serialization of object.
+        /// </summary>
+        void OnSerialize();
     }
 }

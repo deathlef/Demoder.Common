@@ -506,6 +506,7 @@ namespace Demoder.Common
             {
                 this.BaseStream.Dispose();
             }
+            this.BaseStream = null;
             base.Dispose();
         }
     }

@@ -58,35 +58,35 @@ namespace Demoder.Common.Serialization
             if (task.StreamType == typeof(MD5Checksum))
             {
                 // 128 bits
-                value = new MD5Checksum(task.Stream.ReadBytes(32));
+                value = new MD5Checksum(task.Stream.ReadBytes(16));
                 return true;
             }
 
             if (task.StreamType == typeof(SHA1Checksum))
             {
                 // 160 bits
-                value = new SHA1Checksum(task.Stream.ReadBytes(40));
+                value = new SHA1Checksum(task.Stream.ReadBytes(20));
                 return true;
             }
 
             if (task.StreamType == typeof(SHA256Checksum))
             {
                 // 256 bits
-                value = new SHA256Checksum(task.Stream.ReadBytes(64));
+                value = new SHA256Checksum(task.Stream.ReadBytes(32));
                 return true;
             }
 
             if (task.StreamType == typeof(SHA384Checksum))
             {
                 // 384 bits
-                value = new SHA256Checksum(task.Stream.ReadBytes(96));
+                value = new SHA256Checksum(task.Stream.ReadBytes(48));
                 return true;
             }
 
             if (task.StreamType == typeof(SHA512Checksum))
             {
                 // 512 bits
-                value = new SHA512Checksum(task.Stream.ReadBytes(128));
+                value = new SHA512Checksum(task.Stream.ReadBytes(64));
                 return true;
             }
 
