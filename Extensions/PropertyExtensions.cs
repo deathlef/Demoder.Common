@@ -21,46 +21,24 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Reflection;
 
-namespace Demoder.Common.Serialization
+namespace Demoder.Common.Extensions
 {
-    /// <summary>
-    /// Allows (de)serialization of Version objects.
-    /// </summary>
-    public class StreamDataVersionParser : IStreamDataParser
+    public static class PropertyExtensions
     {
-        #region IStreamDataParser Members
-
-        public Type[] SupportedTypes { get { return new Type[] { typeof(Version) }; } }
-
-        public bool GetObject(StreamDataParserTask task, out object value)
+        public static T GetAttribute<T>(this PropertyInfo pi, bool inherit = false)
         {
-            var a = task.Stream.ReadInt32();
-            var b = task.Stream.ReadInt32();
-            var c = task.Stream.ReadInt32();
-            var d = task.Stream.ReadInt32();
-
-            value = new Version(a, b, c, d);
-            return true;
+            return (T)pi.GetCustomAttributes(typeof(T), inherit).FirstOrDefault();
         }
 
-        public bool WriteObject(StreamDataParserTask task, object value)
+        public static T[] GetAttributes<T>(this PropertyInfo pi, bool inherit = false)
         {
-            var ver = value as Version;
-            task.Stream.WriteInt32(ver.Major);
-            task.Stream.WriteInt32(ver.Minor);
-            task.Stream.WriteInt32(ver.Build);
-            task.Stream.WriteInt32(ver.Revision);
-
-            return true;
+            return pi.GetCustomAttributes(typeof(T), inherit) as T[];
         }
-
-        #endregion
-
     }
 }
