@@ -95,6 +95,7 @@
     <Compile Include="Serialization\StreamDataDateTimeParser.cs" />
     <Compile Include="Serialization\StreamDataVersionParser.cs" />
     <Compile Include="Serialization\StreamDataWrapper.cs" />
+    <Compile Include="SettingInfo.cs" />
     <Compile Include="SuperStream.cs" />
     <Compile Include="Serialization\StreamDataDefaultParser.cs" />
     <Compile Include="Serialization\IStreamDataParser.cs" />
@@ -117,8 +118,6 @@
     <Compile Include="Misc.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QueueHelper.cs" />
-    <Compile Include="Serialization\SerializableDictionary.cs" />
-    <Compile Include="Serialization\SerializableKeyValuePair.cs" />
     <Compile Include="Serialization\VersionedXmlLoader.cs" />
     <Compile Include="Serialization\Xml.cs" />
     <Compile Include="SimpleLogger\enums.cs" />

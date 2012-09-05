@@ -56,6 +56,17 @@ namespace Demoder.Common.Extensions
         {
             return t.GetCustomAttributes(typeof(T), inherit) as T[];
         }
+
+        /// <summary>
+        /// Retrieve properties which have specified attribute
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public static PropertyInfo[] GetPropertiesWithAttribute<T>(this Type type)
+            where T : Attribute
+        {
+            return type.GetProperties().Where(p => p.GetCustomAttributes(typeof(T), true).Length != 0).ToArray();
+        }
     }
 
 }
