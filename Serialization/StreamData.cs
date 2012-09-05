@@ -383,6 +383,12 @@ namespace Demoder.Common.Serialization
                 value = tmpVal;
             }
 
+            if (typeof(IStreamDataFinalizer).IsAssignableFrom(task.DataType))
+            {
+                var finalizer = (IStreamDataFinalizer)value;
+                finalizer.OnDeserialize();
+            }
+
             return result;
         }
 
@@ -396,6 +402,12 @@ namespace Demoder.Common.Serialization
         private static bool WriteParserData(StreamDataParserTask task, object value)
         {
             IStreamDataParser parser = GetParser(task.StreamType);
+            if (typeof(IStreamDataFinalizer).IsAssignableFrom(task.DataType))
+            {
+                var finalizer = (IStreamDataFinalizer)value;
+                finalizer.OnSerialize();
+            }
+
             dynamic tmpVal;
             // Cast value, if necessary.
             if (task.StreamType != task.DataType)
