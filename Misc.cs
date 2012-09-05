@@ -27,6 +27,7 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Security.Principal;
 using System.Text;
+using System.Linq;
 
 namespace Demoder.Common
 {
@@ -84,7 +85,10 @@ namespace Demoder.Common
             {
                 if (needle[needleMatchIndex] == hayStack[curBytePos])
                 {
-                    if (needleMatchIndex == 0) needleBytePos = curBytePos;
+                    if (needleMatchIndex == 0)
+                    {
+                        needleBytePos = curBytePos;
+                    }
                     needleMatchIndex++;
                 }
                 else if (needleMatchIndex != 0)
@@ -92,9 +96,8 @@ namespace Demoder.Common
                     needleMatchIndex = 0;
                     curBytePos = needleBytePos; //Start 1byte in front of where we started looking last time. The for loop will add 1 to this at the next loop.
                 }
-                else { /*Nothing to do*/ }
                 if (needleMatchIndex == needle.Count) return needleBytePos;
-                if (curBytePos >= stopAt) throw new Exception("Needle not found in haystack.");
+                if (curBytePos >= stopAt) { throw new Exception("Needle not found in haystack."); }
             }
             throw new Exception("Needle not found in haystack.");
         }
@@ -111,7 +114,10 @@ namespace Demoder.Common
         {
             get {
                 Assembly assembly = Assembly.GetEntryAssembly();
-                if (assembly == null) { assembly = Assembly.GetAssembly(typeof(Misc)); }
+                if (assembly == null)
+                {
+                    assembly = Assembly.GetAssembly(typeof(Misc));
+                }
                 return Path.Combine(
                     Path.GetTempPath(),
                     assembly.GetName().Name);
@@ -161,6 +167,28 @@ namespace Demoder.Common
             random.GetNonZeroBytes(blah);
             int seed = BitConverter.ToInt32(blah, 0);
             return new Random(seed);
+        }
+
+        /// <summary>
+        /// Set all events to null
+        /// </summary>
+        /// <param name="obj"></param>
+        public static void NillAllEvents(object instance)
+        {
+            var properties = from p in instance.GetType().GetProperties()
+                             where typeof(EventArgs).IsAssignableFrom(p.PropertyType)
+                             select p;
+            foreach (var pi in properties)
+            {
+                pi.SetValue(instance, null, null);
+            }
+
+            foreach (var e in instance.GetType().GetEvents(BindingFlags.Public))
+            {
+                FieldInfo field = instance.GetType().GetField(e.Name, BindingFlags.NonPublic);
+                field.SetValue(instance, null);
+            }                        
+                          
         }
     }
 }
