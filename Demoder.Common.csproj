@@ -105,6 +105,7 @@
     <Compile Include="Serialization\StreamDataStringParser.cs" />
     <Compile Include="SysInfo.cs" />
     <Compile Include="BidirectionalMap.cs" />
+    <Compile Include="TaskHelper.cs" />
     <Compile Include="Win32MessageCodes.cs" />
     <Compile Include="Extensions\DateTimeExtension.cs" />
     <Compile Include="Extensions\IEnumerableExtensions.cs" />
