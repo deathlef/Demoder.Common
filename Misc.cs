@@ -168,27 +168,5 @@ namespace Demoder.Common
             int seed = BitConverter.ToInt32(blah, 0);
             return new Random(seed);
         }
-
-        /// <summary>
-        /// Set all events to null
-        /// </summary>
-        /// <param name="obj"></param>
-        public static void NillAllEvents(object instance)
-        {
-            var properties = from p in instance.GetType().GetProperties()
-                             where typeof(EventArgs).IsAssignableFrom(p.PropertyType)
-                             select p;
-            foreach (var pi in properties)
-            {
-                pi.SetValue(instance, null, null);
-            }
-
-            foreach (var e in instance.GetType().GetEvents(BindingFlags.Public))
-            {
-                FieldInfo field = instance.GetType().GetField(e.Name, BindingFlags.NonPublic);
-                field.SetValue(instance, null);
-            }                        
-                          
-        }
     }
 }
