@@ -285,12 +285,19 @@ namespace Demoder.Common.Serialization
         }
 
         #region Stream dataparser registration
+
+        private static List<Assembly> registeredAssemblies = new List<Assembly>();
+
         /// <summary>
         /// Find and utilize all StreamDataParsers within assembly
         /// </summary>
         /// <param name="assembly"></param>
         public static void RegisterStreamDataParsers(Assembly assembly)
         {
+            if (registeredAssemblies.Contains(assembly))
+            {
+                return;
+            }
             if (Log != null)
             {
                 Log.Debug("Registering stream data parsers from assembly " + assembly.GetName().Name);
@@ -304,6 +311,8 @@ namespace Demoder.Common.Serialization
             {
                 RegisterStreamDataParser(t);
             }
+
+            registeredAssemblies.Add(assembly);
         }
 
         /// <summary>
