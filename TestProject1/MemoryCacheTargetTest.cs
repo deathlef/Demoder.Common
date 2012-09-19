@@ -78,7 +78,7 @@ namespace TestProject1
         [TestMethod()]
         public void TestA()
         {
-            CacheEntry expected = new CacheEntry { Data = new byte[] { 25, 32, 67, 120, 80 }, Expirity = DateTime.Now.AddHours(1) };
+            CacheEntry expected = new CacheEntry { Data = new byte[] { 25, 32, 67, 120, 80 }, Expirity = DateTime.UtcNow.AddHours(1) };
 
             MemoryCacheTarget target = cache;
             target.Store(expected, "lala");
