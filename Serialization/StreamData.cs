@@ -21,14 +21,15 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+using Demoder.Common.Attributes;
+using Demoder.Common.Extensions;
+using Demoder.Common.SimpleLogger;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Reflection;
-using Demoder.Common.Attributes;
-using System.Collections;
-using Demoder.Common.SimpleLogger;
+using System.Text;
 
 namespace Demoder.Common.Serialization
 {
@@ -75,8 +76,13 @@ namespace Demoder.Common.Serialization
             {
                 if (!cachedProperties.ContainsKey(type))
                 {
+                    BindingFlags bind = BindingFlags.Instance | BindingFlags.Public;
+                    if (type.GetAttribute<StreamDataIncludeBaseAttribute>() == null)
+                    {
+                        bind |= BindingFlags.DeclaredOnly;
+                    }
                     cachedProperties[type] =
-                        (from pi in type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly)
+                        (from pi in type.GetProperties(bind)
                          let attr = (StreamDataAttribute)pi.GetCustomAttributes(typeof(StreamDataAttribute), true).FirstOrDefault()
                          // Only consider SpellData properties
                          where attr != null
