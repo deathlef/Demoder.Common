@@ -125,29 +125,27 @@ namespace Demoder.Common.SimpleLogger
                 {
                     filename = "";
                 }
-                lock (System.Console.InputEncoding)
-                {
-                    string traceInfo = String.Format("({0}:{1}/{2})",
-                        filename,
-                        frame.GetFileLineNumber(),
-                        frame.GetMethod().Name);
-                    this.WriteToConsole(String.Format(" {0} [{1}] {2,50} {3,10}: {4}",
-                        DateTime.Now.ToLongTimeString(),
-                        level,
-                        traceInfo,
-                        this.category,
-                        message), textColor);
-                }
+
+                string traceInfo = String.Format("({0}:{1}/{2})",
+                    filename,
+                    frame.GetFileLineNumber(),
+                    frame.GetMethod().Name);
+                this.WriteToConsole(String.Format(" {0} [{1}] {2,50} {3,10}: {4}",
+                    DateTime.Now.ToLongTimeString(),
+                    level,
+                    traceInfo,
+                    this.category,
+                    message), textColor);
             }
             else
             {
-                    this.WriteToConsole(String.Format(" {0} [{1}] {2,10}: {3}",
-                        DateTime.Now.ToLongTimeString(),
-                        level,
-                        this.category,
-                        message
-                        ), textColor);
-                }
+                this.WriteToConsole(String.Format(" {0} [{1}] {2,10}: {3}",
+                    DateTime.Now.ToLongTimeString(),
+                    level,
+                    this.category,
+                    message
+                    ), textColor);
+            }
         }
 
         private void WriteToConsole(string message, ConsoleColor textColor = ConsoleColor.White)
