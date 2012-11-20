@@ -45,7 +45,12 @@ namespace Demoder.Common.Serialization
             var c = task.Stream.ReadInt32();
             var d = task.Stream.ReadInt32();
 
-            value = new Version(a, b, c, d);
+
+            c = Math.Max(c, 0);
+            d = Math.Max(d, 0);
+
+            value = new Version(a, b, c, d);           
+
             return true;
         }
 
