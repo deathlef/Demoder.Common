@@ -46,11 +46,18 @@ namespace Demoder.Common.Serialization
             var d = task.Stream.ReadInt32();
 
 
-            c = Math.Max(c, 0);
-            d = Math.Max(d, 0);
-
-            value = new Version(a, b, c, d);           
-
+            if (c == -1)
+            {
+                value = new Version(a, b);
+            }
+            else if (d == -1)
+            {
+                value = new Version(a, b, c);
+            }
+            else
+            {
+                value = new Version(a, b, c, d);
+            }
             return true;
         }
 
