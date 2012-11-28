@@ -26,6 +26,7 @@ using Demoder.Common.Extensions;
 using Demoder.Common.SimpleLogger;
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -38,15 +39,13 @@ namespace Demoder.Common.Serialization
     /// </summary>
     public static class StreamData
     {
-        private static object lockObject = new Object();
-
         public static Logger Log { get; set; }
 
         #region Private members
         /// <summary>
         /// Registered stream data parsers
         /// </summary>
-        private static Dictionary<Type, IStreamDataParser> streamDataParsers = new Dictionary<Type, IStreamDataParser>();
+        private static ConcurrentDictionary<Type, IStreamDataParser> streamDataParsers = new ConcurrentDictionary<Type, IStreamDataParser>();
         /// <summary>
         /// This will be used if there's no available stream data parser
         /// </summary>
@@ -55,7 +54,7 @@ namespace Demoder.Common.Serialization
         /// <summary>
         /// Property information cache per type
         /// </summary>
-        private static Dictionary<Type, StreamDataInfo[]> cachedProperties = new Dictionary<Type, StreamDataInfo[]>();
+        private static ConcurrentDictionary<Type, StreamDataInfo[]> cachedProperties = new ConcurrentDictionary<Type, StreamDataInfo[]>();
 
         #endregion
 
@@ -72,25 +71,24 @@ namespace Demoder.Common.Serialization
         /// <returns></returns>
         public static StreamDataInfo[] GetProperties(Type type)
         {
-            lock (cachedProperties)
+            StreamDataInfo[] retVal;
+            if (!cachedProperties.TryGetValue(type, out retVal))
             {
-                if (!cachedProperties.ContainsKey(type))
+                BindingFlags bind = BindingFlags.Instance | BindingFlags.Public;
+                if (type.GetAttribute<StreamDataIncludeBaseAttribute>() == null)
                 {
-                    BindingFlags bind = BindingFlags.Instance | BindingFlags.Public;
-                    if (type.GetAttribute<StreamDataIncludeBaseAttribute>() == null)
-                    {
-                        bind |= BindingFlags.DeclaredOnly;
-                    }
-                    cachedProperties[type] =
-                        (from pi in type.GetProperties(bind)
-                         let attr = (StreamDataAttribute)pi.GetCustomAttributes(typeof(StreamDataAttribute), true).FirstOrDefault()
-                         // Only consider SpellData properties
-                         where attr != null
-                         orderby attr.Order ascending
-                         select StreamDataInfo.Create(pi, attr)).ToArray();
+                    bind |= BindingFlags.DeclaredOnly;
                 }
-                return cachedProperties[type];
+                retVal = (from pi in type.GetProperties(bind)
+                     let attr = (StreamDataAttribute)pi.GetCustomAttributes(typeof(StreamDataAttribute), true).FirstOrDefault()
+                     // Only consider SpellData properties
+                     where attr != null
+                     orderby attr.Order ascending
+                     select StreamDataInfo.Create(pi, attr)).ToArray();
+
+                cachedProperties.TryAdd(type, retVal);
             }
+            return retVal;
         }
 
         /// <summary>
@@ -330,31 +328,51 @@ namespace Demoder.Common.Serialization
             var instance = (IStreamDataParser)Activator.CreateInstance(parser);
             if (instance.SupportedTypes.Length == 0) { return; }
 
-            lock (streamDataParsers)
+            foreach (var type in instance.SupportedTypes)
             {
-                foreach (var type in instance.SupportedTypes)
+                if (!streamDataParsers.TryAdd(type, instance))
                 {
-                    if (streamDataParsers.ContainsKey(type))
+
+                    IStreamDataParser tmp;
+                    if (!streamDataParsers.TryRemove(type, out tmp))
                     {
                         if (Log != null)
                         {
-                            Log.Warning(String.Format("\tStreamDataParser type {0}: Replacing \"{1}\" with \"{2}\"",
-                                type.Name,
-                                streamDataParsers[type].GetType().Name,
-                                instance.GetType().Name));
+                            Log.Warning(String.Format("\tStreamDataParser type {0}: Tried to replacing \"{1}\" with \"{2}\" but failed",
+                                 type.Name,
+                                 streamDataParsers[type].GetType().Name,
+                                 instance.GetType().Name));
                         }
-                        streamDataParsers[type] = instance;
                         continue;
                     }
-                    streamDataParsers[type] = instance;
+                    if (!streamDataParsers.TryUpdate(type, instance, tmp))
+                    {
+                        if (Log != null)
+                        {
+                            Log.Warning(String.Format("\tStreamDataParser type {0}: Tried to replacing \"{1}\" with \"{2}\" but failed",
+                                 type.Name,
+                                 streamDataParsers[type].GetType().Name,
+                                 instance.GetType().Name));
+                        }
+                        continue;
+                    }
                     if (Log != null)
                     {
-                        Log.Debug(String.Format("\tStreamDataParser type {0}: Using \"{1}\"",
+                        Log.Warning(String.Format("\tStreamDataParser type {0}: Replacing \"{1}\" with \"{2}\"",
                                 type.Name,
+                                streamDataParsers[type].GetType().Name,
                                 instance.GetType().Name));
                     }
                     continue;
                 }
+                
+                if (Log != null)
+                {
+                    Log.Debug(String.Format("\tStreamDataParser type {0}: Using \"{1}\"",
+                            type.Name,
+                            instance.GetType().Name));
+                }
+                continue;
             }
         }
         #endregion
@@ -364,14 +382,12 @@ namespace Demoder.Common.Serialization
 
         private static IStreamDataParser GetParser(Type dataType)
         {
-            lock (streamDataParsers)
+            IStreamDataParser parser;
+            if (streamDataParsers.TryGetValue(dataType, out parser))
             {
-                if (streamDataParsers.ContainsKey(dataType))
-                {
-                    return streamDataParsers[dataType];
-                }
-                return defaultDataParser;
+                return parser;
             }
+            return defaultDataParser;            
         }
 
         /// <summary>
