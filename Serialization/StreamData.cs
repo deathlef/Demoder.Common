@@ -137,7 +137,7 @@ namespace Demoder.Common.Serialization
 
                     if (pi.IsArray)
                     {
-                        var arr = new ArrayList();
+                        var arr = new ArrayList((int)Math.Min(int.MaxValue, entries));
                         for (ulong i = 0; i < entries; i++)
                         {
                             if (!GetParserData(task, out value))
@@ -153,7 +153,9 @@ namespace Demoder.Common.Serialization
                     }
                     else if (pi.IsList)
                     {
-                        dynamic list = Activator.CreateInstance(typeof(List<>).MakeGenericType(pi.DataType));
+                        dynamic list = Activator.CreateInstance(
+                            typeof(List<>).MakeGenericType(pi.DataType), 
+                            (int)Math.Min(int.MaxValue, entries));
 
                         for (ulong i = 0; i < entries; i++)
                         {
