@@ -51,10 +51,7 @@ namespace Demoder.Common.Serialization
         /// </summary>
         private static StreamDataDefaultParser defaultDataParser = new StreamDataDefaultParser();
 
-        /// <summary>
-        /// Property information cache per type
-        /// </summary>
-        private static ConcurrentDictionary<Type, StreamDataInfo[]> cachedProperties = new ConcurrentDictionary<Type, StreamDataInfo[]>();
+        
 
         #endregion
 
@@ -69,26 +66,10 @@ namespace Demoder.Common.Serialization
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
+        [Obsolete("Use StreamDataInfo.GetProperties(Type type) instead.")]
         public static StreamDataInfo[] GetProperties(Type type)
         {
-            StreamDataInfo[] retVal;
-            if (!cachedProperties.TryGetValue(type, out retVal))
-            {
-                BindingFlags bind = BindingFlags.Instance | BindingFlags.Public;
-                if (type.GetAttribute<StreamDataIncludeBaseAttribute>() == null)
-                {
-                    bind |= BindingFlags.DeclaredOnly;
-                }
-                retVal = (from pi in type.GetProperties(bind)
-                     let attr = (StreamDataAttribute)pi.GetCustomAttributes(typeof(StreamDataAttribute), true).FirstOrDefault()
-                     // Only consider SpellData properties
-                     where attr != null
-                     orderby attr.Order ascending
-                     select StreamDataInfo.Create(pi, attr)).ToArray();
-
-                cachedProperties.TryAdd(type, retVal);
-            }
-            return retVal;
+            return StreamDataInfo.GetProperties(type);
         }
 
         /// <summary>
@@ -124,7 +105,7 @@ namespace Demoder.Common.Serialization
         /// <returns></returns>
         public static object Populate(object obj, SuperStream ms)
         {
-            var properties = GetProperties(obj.GetType());
+            var properties = StreamDataInfo.GetProperties(obj.GetType());
             dynamic value;
             // Parse spell arguments
             foreach (var pi in properties)
@@ -198,7 +179,7 @@ namespace Demoder.Common.Serialization
                 IStreamDataFinalizer fin = (IStreamDataFinalizer)obj;
                 fin.OnSerialize();
             }
-            var properties = GetProperties(obj.GetType());
+            var properties = StreamDataInfo.GetProperties(obj.GetType());
             // Parse spell arguments
             foreach (var pi in properties)
             {
@@ -263,7 +244,7 @@ namespace Demoder.Common.Serialization
         public static string[] GetDebugInfo(object obj)
         {
             var values = new List<string>();
-            foreach (var p in GetProperties(obj.GetType()))
+            foreach (var p in StreamDataInfo.GetProperties(obj.GetType()))
             {
                 // Add each property tagged with SpellDataAttribute in the topmost class
                 if (p.IsArray)
@@ -283,7 +264,7 @@ namespace Demoder.Common.Serialization
         public static object[] GetPropertyValues(object obj)
         {
             var values = new List<object>();
-            foreach (var p in GetProperties(obj.GetType()))
+            foreach (var p in StreamDataInfo.GetProperties(obj.GetType()))
             {
                 values.Add(p.PropertyInfo.GetValue(obj, null));
             }

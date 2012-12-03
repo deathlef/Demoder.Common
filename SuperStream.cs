@@ -500,7 +500,7 @@ namespace Demoder.Common
         {
             this.Dispose();
         }
-        public void Dispose()
+        public new void Dispose()
         {
             if (this.DisposeBaseStream && this.BaseStream!=null)
             {
