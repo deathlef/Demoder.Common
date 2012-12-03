@@ -123,7 +123,7 @@ namespace Demoder.Common.Serialization
 
             // Test if type has StreamDataAttribute on properties.
             // This allows nesting of StreamData-aware task.DataTypes
-            var props = StreamData.GetProperties(dataType);
+            var props = StreamDataInfo.GetProperties(dataType);
             if (props.Length == 0)
             {
                 return false;
@@ -225,7 +225,7 @@ namespace Demoder.Common.Serialization
 
             // Test if type has StreamDataAttribute on properties.
             // This allows nesting of StreamData-aware task.DataTypes
-            var props = StreamData.GetProperties(dataType);
+            var props = StreamDataInfo.GetProperties(dataType);
             if (props.Length == 0)
             {
                 value = null;
