@@ -71,6 +71,7 @@
     <Compile Include="Attributes\StreamDataCollectionLengthAttribute.cs" />
     <Compile Include="Attributes\StreamDataIncludeBaseAttribute.cs" />
     <Compile Include="Attributes\StreamDataLengthAttribute.cs" />
+    <Compile Include="Attributes\StreamDataGracefulEofAttribute.cs" />
     <Compile Include="Attributes\StreamDataStringAttribute.cs" />
     <Compile Include="BackgroundWorkerInputQueue.cs" />
     <Compile Include="Cache\CacheBase.cs" />
