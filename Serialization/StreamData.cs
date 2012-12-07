@@ -106,10 +106,15 @@ namespace Demoder.Common.Serialization
         public static object Populate(object obj, SuperStream ms)
         {
             var properties = StreamDataInfo.GetProperties(obj.GetType());
+            bool gracefulStopAtEOF = obj.GetType().GetAttribute<StreamDataGracefulEofAttribute>() != null;
             dynamic value;
             // Parse spell arguments
             foreach (var pi in properties)
             {
+                if (gracefulStopAtEOF && ms.EOF)
+                {
+                    break;
+                }
                 StreamDataParserTask task = new StreamDataParserTask(ms, pi.ReadType, pi.DataType, pi.Attributes);
 
                 if (pi.IsCollection)
