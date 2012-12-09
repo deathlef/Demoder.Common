@@ -134,7 +134,7 @@ namespace Demoder.Common.Serialization
                         }
 
                         var arr2 = arr.ToArray(pi.ReadType);
-                        pi.PropertyInfo.SetValue(obj, arr2, null);
+                        pi.PropertyInfo.SafeSetValue(obj, arr2, null);
                         continue;
                     }
                     else if (pi.IsList)
@@ -151,7 +151,7 @@ namespace Demoder.Common.Serialization
                             }
                             list.Add(value);
                         }
-                        pi.PropertyInfo.SetValue(obj, list, null);
+                        pi.PropertyInfo.SafeSetValue(obj, (object)list, null);
                     }
                 }
                 else
@@ -160,7 +160,7 @@ namespace Demoder.Common.Serialization
                     {
                         throw new Exception();
                     }
-                    pi.PropertyInfo.SetValue(obj, value, null);
+                    pi.PropertyInfo.SafeSetValue(obj, (object)value, null);
                     continue;
                 }
             }
@@ -188,7 +188,7 @@ namespace Demoder.Common.Serialization
             // Parse spell arguments
             foreach (var pi in properties)
             {
-                dynamic value = pi.PropertyInfo.GetValue(obj, null);
+                dynamic value = pi.PropertyInfo.SafeGetValue(obj, null);
                 StreamDataParserTask task = new StreamDataParserTask(ms, pi.ReadType, pi.DataType, pi.Attributes);
 
                 if (pi.IsCollection)
@@ -211,7 +211,7 @@ namespace Demoder.Common.Serialization
                     // Write length, and return written length. (Entries= will override length of collection if set)
                     length = pi.WriteContentLength(ms, length);
 
-                    dynamic enumerable = pi.PropertyInfo.GetValue(obj, null);
+                    dynamic enumerable = pi.PropertyInfo.SafeGetValue(obj, null);
                     ulong count = 0;
                     foreach (var entry in enumerable)
                     {
@@ -254,13 +254,13 @@ namespace Demoder.Common.Serialization
                 // Add each property tagged with SpellDataAttribute in the topmost class
                 if (p.IsArray)
                 {
-                    dynamic values2 = p.PropertyInfo.GetValue(obj, null);
+                    dynamic values2 = p.PropertyInfo.SafeGetValue(obj, null);
                     values.Add(String.Format("{0}={1}", p.PropertyInfo.Name,
                         "{ " + String.Join(", ", values2) + " }"));
                 }
                 else
                 {
-                    values.Add(String.Format("{0}={1}", p.PropertyInfo.Name, p.PropertyInfo.GetValue(obj, null)));
+                    values.Add(String.Format("{0}={1}", p.PropertyInfo.Name, p.PropertyInfo.SafeGetValue(obj, null)));
                 }
             }
             return values.ToArray();
@@ -271,7 +271,7 @@ namespace Demoder.Common.Serialization
             var values = new List<object>();
             foreach (var p in StreamDataInfo.GetProperties(obj.GetType()))
             {
-                values.Add(p.PropertyInfo.GetValue(obj, null));
+                values.Add(p.PropertyInfo.SafeGetValue(obj, null));
             }
             return values.ToArray();
         }
