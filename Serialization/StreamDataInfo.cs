@@ -100,7 +100,7 @@ namespace Demoder.Common.Serialization
         {
             return new StreamDataInfo
             {
-                PropertyInfo = this.PropertyInfo.DeclaringType.GetProperty(this.PropertyInfo.Name),
+                PropertyInfo = this.PropertyInfo,
                 Attributes = this.Attributes,
                 DataType = this.DataType,
                 Entries = this.Entries,
@@ -199,7 +199,7 @@ namespace Demoder.Common.Serialization
             // Try fetching from common cache
             if (cachedProperties.TryGetValue(type, out retVal))
             {
-                return retVal.Select(r => r.Clone()).ToArray();
+                return retVal;
             }
 
             BindingFlags bind = BindingFlags.Instance | BindingFlags.Public;

@@ -40,5 +40,21 @@ namespace Demoder.Common.Extensions
         {
             return pi.GetCustomAttributes(typeof(T), inherit) as T[];
         }
+
+        public static void SafeSetValue(this PropertyInfo pi, object obj, object value, object[] index)
+        {
+            lock (pi)
+            {
+                pi.SetValue(obj, value, index);
+            }
+        }
+
+        public static object SafeGetValue(this PropertyInfo pi, object obj, object[] index)
+        {
+            lock (pi)
+            {
+                return pi.GetValue(obj, index);
+            }
+        }
     }
 }
