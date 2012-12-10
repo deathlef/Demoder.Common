@@ -83,6 +83,7 @@
     <Compile Include="Cache\VoidCacheTarget.cs" />
     <Compile Include="Cache\XmlCache.cs" />
     <Compile Include="Cache\XmlCacheWrapper.cs" />
+    <Compile Include="ConcurrentBidirectionalMap.cs" />
     <Compile Include="enums.cs" />
     <Compile Include="Extensions\PropertyExtensions.cs" />
     <Compile Include="Extensions\WebClientExtensions.cs" />
