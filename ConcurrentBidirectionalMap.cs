@@ -33,20 +33,57 @@ using System.Threading;
 namespace Demoder.Common
 {
     /// <summary>
-    /// 
+    /// A bidirectional key/value map, which ensures both key and value are unique.
     /// </summary>
+    /// <remarks>
+    /// <h1>Thread Safety</h1>
+    /// All public members of this class are thread safe and all operations are atomic.<br />
+    /// All read/non-modifying operations are concurrent.<br />
+    /// Modifications will block other threads while they are performed.<br />
+    /// </remarks>
     /// <typeparam name="TKey">Type of key to be stored</typeparam>
     /// <typeparam name="TValue">Type of value to be stored</typeparam>
+    /// <example>
+    /// The following is a most basic usage scenario.
+    /// <code lang="cs">
+    /// <![CDATA[
+    /// var map = new ConcurrentBidirectionalMap<int, char>();
+    /// map.TryStore(1, 'a');
+    /// map.TryStore(2, 'b');
+    /// map.TryStore(3, 'c');
+    /// 
+    /// //...
+    /// 
+    /// char retrievedValue;
+    /// if (map.TryGetValue(1, out retrievedValue)) 
+    /// {
+    ///     Debug.WriteLine("Key 1 has an value of {0}", retrievedValue);
+    /// }
+    /// else 
+    /// {
+    ///     Debug.WriteLine("Key 1 does not exist.");
+    /// }
+    /// ]]>
+    /// </code> 
+    /// </example>
+    /// <example>
+    /// var marriages = new ConcurrentBidirectionalMap<string, string>(StringComparer.InvariantCultureIgnoreCase, StringComparer.InvariantCultureIgnoreCase);
+    /// marriages.Store("John Madagaskar", "Katie Australia");
+    /// marriages.Store("Kim Malorca", "Monica Moonshine");
+    /// 
+    /// // Now
+    /// </example>
+    [DebuggerDisplay("Count = {Count}")]
     public class ConcurrentBidirectionalMap<TKey, TValue> : IDisposable
     {
         private bool disposed = false;
 
         /// <summary>
-        /// Contains a TKey to TValue relation
+        /// Contains all TKey to TValue relations
         /// </summary>
         private ConcurrentDictionary<TKey, TValue> keyValueMap;
         /// <summary>
-        /// Contains a TValue to TKey relation
+        /// Contains all TValue to TKey relations
         /// </summary>
         private ConcurrentDictionary<TValue, TKey> valueKeyMap;
 
@@ -61,6 +98,13 @@ namespace Demoder.Common
         /// </summary>
         private IEqualityComparer<TValue> valueComparer;
 
+        /// <summary>
+        /// Retrieves the number of elements which are stored in this map
+        /// </summary>
+        /// <remarks>
+        /// <h1>Thread Safety</h1>
+        /// Calls to this method aquire a read lock to the <see cref="ConcurrentBidirectionalMap{TKey,TValue}"/>, blocking any other threads from writing. Other threads can still read, however.
+        /// </remarks>
         public int Count
         {
             get
@@ -113,6 +157,10 @@ namespace Demoder.Common
         /// <summary>
         /// Determines whether the <paramref name="key"/> exists
         /// </summary>
+        /// <remarks>
+        /// <h1>Thread Safety</h1>
+        /// Calls to this method aquire a read lock to the <see cref="ConcurrentBidirectionalMap{TKey,TValue}"/>, blocking any other threads from writing. Other threads can still read, however.
+        /// </remarks>
         /// <param name="key">The key to locate</param>
         /// <returns>true if <paramref name="key"/> is found, otherwise false</returns>
         /// <exception cref="System.ArgumentNullException">Key is a null reference</exception>
@@ -143,6 +191,10 @@ namespace Demoder.Common
         /// <summary>
         /// Determines whether the <paramref name="value"/> exists
         /// </summary>
+        /// <remarks>
+        /// <h1>Thread Safety</h1>
+        /// Calls to this method aquire a read lock to the <see cref="ConcurrentBidirectionalMap{TKey,TValue}"/>, blocking any other threads from writing. Other threads can still read, however.
+        /// </remarks>
         /// <param name="value">The value to locate</param>
         /// <returns>true if <paramref name="value"/> is found, otherwise false</returns>
         /// <exception cref="System.ArgumentNullException">value is a null reference</exception>
@@ -173,6 +225,10 @@ namespace Demoder.Common
         /// <summary>
         /// Determines whether the <paramref name="key" /> and <paramref name="value"/> exists, and if they are associated.
         /// </summary>
+        /// <remarks>
+        /// <h1>Thread Safety</h1>
+        /// Calls to this method aquire a read lock to the <see cref="ConcurrentBidirectionalMap{TKey,TValue}"/>, blocking any other threads from writing. Other threads can still read, however.
+        /// </remarks>
         /// <param name="key">The key to locate</param>
         /// <param name="value">The value to locate</param>
         /// <returns>true if key and value exist and are associated with eachother. Otherwise false.</returns>
@@ -215,6 +271,10 @@ namespace Demoder.Common
         /// <summary>
         /// Attempts to get the value associated with the specified <paramref name="key"/>
         /// </summary>
+        /// <remarks>
+        /// <h1>Thread Safety</h1>
+        /// Calls to this method aquire a read lock to the <see cref="ConcurrentBidirectionalMap{TKey,TValue}"/>, blocking any other threads from writing. Other threads can still read, however.
+        /// </remarks>
         /// <param name="key">The key of the value to get</param>
         /// <param name="value">When this method returns, value contains the object with the specified value or the default value of <typeparamref name="TValue"/>, if the operation failed.</param>
         /// <returns>True if the key was found, otherwise false</returns>
@@ -246,6 +306,10 @@ namespace Demoder.Common
         /// <summary>
         /// Attempts to get the key associated with the specified <paramref name="value"/>
         /// </summary>
+        /// <remarks>
+        /// <h1>Thread Safety</h1>
+        /// Calls to this method aquire a read lock to the <see cref="ConcurrentBidirectionalMap{TKey,TValue}"/>, blocking any other threads from writing. Other threads can still read, however.
+        /// </remarks>
         /// <param name="value">The value of the key to get</param>
         /// <param name="key">When this method returns, key contains the object with the specified key or the default value of <typeparamref name="TKey"/>, if the operation failed.</param>
         /// <returns>True if the value was found, otherwise false</returns>
@@ -277,6 +341,10 @@ namespace Demoder.Common
         /// <summary>
         /// Stores a key/value combination, removing other key/value combination if necessary.
         /// </summary>
+        /// <remarks>
+        /// <h1>Thread Safety</h1>
+        /// Calls to this method aquire a write lock to the <see cref="ConcurrentBidirectionalMap{TKey,TValue}"/>, blocking any other threads from reading or writing.        /// 
+        /// </remarks>
         /// <param name="key">The key to add</param>
         /// <param name="value">The value to add</param>
         /// <returns>An enumerator describing which alterations were made, if any.</returns>
@@ -362,6 +430,10 @@ namespace Demoder.Common
         /// <summary>
         /// Attempts to add a specified key and value to the map
         /// </summary>
+        /// <remarks>
+        /// <h1>Thread Safety</h1>
+        /// Calls to this method aquire a write lock to the <see cref="ConcurrentBidirectionalMap{TKey,TValue}"/>, blocking any other threads from reading or writing.        /// 
+        /// </remarks>
         /// <param name="key">The key to add</param>
         /// <param name="value">The value to add</param>
         /// <returns>true if the key/value was successfully added. false if key or value already exist.</returns>
@@ -408,6 +480,10 @@ namespace Demoder.Common
         /// <summary>
         /// Attempts to remove the specified key and associated value, returning the value.
         /// </summary>
+        /// <remarks>
+        /// <h1>Thread Safety</h1>
+        /// Calls to this method aquire a write lock to the <see cref="ConcurrentBidirectionalMap{TKey,TValue}"/>, blocking any other threads from reading or writing.        /// 
+        /// </remarks>
         /// <param name="key">The key of the element to remove and return</param>
         /// <param name="value">Value associated with key</param>
         /// <returns>True if a mapping was removed, otherwise false</returns>
@@ -445,6 +521,10 @@ namespace Demoder.Common
         /// <summary>
         /// Attempts to remove the specified value and associated key, returning the key.
         /// </summary>
+        /// <remarks>
+        /// <h1>Thread Safety</h1>
+        /// Calls to this method aquire a write lock to the <see cref="ConcurrentBidirectionalMap{TKey,TValue}"/>, blocking any other threads from reading or writing.
+        /// </remarks>
         /// <param name="value">The value of the element to remove and return</param>
         /// <param name="key">Key associated with value</param>
         /// <returns>True if a mapping was removed, otherwise false</returns>
@@ -482,9 +562,13 @@ namespace Demoder.Common
         /// <summary>
         /// Removes a key=value combination, but only if key and value exist, and they're associated with eachother.
         /// </summary>
+        /// <remarks>
+        /// <h1>Thread Safety</h1>
+        /// Calls to this method aquire a write lock to the <see cref="ConcurrentBidirectionalMap{TKey,TValue}"/>, blocking any other threads from reading or writing.        /// 
+        /// </remarks>
         /// <param name="key">Key to remove</param>
         /// <param name="value">Value to remove</param>
-        /// <returns></returns>
+        /// <returns>True if exact match was found and removed, therwise false.</returns>
         /// <exception cref="System.ArgumentNullException">key or value is a null reference</exception>
         /// <exception cref="System.ObjectDisposedException"></exception>
         public bool TryRemove(TKey key, TValue value)
@@ -520,14 +604,8 @@ namespace Demoder.Common
                 // Remove key and value
                 TKey outKey;
                 TValue outValue;
-                if (!this.keyValueMap.TryRemove(key, out outValue))
-                {
-                    throw new InvalidDataException("Have key but can't remove it. Key: " + key.ToString());
-                }
-                if (!this.valueKeyMap.TryRemove(value, out outKey))
-                {
-                    throw new InvalidDataException("Have value but can't remove it. Value: " + value.ToString());
-                }
+                this.keyValueMap.TryRemove(key, out outValue);
+                this.valueKeyMap.TryRemove(value, out outKey);
                 return true;
             }
             finally

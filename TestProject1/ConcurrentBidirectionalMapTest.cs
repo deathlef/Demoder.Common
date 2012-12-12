@@ -26,11 +26,17 @@ using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Demoder.Common;
 
-namespace TestProject1
+namespace Demoder.Common.Tests
 {
     [TestClass]
     public class ConcurrentBidirectionalMapTest
     {
+        [TestMethod]
+        public void Constructor()
+        {
+            var map = new ConcurrentBidirectionalMap<string, string>(StringComparer.InvariantCultureIgnoreCase, StringComparer.InvariantCultureIgnoreCase);
+        }
+
         [TestMethod]
         public void TryStoreNewTestMethod()
         {
@@ -58,7 +64,7 @@ namespace TestProject1
 
 
         [TestMethod]
-        public void TryStoreModifyATestMethod()
+        public void StoreModifyATestMethod()
         {
             var map = this.CreateMap();
             // Done setting up
@@ -74,7 +80,7 @@ namespace TestProject1
         }
 
         [TestMethod]
-        public void TryStoreModifyBTestMethod()
+        public void StoreModifyBTestMethod()
         {
             var map = this.CreateMap();
             // Done setting up
@@ -99,6 +105,45 @@ namespace TestProject1
             Assert.AreEqual<int>(2, map.Count);
             Assert.IsTrue(map.TestIntegrity());
         }
+
+        [TestMethod]
+        public void StoreDuplicate()
+        {
+            var map = this.CreateMap();
+            MapAlteration expected = MapAlteration.Unmodified;
+            MapAlteration actual = map.Store(1, 'a');
+            Assert.AreEqual(expected, actual);
+        }
+
+
+        [TestMethod]
+        public void TryStoreDuplicateKey()
+        {
+            var map = this.CreateMap();
+            bool expected = false;
+            bool actual = map.TryStore(1, 'g');
+            Assert.AreEqual(expected, actual);
+        }
+
+        [TestMethod]
+        public void TryStoreDuplicateValue()
+        {
+            var map = this.CreateMap();
+            bool expected = false;
+            bool actual = map.TryStore(15, 'a');
+            Assert.AreEqual(expected, actual);
+        }
+
+        [TestMethod]
+        public void TryStoreUniqueValue()
+        {
+            var map = this.CreateMap();
+            bool expected = true;
+            bool actual = map.TryStore(15, 'z');
+            Assert.AreEqual(expected, actual);
+        }
+
+
 
         [TestMethod]
         public void TryGetKeyATestMethod()
@@ -162,7 +207,7 @@ namespace TestProject1
         }
         #region TryRemove
         [TestMethod]
-        public void TryRemoveTestMethodA()
+        public void TryRemoveA()
         {
             var map = this.CreateMap();
 
@@ -173,7 +218,7 @@ namespace TestProject1
         }
 
         [TestMethod]
-        public void TryRemoveTestMethodB()
+        public void TryRemoveB()
         {
             var map = this.CreateMap();
 
@@ -181,6 +226,15 @@ namespace TestProject1
             bool actual = map.TryRemove(1, 'a');
             Assert.AreEqual(expected, actual);
             Assert.IsTrue(map.TestIntegrity());
+        }
+
+        [TestMethod]
+        public void TryRemoveC()
+        {
+            var map = this.CreateMap();
+            bool expected = false;
+            bool actual = map.TryRemove(15, 'a');
+            Assert.AreEqual(expected, actual);
         }
 
         [TestMethod]
@@ -419,7 +473,105 @@ namespace TestProject1
         #endregion
 
 
-        #region Test for null parameters
+        #region Test for disposed
+        [TestMethod]
+        [ExpectedException(typeof(ObjectDisposedException))]
+        public void StoreDisposed()
+        {
+            var map = new ConcurrentBidirectionalMap<string, string>();
+            map.Dispose();
+            map.Store("hello", "ehlo");
+        }
+                
+        [TestMethod]
+        [ExpectedException(typeof(ObjectDisposedException))]
+        public void TryStoreDisposed()
+        {
+            var map = new ConcurrentBidirectionalMap<string, string>();
+            map.Dispose();
+            map.TryStore("hello", "ehlo");
+        }
+        
+        [TestMethod]
+        [ExpectedException(typeof(ObjectDisposedException))]
+        public void ContainsValueDisposed()
+        {
+            var map = new ConcurrentBidirectionalMap<string, string>();
+            map.Dispose();
+            map.ContainsValue("apples");
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ObjectDisposedException))]
+        public void ContainsKeyDisposed()
+        {
+            var map = new ConcurrentBidirectionalMap<string, string>();
+            map.Dispose();
+            map.ContainsKey(null);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ObjectDisposedException))]
+        public void ContainsDisposed()
+        {
+            var map = new ConcurrentBidirectionalMap<string, string>();
+            map.Dispose();
+            map.Contains("hello", "ehlo");
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ObjectDisposedException))]
+        public void TryGetKeyDisposed()
+        {
+            var map = new ConcurrentBidirectionalMap<string, string>();
+            map.Dispose();
+            string tmp;
+            map.TryGetKey("HI", out tmp);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ObjectDisposedException))]
+        public void TryGetValueDisposed()
+        {
+            var map = new ConcurrentBidirectionalMap<string, string>();
+            map.Dispose();
+            string tmp;
+            map.TryGetValue("suspicious", out tmp);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ObjectDisposedException))]
+        public void TryRemoveKeyDisposed()
+        {
+            var map = new ConcurrentBidirectionalMap<string, string>();
+            string value;
+            map.Dispose();
+            map.TryRemoveKey("shiny", out value);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ObjectDisposedException))]
+        public void TryRemoveValueDisposed()
+        {
+            var map = new ConcurrentBidirectionalMap<string, string>();
+            map.Dispose();
+            string key;
+            map.TryRemoveValue("lala", out key);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ObjectDisposedException))]
+        public void TryRemoveDisposed()
+        {
+            var map = new ConcurrentBidirectionalMap<string, string>();
+            map.Dispose();
+            string key;
+            map.TryRemove("lala", "lala");
+        }
+
+        #endregion
+
+        #region Test for null
         [TestMethod]
         [ExpectedException(typeof(ArgumentNullException))]
         public void TestStoreValueNull()
@@ -453,7 +605,7 @@ namespace TestProject1
         }
 
 
-        
+
         [TestMethod]
         [ExpectedException(typeof(ArgumentNullException))]
         public void ContainsValueNull()
@@ -510,8 +662,8 @@ namespace TestProject1
         public void TryRemoveKeyNull()
         {
             var map = new ConcurrentBidirectionalMap<string, string>();
-            string key;
-            map.TryRemoveKey(null, out key);
+            string value;
+            map.TryRemoveKey(null, out value);
         }
 
         [TestMethod]
@@ -541,7 +693,6 @@ namespace TestProject1
             string key;
             map.TryRemove("lala", null);
         }
-
         #endregion
 
 

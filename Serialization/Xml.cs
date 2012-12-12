@@ -34,6 +34,7 @@ namespace Demoder.Common.Serialization
 {
     public static class Xml
     {
+        #region Generic wrappers
         /// <summary>
         /// 
         /// </summary>
@@ -233,9 +234,7 @@ namespace Demoder.Common.Serialization
         {
             return (T)Deserialize(typeof(T), xml, encoding);
         }
-
-
-
+        #endregion
 
         private static XmlSerializerFactory factory = new XmlSerializerFactory();
 
