@@ -50,7 +50,8 @@ namespace Demoder.Common.Tests.TestData
         public string C { get; set; }
 
         [StreamData(3)]
-        public IList<int> D { get; set; }
+        [StreamDataCollectionLength(LengthType.UInt32)]
+        public List<int> D { get; set; }
 
         [StreamData(4)]
         public ByteEnum E { get; set; }
