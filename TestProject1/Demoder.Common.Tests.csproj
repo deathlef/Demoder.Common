@@ -59,6 +59,7 @@
     <Compile Include="StreamDataTest.cs" />
     <Compile Include="SuperStreamTest.cs" />
     <Compile Include="TestData\StreamDataTestData.cs" />
+    <Compile Include="ConcurrentBidirectionalMapTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Demoder.Common.csproj">
@@ -66,7 +67,6 @@
       <Name>Demoder.Common</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
     <Shadow Include="Test References\Demoder.Common.accessor" />
   </ItemGroup>
