@@ -121,7 +121,6 @@
     <Compile Include="Misc.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QueueHelper.cs" />
-    <Compile Include="Serialization\VersionedXmlLoader.cs" />
     <Compile Include="Serialization\Xml.cs" />
     <Compile Include="SimpleLogger\enums.cs" />
     <Compile Include="SimpleLogger\Log.cs" />

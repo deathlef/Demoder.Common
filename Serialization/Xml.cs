@@ -34,7 +34,6 @@ namespace Demoder.Common.Serialization
 {
     public static class Xml
     {
-
         /// <summary>
         /// 
         /// </summary>
@@ -45,28 +44,12 @@ namespace Demoder.Common.Serialization
         /// <exception cref="ArgumentNullException">If obj or stream is null</exception>
         public static bool TrySerialize<T>(T obj, Stream stream)
         {
-            if (obj == null)
-            {
-                throw new ArgumentNullException("obj");
-            }
-            if (stream == null)
-            {
-                throw new ArgumentNullException("stream");
-            }
-            try
-            {
-                Compat.Serialize(obj, stream, typeof(T));
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
+            return TrySerialize(typeof(T), obj, stream);
         }
 
         public static void Serialize<T>(T obj, Stream stream)
         {
-            Compat.Serialize(obj, stream, typeof(T));
+            Serialize(typeof(T), obj, stream);
         }
 
         /// <summary>
@@ -79,29 +62,12 @@ namespace Demoder.Common.Serialization
         /// <exception cref="ArgumentNullException">If obj or stream is null</exception>
         public static bool TrySerialize<T>(T obj, FileInfo file)
         {
-            if (obj == null)
-            {
-                throw new ArgumentNullException("obj");
-            }
-            if (file == null)
-            {
-                throw new ArgumentNullException("file");
-            }
-
-            try
-            {
-                Compat.Serialize(obj, file, typeof(T));
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
+            return TrySerialize(typeof(T), obj, file);
         }
 
         public static void Serialize<T>(T obj, FileInfo file)
         {
-            Compat.Serialize(obj, file, typeof(T));
+            Serialize(typeof(T), obj, file);
         }
 
 
@@ -121,7 +87,7 @@ namespace Demoder.Common.Serialization
             }
             try
             {
-                obj = (T)Compat.Deserialize(typeof(T), stream);
+                obj = (T)Deserialize(typeof(T), stream);
                 return true;
             }
             catch
@@ -133,7 +99,7 @@ namespace Demoder.Common.Serialization
 
         public static T Deserialize<T>(Stream stream)
         {
-            return (T)Compat.Deserialize(typeof(T), stream);
+            return (T)Deserialize(typeof(T), stream);
         }
 
         /// <summary>
@@ -153,7 +119,7 @@ namespace Demoder.Common.Serialization
 
             try
             {
-                obj = (T)Compat.Deserialize(typeof(T), file);
+                obj = (T)Deserialize(typeof(T), file);
                 return true;
             }
             catch
@@ -165,7 +131,7 @@ namespace Demoder.Common.Serialization
 
         public static T Deserialize<T>(FileInfo file)
         {
-            return (T)Compat.Deserialize(typeof(T), file);
+            return (T)Deserialize(typeof(T), file);
         }
 
         /// <summary>
@@ -185,7 +151,7 @@ namespace Demoder.Common.Serialization
 
             try
             {
-                obj = (T)Compat.Deserialize(typeof(T), uri);
+                obj = (T)Deserialize(typeof(T), uri);
                 return true;
             }
             catch
@@ -197,7 +163,7 @@ namespace Demoder.Common.Serialization
 
         public static T Deserialize<T>(UriBuilder uri)
         {
-            return (T)Compat.Deserialize(typeof(T), uri);
+            return (T)Deserialize(typeof(T), uri);
         }
 
         /// <summary>
@@ -217,7 +183,7 @@ namespace Demoder.Common.Serialization
 
             try
             {
-                obj = (T)Compat.Deserialize(typeof(T), uri);
+                obj = (T)Deserialize(typeof(T), uri);
                 return true;
             }
             catch
@@ -229,7 +195,7 @@ namespace Demoder.Common.Serialization
 
         public static T Deserialize<T>(Uri uri)
         {
-            return (T)Compat.Deserialize(typeof(T), uri);
+            return (T)Deserialize(typeof(T), uri);
         }
 
         /// <summary>
@@ -253,7 +219,7 @@ namespace Demoder.Common.Serialization
             }
             try
             {
-                obj = (T)Compat.Deserialize(typeof(T), xml, encoding);
+                obj = (T)Deserialize(typeof(T), xml, encoding);
                 return true;
             }
             catch
@@ -265,208 +231,380 @@ namespace Demoder.Common.Serialization
 
         public static T Deserialize<T>(string xml, Encoding encoding)
         {
-            return (T)Compat.Deserialize(typeof(T), xml, encoding);
+            return (T)Deserialize(typeof(T), xml, encoding);
         }
 
 
 
-        public static class Compat
+
+        private static XmlSerializerFactory factory = new XmlSerializerFactory();
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="obj">Object to be serialized</param>
+        /// <param name="stream">Stream to write to</param>
+        /// <param name="type">Which type to serialize object as. If null, will use objects real type.</param>
+        /// <exception cref="ArgumentNullException">type, obj or stream is null</exception>
+        /// <exception cref="IOException">stream isn't writeable</exception>
+        public static void Serialize(Type type, object obj, Stream stream)
         {
-            private static XmlSerializerFactory factory = new XmlSerializerFactory();
-
-            /// <summary>
-            /// 
-            /// </summary>
-            /// <param name="obj">Object to be serialized</param>
-            /// <param name="stream">Stream to write to</param>
-            /// <param name="type">Which type to serialize object as. If null, will use objects real type.</param>
-            /// <exception cref="ArgumentNullException">obj or stream is null</exception>
-            /// <exception cref="IOException">stream isn't writeable</exception>
-            public static void Serialize(object obj, Stream stream, Type type = null)
+            if (type == null)
             {
-                if (obj == null)
-                {
-                    throw new ArgumentNullException("obj");
-                }
-                if (stream == null)
-                {
-                    throw new ArgumentNullException("stream");
-                }
-                if (!stream.CanWrite)
-                {
-                    throw new IOException("Cannot write to stream", new ArgumentException("stream"));
-                }
-
-                if (type == null)
-                {
-                    type = obj.GetType();
-                }
-
-                XmlSerializer serializer = factory.CreateSerializer(type);
-                serializer.Serialize(stream, obj);
+                throw new ArgumentNullException("type");
+            }
+            
+            if (obj == null)
+            {
+                throw new ArgumentNullException("obj");
+            }
+            if (stream == null)
+            {
+                throw new ArgumentNullException("stream");
+            }
+            if (!stream.CanWrite)
+            {
+                throw new IOException("Cannot write to stream", new ArgumentException("stream"));
             }
 
-            /// <summary>
-            /// 
-            /// </summary>
-            /// <param name="obj">Object to be serialized</param>
-            /// <param name="file">File to write to</param>
-            /// <param name="type">Which type to serialize object as. If null, will use objects real type.</param>
-            /// <exception cref="ArgumentNullException">obj or file is null</exception>
-            public static void Serialize(object obj, FileInfo file, Type type = null)
-            {
-                if (obj == null)
-                {
-                    throw new ArgumentNullException("obj");
-                }
-                if (file == null)
-                {
-                    throw new ArgumentNullException("file");
-                }
+            XmlSerializer serializer = factory.CreateSerializer(type);
+            serializer.Serialize(stream, obj);
+        }
 
-                using (FileStream stream = new FileStream(file.FullName, FileMode.Create, FileAccess.Write, FileShare.None, 4096 * 8))
-                {
-                    Compat.Serialize(obj, stream, type);
-                }
+        public static bool TrySerialize(Type type, object obj, Stream stream)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException("type");
             }
 
-
-
-            /// <summary>
-            /// 
-            /// </summary>
-            /// <param name="type">Type to deserialize as</param>
-            /// <param name="stream">Stream to read from</param>
-            /// <returns>deserialized object</returns>
-            /// <exception cref="ArgumentNullException">If type or stream is null</exception>
-            /// <exception cref="IOException">If stream is not readable</exception>
-            public static object Deserialize(Type type, Stream stream)
+            if (obj == null)
             {
-                if (stream == null)
-                {
-                    throw new ArgumentNullException("stream");
-                }
-                if (type == null)
-                {
-                    throw new ArgumentNullException("type");
-                }
-                if (!stream.CanRead)
-                {
-                    throw new IOException("Cannot read from stream.", new ArgumentException("stream"));
-                }
+                throw new ArgumentNullException("obj");
+            }
+            if (stream == null)
+            {
+                throw new ArgumentNullException("stream");
+            }
+            try
+            {
+                Serialize(type, obj, stream);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
 
-                XmlSerializer serializer = factory.CreateSerializer(type);
-                return serializer.Deserialize(stream);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="obj">Object to be serialized</param>
+        /// <param name="file">File to write to</param>
+        /// <param name="type">Which type to serialize object as.</param>
+        /// <exception cref="ArgumentNullException">type, obj or file is null</exception>
+        public static void Serialize(Type type, object obj, FileInfo file)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException("type");
+            }
+        
+            if (obj == null)
+            {
+                throw new ArgumentNullException("obj");
+            }
+            if (file == null)
+            {
+                throw new ArgumentNullException("file");
             }
 
-            /// <summary>
-            /// 
-            /// </summary>
-            /// <param name="type">Type to deserialize</param>
-            /// <param name="file">File to read from</param>
-            /// <returns>deserialized object</returns>
-            /// <exception cref="ArgumentNullException">If type or file is null</exception>
-            /// <exception cref="FileNotFountException">If file does not exist</exception>
-            public static object Deserialize(Type type, FileInfo file)
+            using (FileStream stream = new FileStream(file.FullName, FileMode.Create, FileAccess.Write, FileShare.None, 4096 * 8))
             {
-                if (type == null)
-                {
-                    throw new ArgumentNullException("type");
-                }
-                if (file == null)
-                {
-                    throw new ArgumentNullException("file");
-                }
-                if (!file.Exists)
-                {
-                    throw new FileNotFoundException("File was not found", file.FullName, new ArgumentException("file"));
-                }
+                Serialize(type, obj, stream);
+            }
+        }
 
-                using (FileStream stream = new FileStream(file.FullName, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.SequentialScan))
-                {
-                    return Compat.Deserialize(type, stream);
-                }
+        public static bool TrySerialize(Type type, object obj, FileInfo file)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException("type");
             }
 
-            /// <summary>
-            /// 
-            /// </summary>
-            /// <param name="type">Type to deserialize as</param>
-            /// <param name="uri">URI to download for deserialization</param>
-            /// <returns>deserialized object</returns>
-            /// <exception cref="ArgumentNullException">If type or uri is null</exception>
-            public static object Deserialize(Type type, UriBuilder uri)
+            if (obj == null)
             {
-                if (type == null)
-                {
-                    throw new ArgumentNullException("type");
-                }
-                if (uri == null)
-                {
-                    throw new ArgumentNullException("uri");
-                }
-                return Compat.Deserialize(type, uri.Uri);
+                throw new ArgumentNullException("obj");
+            }
+            if (file == null)
+            {
+                throw new ArgumentNullException("file");
             }
 
-            /// <summary>
-            /// 
-            /// </summary>
-            /// <param name="type">Type to deserialize as</param>
-            /// <param name="uri">URI to download for deserialization</param>
-            /// <returns>deserialized object</returns>
-            /// <exception cref="ArgumentNullException">If type or uri is null</exception>
-            /// <exception cref="ArgumentException">If uri is empty</exception>
-            public static object Deserialize(Type type, Uri uri)
+            try
             {
-                if (type == null)
-                {
-                    throw new ArgumentNullException("type");
-                }
-                if (uri == null)
-                {
-                    throw new ArgumentNullException("uri");
-                }
-                if (String.IsNullOrWhiteSpace(uri.ToString()))
-                {
-                    throw new ArgumentException("URI is empty", "uri");
-                }
-                using (WebClient web = new WebClient())
-                {
-                    byte[] data = web.DownloadData(uri);
-                    using (MemoryStream stream = new MemoryStream(data))
-                    {
-                        return Compat.Deserialize(type, stream);
-                    }
-                }
+                Serialize(type, obj, file);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="type">Type to deserialize as</param>
+        /// <param name="stream">Stream to read from</param>
+        /// <returns>deserialized object</returns>
+        /// <exception cref="ArgumentNullException">If type or stream is null</exception>
+        /// <exception cref="IOException">If stream is not readable</exception>
+        public static object Deserialize(Type type, Stream stream)
+        {
+            if (stream == null)
+            {
+                throw new ArgumentNullException("stream");
+            }
+            if (type == null)
+            {
+                throw new ArgumentNullException("type");
+            }
+            if (!stream.CanRead)
+            {
+                throw new IOException("Cannot read from stream.", new ArgumentException("stream"));
             }
 
-            /// <summary>
-            /// 
-            /// </summary>
-            /// <param name="type">Type to deserialize as</param>
-            /// <param name="xml">XML to deserialize</param>
-            /// <param name="encoding">Encoding to use when deserializing</param>
-            /// <returns>deserialized object</returns>
-            /// <exception cref="ArgumentNullException">If type, xml or encoding is null</exception>
-            public static object Deserialize(Type type, string xml, Encoding encoding)
-            {
-                if (type == null)
-                {
-                    throw new ArgumentNullException("type");
-                }
-                if (xml == null)
-                {
-                    throw new ArgumentNullException("xml");
-                }
-                if (encoding == null)
-                {
-                    throw new ArgumentNullException("encoding");
-                }
+            XmlSerializer serializer = factory.CreateSerializer(type);
+            return serializer.Deserialize(stream);
+        }
 
-                using (MemoryStream stream = new MemoryStream(encoding.GetBytes(xml)))
+        public static bool TryDeserialize(Type type, Stream stream, out object obj)
+        {
+            if (stream == null)
+            {
+                throw new ArgumentNullException("stream");
+            }
+            if (type == null)
+            {
+                throw new ArgumentNullException("type");
+            }
+
+            try
+            {
+                obj = Deserialize(type, stream);
+                return true;
+            }
+            catch
+            {
+                obj = null;
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="type">Type to deserialize</param>
+        /// <param name="file">File to read from</param>
+        /// <returns>deserialized object</returns>
+        /// <exception cref="ArgumentNullException">If type or file is null</exception>
+        /// <exception cref="FileNotFountException">If file does not exist</exception>
+        public static object Deserialize(Type type, FileInfo file)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException("type");
+            }
+            if (file == null)
+            {
+                throw new ArgumentNullException("file");
+            }
+            if (!file.Exists)
+            {
+                throw new FileNotFoundException("File was not found", file.FullName, new ArgumentException("file"));
+            }
+
+            using (FileStream stream = new FileStream(file.FullName, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.SequentialScan))
+            {
+                return Deserialize(type, stream);
+            }
+        }
+
+        public static bool TryDeserialize(Type type, FileInfo file, out object obj)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException("type");
+            }
+            if (file == null)
+            {
+                throw new ArgumentNullException("file");
+            }
+            try
+            {
+                obj = Deserialize(type, file);
+                return true;
+            }
+            catch
+            {
+                obj = null;
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="type">Type to deserialize as</param>
+        /// <param name="uri">URI to download for deserialization</param>
+        /// <returns>deserialized object</returns>
+        /// <exception cref="ArgumentNullException">If type or uri is null</exception>
+        public static object Deserialize(Type type, UriBuilder uri)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException("type");
+            }
+            if (uri == null)
+            {
+                throw new ArgumentNullException("uri");
+            }
+            return Deserialize(type, uri.Uri);
+        }
+
+        public static bool TryDeserialize(Type type, UriBuilder uri, out object obj)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException("type");
+            }
+            if (uri == null)
+            {
+                throw new ArgumentNullException("uri");
+            }
+            try
+            {
+                obj = Deserialize(type, uri);
+                return true;
+            }
+            catch
+            {
+                obj = null;
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="type">Type to deserialize as</param>
+        /// <param name="uri">URI to download for deserialization</param>
+        /// <returns>deserialized object</returns>
+        /// <exception cref="ArgumentNullException">If type or uri is null</exception>
+        /// <exception cref="ArgumentException">If uri is empty</exception>
+        public static object Deserialize(Type type, Uri uri)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException("type");
+            }
+            if (uri == null)
+            {
+                throw new ArgumentNullException("uri");
+            }
+            if (String.IsNullOrWhiteSpace(uri.ToString()))
+            {
+                throw new ArgumentException("URI is empty", "uri");
+            }
+            using (WebClient web = new WebClient())
+            {
+                byte[] data = web.DownloadData(uri);
+                using (MemoryStream stream = new MemoryStream(data))
                 {
-                    return Compat.Deserialize(type, stream);
+                    return Deserialize(type, stream);
                 }
+            }
+        }
+
+        public static object TryDeserialize(Type type, Uri uri, out object obj)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException("type");
+            }
+            if (uri == null)
+            {
+                throw new ArgumentNullException("uri");
+            }
+            try
+            {
+                obj = Deserialize(type, uri);
+                return true;
+            }
+            catch
+            {
+                obj = null;
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="type">Type to deserialize as</param>
+        /// <param name="xml">XML to deserialize</param>
+        /// <param name="encoding">Encoding to use when deserializing</param>
+        /// <returns>deserialized object</returns>
+        /// <exception cref="ArgumentNullException">If type, xml or encoding is null</exception>
+        public static object Deserialize(Type type, string xml, Encoding encoding)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException("type");
+            }
+            if (xml == null)
+            {
+                throw new ArgumentNullException("xml");
+            }
+            if (encoding == null)
+            {
+                throw new ArgumentNullException("encoding");
+            }
+
+            using (MemoryStream stream = new MemoryStream(encoding.GetBytes(xml)))
+            {
+                return Deserialize(type, stream);
+            }
+        }
+
+        public static bool TryDeserialize(Type type, string xml, Encoding encoding, out object obj)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException("type");
+            }
+            if (xml == null)
+            {
+                throw new ArgumentNullException("xml");
+            }
+            if (encoding == null)
+            {
+                throw new ArgumentNullException("encoding");
+            }
+
+            try
+            {
+                obj = Deserialize(type, xml, encoding);
+                return true;
+            }
+            catch
+            {
+                obj = null;
+                return false;
             }
         }
     }
