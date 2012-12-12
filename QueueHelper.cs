@@ -46,24 +46,32 @@ namespace Demoder.Common
         /// Initializes this queue helper.
         /// </summary>
         /// <param name="reportDelegate">Method to handle incoming chat events.</param>
-        public QueueHelper(QueueHelperDelegate<T> reportDelegate=null, SimpleLogger.Logger logger=null)
+        public QueueHelper(QueueHelperDelegate<T> reportDelegate = null, SimpleLogger.Logger logger = null)
         {
-            if (reportDelegate == null) { return; }
-           this.SetReportDelegate(reportDelegate);
-           this.log = logger;
+            this.log = logger;
+
+            if (reportDelegate != null)
+            {
+                this.SetReportDelegate(reportDelegate);
+            }
         }
 
         /// <summary>
         /// Defines a delegate which will be executed on the worker thread for each item in the queue.
         /// </summary>
         /// <param name="reportDelegate"></param>
-        protected void SetReportDelegate(QueueHelperDelegate<T> reportDelegate, string tag="")
+        protected void SetReportDelegate(QueueHelperDelegate<T> reportDelegate, string tag = "")
         {
+            if (this.disposed) { throw new ObjectDisposedException("QueueHelper"); }
+            if (this.reportDelegate != null)
+            {
+
+            }
             this.reportDelegate = reportDelegate;
 
             this.incEventThread = new Thread(new ThreadStart(this.EventPuller));
             this.incEventThread.IsBackground = true;
-            this.incEventThread.Name = "HandsoffHelper->EventPuller() ("+tag+")";            
+            this.incEventThread.Name = "HandsoffHelper->EventPuller() (" + tag + ")";
             this.incEventThread.Start();
         }
 
@@ -73,7 +81,7 @@ namespace Demoder.Common
         /// <param name="item"></param>
         public void Enqueue(T item)
         {
-            if (this.disposed) { throw new ObjectDisposedException("", "This object is disposed!"); }
+            if (this.disposed) { throw new ObjectDisposedException("QueueHelper"); }
             this.incEventQueue.Add(item);
         }
 
@@ -128,8 +136,17 @@ namespace Demoder.Common
 
         public void Dispose()
         {
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool managed)
+        {
+            if (!managed) { return; }
             this.disposed = true;
-            this.incEventQueue.CompleteAdding();
+            this.incEventQueue.Dispose();
+            this.log = null;
+            this.reportDelegate = null;
         }
     }
 }

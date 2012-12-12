@@ -37,8 +37,10 @@ namespace Demoder.Common
     /// </summary>
     /// <typeparam name="TKey">Type of key to be stored</typeparam>
     /// <typeparam name="TValue">Type of value to be stored</typeparam>
-    public class ConcurrentBidirectionalMap<TKey, TValue>
+    public class ConcurrentBidirectionalMap<TKey, TValue> : IDisposable
     {
+        private bool disposed = false;
+
         /// <summary>
         /// Contains a TKey to TValue relation
         /// </summary>
@@ -114,8 +116,14 @@ namespace Demoder.Common
         /// <param name="key">The key to locate</param>
         /// <returns>true if <paramref name="key"/> is found, otherwise false</returns>
         /// <exception cref="System.ArgumentNullException">Key is a null reference</exception>
+        /// <exception cref="System.ObjectDisposedException"></exception>
         public bool ContainsKey(TKey key)
         {
+            if (this.disposed)
+            {
+                throw new ObjectDisposedException(String.Format("ConcurrentBidirectionalMap<{0},{1}>", typeof(TKey), typeof(TValue)));
+            }
+
             if (key == null)
             {
                 throw new ArgumentNullException("key");
@@ -138,8 +146,14 @@ namespace Demoder.Common
         /// <param name="value">The value to locate</param>
         /// <returns>true if <paramref name="value"/> is found, otherwise false</returns>
         /// <exception cref="System.ArgumentNullException">value is a null reference</exception>
+        /// <exception cref="System.ObjectDisposedException"></exception>
         public bool ContainsValue(TValue value)
         {
+            if (this.disposed)
+            {
+                throw new ObjectDisposedException(String.Format("ConcurrentBidirectionalMap<{0},{1}>", typeof(TKey), typeof(TValue)));
+            }
+
             if (value == null)
             {
                 throw new ArgumentNullException("value");
@@ -163,8 +177,14 @@ namespace Demoder.Common
         /// <param name="value">The value to locate</param>
         /// <returns>true if key and value exist and are associated with eachother. Otherwise false.</returns>
         /// <exception cref="System.ArgumentNullException">key or value is a null reference</exception>
+        /// <exception cref="System.ObjectDisposedException"></exception>
         public bool Contains(TKey key, TValue value)
         {
+            if (this.disposed)
+            {
+                throw new ObjectDisposedException(String.Format("ConcurrentBidirectionalMap<{0},{1}>", typeof(TKey), typeof(TValue)));
+            }
+
             if (key == null)
             {
                 throw new ArgumentNullException("key");
@@ -199,8 +219,14 @@ namespace Demoder.Common
         /// <param name="value">When this method returns, value contains the object with the specified value or the default value of <typeparamref name="TValue"/>, if the operation failed.</param>
         /// <returns>True if the key was found, otherwise false</returns>
         /// <exception cref="System.ArgumentNullException">Key is a null reference</exception>
+        /// <exception cref="System.ObjectDisposedException"></exception>
         public bool TryGetValue(TKey key, out TValue value)
         {
+            if (this.disposed)
+            {
+                throw new ObjectDisposedException(String.Format("ConcurrentBidirectionalMap<{0},{1}>", typeof(TKey), typeof(TValue)));
+            }
+
             if (key == null)
             {
                 throw new ArgumentNullException("key");
@@ -224,8 +250,14 @@ namespace Demoder.Common
         /// <param name="key">When this method returns, key contains the object with the specified key or the default value of <typeparamref name="TKey"/>, if the operation failed.</param>
         /// <returns>True if the value was found, otherwise false</returns>
         /// <exception cref="System.ArgumentNullException">Key is a null reference</exception>
+        /// <exception cref="System.ObjectDisposedException"></exception>
         public bool TryGetKey(TValue value, out TKey key)
         {
+            if (this.disposed)
+            {
+                throw new ObjectDisposedException(String.Format("ConcurrentBidirectionalMap<{0},{1}>", typeof(TKey), typeof(TValue)));
+            }
+
             if (value == null) 
             { 
                 throw new ArgumentNullException("value"); 
@@ -249,8 +281,13 @@ namespace Demoder.Common
         /// <param name="value">The value to add</param>
         /// <returns>An enumerator describing which alterations were made, if any.</returns>
         /// <exception cref="System.ArgumentNullException">key or value is a null reference.</exception>
+        /// <exception cref="System.ObjectDisposedException"></exception>
         public MapAlteration Store(TKey key, TValue value)
         {
+            if (this.disposed)
+            {
+                throw new ObjectDisposedException(String.Format("ConcurrentBidirectionalMap<{0},{1}>", typeof(TKey), typeof(TValue)));
+            }
             if (key == null)
             {
                 throw new ArgumentNullException("key");
@@ -329,8 +366,14 @@ namespace Demoder.Common
         /// <param name="value">The value to add</param>
         /// <returns>true if the key/value was successfully added. false if key or value already exist.</returns>
         /// <exception cref="System.ArgumentNullException">key or value is a null reference</exception>
+        /// <exception cref="System.ObjectDisposedException"></exception>
         public bool TryStore(TKey key, TValue value)
         {
+            if (this.disposed)
+            {
+                throw new ObjectDisposedException(String.Format("ConcurrentBidirectionalMap<{0},{1}>", typeof(TKey), typeof(TValue)));
+            }
+
             if (key == null)
             {
                 throw new ArgumentNullException("key");
@@ -369,8 +412,14 @@ namespace Demoder.Common
         /// <param name="value">Value associated with key</param>
         /// <returns>True if a mapping was removed, otherwise false</returns>
         /// <exception cref="System.ArgumentNullException">key is a null reference</exception>
+        /// <exception cref="System.ObjectDisposedException"></exception>
         public bool TryRemoveKey(TKey key, out TValue value)
         {
+            if (this.disposed)
+            {
+                throw new ObjectDisposedException(String.Format("ConcurrentBidirectionalMap<{0},{1}>", typeof(TKey), typeof(TValue)));
+            }
+
             if (key == null)
             {
                 throw new ArgumentNullException("key");
@@ -400,8 +449,14 @@ namespace Demoder.Common
         /// <param name="key">Key associated with value</param>
         /// <returns>True if a mapping was removed, otherwise false</returns>
         /// <exception cref="System.ArgumentNullException">value is a null reference</exception>
+        /// <exception cref="System.ObjectDisposedException"></exception>
         public bool TryRemoveValue(TValue value, out TKey key)
         {
+            if (this.disposed)
+            {
+                throw new ObjectDisposedException(String.Format("ConcurrentBidirectionalMap<{0},{1}>", typeof(TKey), typeof(TValue)));
+            }
+
             if (value == null)
             {
                 throw new ArgumentNullException("value");
@@ -431,8 +486,14 @@ namespace Demoder.Common
         /// <param name="value">Value to remove</param>
         /// <returns></returns>
         /// <exception cref="System.ArgumentNullException">key or value is a null reference</exception>
+        /// <exception cref="System.ObjectDisposedException"></exception>
         public bool TryRemove(TKey key, TValue value)
         {
+            if (this.disposed)
+            {
+                throw new ObjectDisposedException(String.Format("ConcurrentBidirectionalMap<{0},{1}>", typeof(TKey), typeof(TValue)));
+            }
+
             if (key == null)
             {
                 throw new ArgumentNullException("key");
@@ -482,6 +543,11 @@ namespace Demoder.Common
         [Obsolete("This method is only used for unit tests during development of this class, and will be removed in a future version.")]
         public bool TestIntegrity()
         {
+            if (this.disposed)
+            {
+                throw new ObjectDisposedException(String.Format("ConcurrentBidirectionalMap<{0},{1}>", typeof(TKey), typeof(TValue)));
+            }
+
             this.locker.EnterReadLock();
             try
             {
@@ -515,6 +581,21 @@ namespace Demoder.Common
 
                 this.locker.ExitReadLock();
             }
+        }
+
+        public void Dispose()
+        {
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool includeManaged)
+        {
+            if (!includeManaged) { return; }
+            this.disposed = true;
+            this.locker.Dispose();
+            this.keyValueMap.Clear();
+            this.valueKeyMap.Clear();
         }
     }
 

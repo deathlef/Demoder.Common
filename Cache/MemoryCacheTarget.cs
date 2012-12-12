@@ -35,7 +35,7 @@ namespace Demoder.Common.Cache
     /// <summary>
     /// A volatile, in-memory cache target
     /// </summary>
-    public class MemoryCacheTarget : ICacheTarget
+    public class MemoryCacheTarget : ICacheTarget, IDisposable
     {
         private ConcurrentDictionary<MD5Checksum, MemoryCacheEntry> entries = new ConcurrentDictionary<MD5Checksum, MemoryCacheEntry>();
         private Timer housekeepingTimer;
@@ -163,7 +163,20 @@ namespace Demoder.Common.Cache
         {
             this.RemoveStaleItems();
         }
-        
+
+        public void Dispose()
+        {
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool managed)
+        {
+            if (!managed) { return; }
+            this.housekeepingTimer.Dispose();
+            this.entries.Clear();
+
+        }
     }
 
 

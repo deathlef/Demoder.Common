@@ -35,7 +35,7 @@ namespace Demoder.Common
     /// <summary>
     /// An endian-aware stream wrapper
     /// </summary>
-    public class SuperStream : Stream, IDisposable
+    public class SuperStream : Stream
     {
         public Endianess Endianess { get; private set; }
         public Stream BaseStream { get; private set; }
@@ -496,18 +496,16 @@ namespace Demoder.Common
         }
         #endregion
 
-        void IDisposable.Dispose()
+        
+        protected override void Dispose(bool managed)
         {
-            this.Dispose();
-        }
-        public new void Dispose()
-        {
+            base.Dispose(managed);
+            if (!managed) { return; }
             if (this.DisposeBaseStream && this.BaseStream!=null)
             {
                 this.BaseStream.Dispose();
             }
             this.BaseStream = null;
-            base.Dispose();
         }
     }
 }

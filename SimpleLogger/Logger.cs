@@ -174,6 +174,14 @@ namespace Demoder.Common.SimpleLogger
 
         public void Dispose()
         {
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool managed)
+        {
+            if (!managed) { return; }
+
             if (this.logWriter != null)
             {
                 this.logWriter.Dispose();
