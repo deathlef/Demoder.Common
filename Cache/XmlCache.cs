@@ -128,7 +128,7 @@ namespace Demoder.Common.Cache
                 // Cache entry appears to be valid.
                 using (Stream stream = ce.ToStream())
                 {
-                    if (Xml.TryDeserialize(stream, out obj))
+                    if (Xml.TryDeserialize<T>(stream, out obj))
                     {
                         return obj;
                     }
@@ -142,7 +142,7 @@ namespace Demoder.Common.Cache
                     uri = new Uri(String.Format(uri.ToString(), args));
                 }
 
-                if (Xml.TryDeserialize(uri, out obj))
+                if (Xml.TryDeserialize<T>(uri, out obj))
                 {
                     if (source.HasFlag(CacheFlags.WriteCache))
                     {
@@ -157,7 +157,7 @@ namespace Demoder.Common.Cache
             {
                 using (Stream stream = ce.ToStream())
                 {
-                    if (Xml.TryDeserialize(stream, out obj))
+                    if (Xml.TryDeserialize<T>(stream, out obj))
                     {
                         return obj;
                     }
@@ -176,7 +176,7 @@ namespace Demoder.Common.Cache
             }
             using (MemoryStream stream = new MemoryStream())
             {
-                if (Xml.TrySerialize(obj, stream))
+                if (Xml.TrySerialize<T>(obj, stream))
                 {
                     this.CacheTarget.Store(
                        new CacheEntry(stream.ToArray()) { Expirity = this.ExpireTime(obj) },
