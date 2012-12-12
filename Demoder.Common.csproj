@@ -98,7 +98,6 @@
     <Compile Include="Serialization\StreamDataDateTimeParser.cs" />
     <Compile Include="Serialization\StreamDataVersionParser.cs" />
     <Compile Include="Serialization\StreamDataWrapper.cs" />
-    <Compile Include="Serialization\XmlCompat.cs" />
     <Compile Include="SettingInfo.cs" />
     <Compile Include="SuperStream.cs" />
     <Compile Include="Serialization\StreamDataDefaultParser.cs" />

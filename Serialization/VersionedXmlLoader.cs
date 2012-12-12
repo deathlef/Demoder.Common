@@ -167,7 +167,7 @@ namespace Demoder.Common.Serialization
                 if (dataType == null)
                     return null;
                 // Read data
-                VersionedXmlLoader data = (VersionedXmlLoader)Xml.Compat.Deserialize(dataType, stream, false);
+                VersionedXmlLoader data = (VersionedXmlLoader)Xml.Compat.Deserialize(dataType, stream);
                 if (data == null)
                     return null;
                 // Upgrade data if needed
