@@ -32,9 +32,10 @@ namespace Demoder.Common
     /// This wraps a backgroundworker, providing a work input queue.
     /// This class should not be used directly, but rather be inherited by another class.
     /// </summary>
-    public abstract class BackgroundWorkerInputQueue
+    public abstract class BackgroundWorkerInputQueue : IDisposable
     {
         #region members
+        private bool disposed = false;
         public BackgroundWorker BackgroundWorker = new BackgroundWorker();
         private ManualResetEvent bgwMRE = new ManualResetEvent(false);
         private Queue<object> queue = new Queue<object>(16);
@@ -66,8 +67,14 @@ namespace Demoder.Common
         /// </summary>
         public void StartWorker()
         {
+            if (this.disposed)
+            {
+                throw new ObjectDisposedException("");
+            }
             if (!this.BackgroundWorker.IsBusy)
+            {
                 this.BackgroundWorker.RunWorkerAsync();
+            }
         }
         #endregion
 
@@ -78,11 +85,19 @@ namespace Demoder.Common
         /// <param name="obj"></param>
         protected void enqueue(object obj)
         {
+            if (this.disposed) 
+            { 
+                throw new ObjectDisposedException(""); 
+            }
             lock (this.queue)
+            {
                 this.queue.Enqueue(obj);
+            }
             this.bgwMRE.Set();
             if (!this.BackgroundWorker.IsBusy)
+            {
                 this.BackgroundWorker.RunWorkerAsync();
+            }
         }
 
         /// <summary>
@@ -92,16 +107,26 @@ namespace Demoder.Common
         /// <param name="e"></param>
         private void worker_PullQueue(object sender, DoWorkEventArgs e)
         {
+            if (this.disposed)
+            {
+                throw new ObjectDisposedException("");
+            }
+
             while (!e.Cancel)
             {
+                if (this.disposed) { return; }
                 if (this.queue.Count == 0)
                 {
                     this.bgwMRE.Reset();
                     //Signal that the queue is empty.
                     EventHandler eh = this.QueueEmpty;
                     if (eh != null)
+                    {
                         lock (eh)
+                        {
                             eh(this, new EventArgs());
+                        }
+                    }
 
                     this.bgwMRE.WaitOne(); //Wait till we get signaled.
                     continue;
@@ -110,7 +135,9 @@ namespace Demoder.Common
                 {
                     Object worktask = null;
                     lock (this.queue)
+                    {
                         worktask = this.queue.Dequeue();
+                    }
                     //Submit work task to the DoWork event. WORK TASK IS STORED AS SENDER!
                     this.myWorker(this, e, worktask);
                     return;
@@ -125,13 +152,24 @@ namespace Demoder.Common
         /// <param name="e"></param>
         private void worker_WorkCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
+            if (this.disposed)
+            {
+                throw new ObjectDisposedException("");
+            }
+
             RunWorkerCompletedEventHandler rwceh = this.WorkComplete;
             if (rwceh != null)
+            {
                 lock (rwceh)
+                {
                     rwceh(sender, e);
+                }
+            }
             //Start the worker again.
             if (!e.Cancelled)
+            {
                 this.BackgroundWorker.RunWorkerAsync();
+            }
         }
         #endregion
 
@@ -144,5 +182,25 @@ namespace Demoder.Common
         /// <param name="QueueItem">Work item provided by the queue manager</param>
         protected abstract void myWorker(object sender, DoWorkEventArgs e, object queueItem);
         #endregion
+
+        public void Dispose()
+        {
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool managed)
+        {
+            if (!managed) { return; }
+            this.disposed = true;
+            this.BackgroundWorker.Dispose();
+            this.bgwMRE.Dispose();
+            this.queue.Clear();
+
+            this.WorkComplete = null;
+            this.QueueEmpty = null;
+
+
+        }
     }
 }

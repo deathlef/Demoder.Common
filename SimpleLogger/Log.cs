@@ -38,14 +38,14 @@ namespace Demoder.Common.SimpleLogger
 
         private Dictionary<string, Logger> loggers = new Dictionary<string, Logger>(StringComparer.InvariantCultureIgnoreCase);
 
-        public Log(EventLogLevel minLevel = EventLogLevel.Debug, string prefix="", ConsoleColor tagColor = ConsoleColor.White, int prefixReservedColumns=20, TextWriter logWriter=null)
+        public Log(EventLogLevel minLevel = EventLogLevel.Debug, string prefix = "", ConsoleColor tagColor = ConsoleColor.White, int prefixReservedColumns = 20, TextWriter logWriter = null)
         {
             this.minLogLevel = minLevel;
             this.prefix = prefix;
             this.tagColor = tagColor;
-            this.prefixReservedColumns = prefixReservedColumns; 
+            this.prefixReservedColumns = prefixReservedColumns;
             this.logWriter = logWriter;
-            
+
         }
 
         public Logger this[string category]
@@ -56,12 +56,12 @@ namespace Demoder.Common.SimpleLogger
                 {
                     if (!this.loggers.ContainsKey(category))
                     {
-                        this.loggers.Add(category, 
+                        this.loggers.Add(category,
                             new Logger(
-                                category, 
-                                this.minLogLevel, 
-                                this.prefix, 
-                                this.tagColor, 
+                                category,
+                                this.minLogLevel,
+                                this.prefix,
+                                this.tagColor,
                                 this.prefixReservedColumns,
                                 this.logWriter));
                     }
@@ -74,6 +74,14 @@ namespace Demoder.Common.SimpleLogger
 
         public void Dispose()
         {
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool managed)
+        {
+            if (!managed) { return; }
+
             foreach (var log in this.loggers.Values)
             {
                 log.Dispose();
@@ -83,8 +91,8 @@ namespace Demoder.Common.SimpleLogger
             if (this.logWriter != null)
             {
                 this.logWriter.Dispose();
-                
-            }            
+                this.logWriter = null;
+            }
         }
 
         #endregion
