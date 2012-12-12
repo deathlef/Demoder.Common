@@ -96,19 +96,19 @@ namespace Demoder.Common.Cache
         #endregion
 
         public T Request(string url, params string[] args)
-        { 
+        {
             return this.Request(
-                CacheFlags.Default, 
-                url, 
+                CacheFlags.Default,
+                url,
                 args);
         }
 
         public T Request(CacheFlags source, string url, params string[] args)
-        { 
+        {
             return this.Request(
-                source, 
-                new Uri(url), 
-                args); 
+                source,
+                new Uri(url),
+                args);
         }
 
         public T Request(CacheFlags source, Uri uri, params string[] args)
@@ -118,18 +118,20 @@ namespace Demoder.Common.Cache
                 throw new ArgumentException("expecting at least 1 argument");
             }
 
-            
-            // Read cache entry, if any.
-            var ce = this.CacheTarget.Retrieve(args);
 
-            var obj = default(T);
-            if ((source.HasFlag(CacheFlags.ReadCache) && !ce.IsExpired && ce.Data!=null))
+            // Read cache entry, if any.
+            CacheEntry ce = this.CacheTarget.Retrieve(args);
+
+            T obj = default(T);
+            if ((source.HasFlag(CacheFlags.ReadCache) && !ce.IsExpired && ce.Data != null))
             {
                 // Cache entry appears to be valid.
-                obj = Xml.Deserialize<T>(ce.ToStream(), true);
-                if (obj != null)
+                using (Stream stream = ce.ToStream())
                 {
-                    return obj;
+                    if (Xml.TryDeserialize(stream, out obj))
+                    {
+                        return obj;
+                    }
                 }
             }
 
@@ -140,9 +142,7 @@ namespace Demoder.Common.Cache
                     uri = new Uri(String.Format(uri.ToString(), args));
                 }
 
-                obj = Xml.Deserialize<T>(uri);
-
-                if (obj != null)
+                if (Xml.TryDeserialize(uri, out obj))
                 {
                     if (source.HasFlag(CacheFlags.WriteCache))
                     {
@@ -153,13 +153,19 @@ namespace Demoder.Common.Cache
             }
 
             // Retreive old copy from cache
-            if (obj == null && (source.HasFlag(CacheFlags.ReadExpired)))
+            if (source.HasFlag(CacheFlags.ReadExpired))
             {
-                obj = Xml.Deserialize<T>(ce.ToStream(), true);
-                return obj;
+                using (Stream stream = ce.ToStream())
+                {
+                    if (Xml.TryDeserialize(stream, out obj))
+                    {
+                        return obj;
+                    }
+                }
             }
+
             // Finally, return the object
-            return obj;
+            return default(T);
         }
 
         public bool Cache(T obj, params string[] args)
@@ -168,13 +174,17 @@ namespace Demoder.Common.Cache
             {
                 return false;
             }
-            var ms = new MemoryStream();
-            Xml.Serialize<T>(ms, obj, false);
-
-            this.CacheTarget.Store(
-                new CacheEntry(ms.ToArray()) { Expirity = this.ExpireTime(obj) },
-                args);
-            return true;
-        }        
+            using (MemoryStream stream = new MemoryStream())
+            {
+                if (Xml.TrySerialize(obj, stream))
+                {
+                    this.CacheTarget.Store(
+                       new CacheEntry(stream.ToArray()) { Expirity = this.ExpireTime(obj) },
+                       args);
+                    return true;
+                }
+                return false;
+            }
+        }
     }
 }

@@ -34,6 +34,207 @@ namespace Demoder.Common.Serialization
 {
     public static class Xml
     {
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T">Type to serialize</typeparam>
+        /// <param name="obj">Object to serialize</param>
+        /// <param name="stream">Write to this stream</param>
+        /// <returns>true on success, otherwise false.</returns>
+        /// <exception cref="ArgumentNullException">If obj or stream is null</exception>
+        public static bool TrySerialize<T>(T obj, Stream stream)
+        {
+            if (obj == null)
+            {
+                throw new ArgumentNullException("obj");
+            }
+            if (stream == null)
+            {
+                throw new ArgumentNullException("stream");
+            }
+            try
+            {
+                XmlCompat.Serialize(obj, stream, typeof(T));
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T">Type to serialize</typeparam>
+        /// <param name="obj">Object to serialize</param>
+        /// <param name="file">Write to this file</param>
+        /// <returns>true on success, otherwise false</returns>
+        /// <exception cref="ArgumentNullException">If obj or stream is null</exception>
+        public static bool TrySerialize<T>(T obj, FileInfo file)
+        {
+            if (obj == null)
+            {
+                throw new ArgumentNullException("obj");
+            }
+            if (file == null)
+            {
+                throw new ArgumentNullException("file");
+            }
+
+            try
+            {
+                XmlCompat.Serialize(obj, file, typeof(T));
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T">Type to deserialize as</typeparam>
+        /// <param name="stream">Stream to read from</param>
+        /// <param name="obj">Result is stored here</param>
+        /// <returns>true on success, otherwise false</returns>
+        /// <exception cref="ArgumentNullException">if stream is null</exception>
+        public static bool TryDeserialize<T>(Stream stream, out T obj)
+        {
+            if (stream == null)
+            {
+                throw new ArgumentNullException("stream");
+            }
+            try
+            {
+                obj = (T)XmlCompat.Deserialize(typeof(T), stream);
+                return true;
+            }
+            catch
+            {
+                obj = default(T);
+                return false;
+            }
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T">Type to deserialize as</typeparam>
+        /// <param name="file">Read from this file</param>
+        /// <param name="obj">Result is stored here</param>
+        /// <returns>true on success, otherwise false</returns>
+        /// <exception cref="ArgumentNullException">if file is null</exception>
+        public static bool TryDeserialize<T>(FileInfo file, out T obj)
+        {
+            if (file == null)
+            {
+                throw new ArgumentNullException("file");
+            }
+
+            try
+            {
+                obj = (T)XmlCompat.Deserialize(typeof(T), file);
+                return true;
+            }
+            catch
+            {
+                obj = default(T);
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T">Type to deserialize as</typeparam>
+        /// <param name="uri">Read from this URI</param>
+        /// <param name="obj">Result is stored here</param>
+        /// <returns>true on success, otherwise false</returns>
+        /// <exception cref="ArgumentNullException">if uri is null</exception>
+        public static bool TryDeserialize<T>(UriBuilder uri, out T obj)
+        {
+            if (uri == null)
+            {
+                throw new ArgumentNullException("uri");
+            }
+
+            try
+            {
+                obj = (T)XmlCompat.Deserialize(typeof(T), uri);
+                return true;
+            }
+            catch
+            {
+                obj = default(T);
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T">Type to deserialize as</typeparam>
+        /// <param name="uri">Read from this URI</param>
+        /// <param name="obj">Result is stored here</param>
+        /// <returns>true on success, otherwise false</returns>
+        /// <exception cref="ArgumentNullException">if uri is null</exception>
+        public static bool TryDeserialize<T>(Uri uri, out T obj)
+        {
+            if (uri == null)
+            {
+                throw new ArgumentNullException("uri");
+            }
+
+            try
+            {
+                obj = (T)XmlCompat.Deserialize(typeof(T), uri);
+                return true;
+            }
+            catch
+            {
+                obj = default(T);
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T">Type to deserialize as</typeparam>
+        /// <param name="xml">XML to deserialize</param>
+        /// <param name="encoding">Which encoding to use when reading the XML</param>
+        /// <param name="obj">Result is stored here</param>
+        /// <returns>true on success, otherwise false</returns>
+        /// <exception cref="ArgumentNullException">if xml or encoding is null</exception>
+        public static bool TryDeserialize<T>(string xml, Encoding encoding, out T obj)
+        {
+            if (xml == null)
+            {
+                throw new ArgumentNullException("xml");
+            }
+            if (encoding == null)
+            {
+                throw new ArgumentNullException("encoding");
+            }
+            try
+            {
+                obj = (T)XmlCompat.Deserialize(typeof(T), xml, encoding);
+                return true;
+            }
+            catch
+            {
+                obj = default(T);
+                return false;
+            }
+        }
+
+        #region Obsolete stuff        
         /// <summary>
         /// Last exception thrown by this XML library on this thread.
         /// </summary>
@@ -53,6 +254,7 @@ namespace Demoder.Common.Serialization
         /// <typeparam name="T">Class type to serialize class as</typeparam>
         /// <param name="stream">Stream to serialize into</param>
         /// <param name="obj">Class to serialize</param>
+        [Obsolete]
         public static bool Serialize<T>(Stream stream, object obj, bool closeStream) where T : class
         {
             return Compat.Serialize(typeof(T), stream, obj, closeStream);
@@ -65,6 +267,7 @@ namespace Demoder.Common.Serialization
         /// <param name="obj"></param>
         /// <param name="gzip">Whether or not the saved file should be GZipped</param>
         /// <returns></returns>
+        [Obsolete]
         public static bool Serialize<T>(FileInfo path, T obj, bool gzip) where T : class
         {
             return Compat.Serialize(typeof(T), path, obj, gzip);
@@ -79,6 +282,7 @@ namespace Demoder.Common.Serialization
         /// <param name="stream"></param>
         /// <param name="closeStream"></param>
         /// <returns></returns>
+        [Obsolete]
         public static T Deserialize<T>(Stream stream, bool closeStream) where T : class
         {
             object obj = Compat.Deserialize(typeof(T), stream, closeStream);
@@ -95,6 +299,7 @@ namespace Demoder.Common.Serialization
         /// <param name="path">Path to the file</param>
         /// <param name="gzip">Whether or not the file is gzip-compressed</param>
         /// <returns></returns>
+        [Obsolete]
         public static T Deserialize<T>(FileInfo path, bool gzip) where T : class
         {
             object obj = Compat.Deserialize(typeof(T), path, gzip);
@@ -114,6 +319,7 @@ namespace Demoder.Common.Serialization
         /// <typeparam name="T">What class to parse file as</typeparam>
         /// <param name="path">Path to fetch</param>
         /// <returns></returns>
+        [Obsolete]
         public static T Deserialize<T>(UriBuilder path) where T : class
         {
             return Deserialize<T>(path.Uri);
@@ -125,6 +331,7 @@ namespace Demoder.Common.Serialization
         /// <typeparam name="T">Class type to parse as</typeparam>
         /// <param name="path">URI to deserialize</param>
         /// <returns></returns>
+        [Obsolete]
         public static T Deserialize<T>(Uri path) where T : class
         {
             object obj = Compat.Deserialize(typeof(T), path);
@@ -138,6 +345,7 @@ namespace Demoder.Common.Serialization
             }
         }
 
+        [Obsolete]
         public static T Deserialize<T>(string xml, Encoding encoding)
             where T : class
         {
@@ -146,7 +354,9 @@ namespace Demoder.Common.Serialization
 
         #endregion
 
+        
 
+        [Obsolete]
         public static class Compat
         {
             #region Serialize
@@ -158,6 +368,7 @@ namespace Demoder.Common.Serialization
             /// <param name="obj"></param>
             /// <param name="closeStream"></param>
             /// <returns></returns>
+            [Obsolete]
             public static bool Serialize(Type t, Stream stream, object obj, bool closeStream)
             {
                 if (stream == null) { throw new ArgumentNullException("Stream"); }
@@ -191,6 +402,7 @@ namespace Demoder.Common.Serialization
             /// <param name="obj"></param>
             /// <param name="gzip"></param>
             /// <returns></returns>
+            [Obsolete]
             public static bool Serialize(Type t, FileInfo path, object obj, bool gzip)
             {
                 if (path == null) throw new ArgumentNullException("Path");
@@ -233,7 +445,7 @@ namespace Demoder.Common.Serialization
             }
             #endregion
             #region Deserialize
-
+            [Obsolete]
             public static object Deserialize(Type t, string xml, Encoding encoding)
             {
                 try
@@ -257,6 +469,7 @@ namespace Demoder.Common.Serialization
             /// <param name="stream"></param>
             /// <param name="closeStream"></param>
             /// <returns></returns>
+            [Obsolete]
             public static object Deserialize(Type t, Stream stream, bool closeStream)
             {
                 if (stream == null) throw new ArgumentNullException("Stream");
@@ -289,6 +502,7 @@ namespace Demoder.Common.Serialization
             /// <param name="path"></param>
             /// <param name="gzip"></param>
             /// <returns></returns>
+            [Obsolete]
             public static object Deserialize(Type t, FileInfo path, bool gzip)
             {
                 if (path == null) throw new ArgumentNullException("Path");
@@ -330,6 +544,7 @@ namespace Demoder.Common.Serialization
             /// <param name="t"></param>
             /// <param name="path"></param>
             /// <returns></returns>
+            [Obsolete]
             public static object Deserialize(Type t, UriBuilder path)
             {
                 return Deserialize(t, path.Uri);
@@ -341,6 +556,7 @@ namespace Demoder.Common.Serialization
             /// <param name="t"></param>
             /// <param name="path"></param>
             /// <returns></returns>
+            [Obsolete]
             public static object Deserialize(Type t, Uri path)
             {
                 if (path == null) throw new ArgumentNullException("Path");
@@ -360,5 +576,7 @@ namespace Demoder.Common.Serialization
             }
             #endregion deserialize
         }
+
+        #endregion
     }
 }
