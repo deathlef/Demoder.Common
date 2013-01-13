@@ -29,6 +29,7 @@ using System.IO.Compression;
 using System.Net;
 using System.Xml.Serialization;
 using Demoder.Common;
+using System.Collections.Concurrent;
 
 namespace Demoder.Common.Serialization
 {
@@ -236,7 +237,17 @@ namespace Demoder.Common.Serialization
         }
         #endregion
 
-        private static XmlSerializerFactory factory = new XmlSerializerFactory();
+        private static ConcurrentDictionary<Type, XmlSerializer> serializers = new ConcurrentDictionary<Type, XmlSerializer>();
+        private static XmlSerializer GetSerializer(Type type)
+        {
+            XmlSerializer serializer;
+            if (!serializers.TryGetValue(type, out serializer))
+            {
+                serializer = new XmlSerializer(type);
+                serializers.TryAdd(type, serializer);
+            }
+            return serializer;
+        }
 
         /// <summary>
         /// 
@@ -266,7 +277,7 @@ namespace Demoder.Common.Serialization
                 throw new IOException("Cannot write to stream", new ArgumentException("stream"));
             }
 
-            XmlSerializer serializer = factory.CreateSerializer(type);
+            XmlSerializer serializer = GetSerializer(type);
             serializer.Serialize(stream, obj);
         }
 
@@ -377,7 +388,7 @@ namespace Demoder.Common.Serialization
                 throw new IOException("Cannot read from stream.", new ArgumentException("stream"));
             }
 
-            XmlSerializer serializer = factory.CreateSerializer(type);
+            XmlSerializer serializer = GetSerializer(type);
             return serializer.Deserialize(stream);
         }
 
