@@ -42,6 +42,11 @@ namespace Demoder.Common.Cache
             }
         }
 
+        public FileCacheTarget(string cacheName)
+            : this(DefaultCacheRootDirectory, cacheName)
+        {
+        }
+
         public FileCacheTarget(DirectoryInfo cacheRootDirectory, string cacheName = "")
         {
             if (String.IsNullOrWhiteSpace(cacheName))
