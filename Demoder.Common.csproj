@@ -86,6 +86,7 @@
     <Compile Include="ConcurrentBidirectionalMap.cs" />
     <Compile Include="enums.cs" />
     <Compile Include="Extensions\PropertyExtensions.cs" />
+    <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Extensions\WebClientExtensions.cs" />
     <Compile Include="Hash\Checksum.cs" />
     <Compile Include="Hash\MD5Checksum.cs" />
