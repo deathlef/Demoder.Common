@@ -40,9 +40,9 @@ namespace Demoder.Common
         /// <param name="hayStack"></param>
         /// <param name="needle"></param>
         /// <returns></returns>
-        public static int FindPos(List<byte> hayStack, List<byte> needle)
+        public static bool FindPos(byte[] hayStack, byte[] needle, out int pos)
         {
-            return FindPos(hayStack, needle, 0, hayStack.Count);
+            return FindPos(hayStack, needle, 0, hayStack.Length - 1, out pos);
         }
         /// <summary>
         /// Try to find Needle in HayStack
@@ -51,9 +51,9 @@ namespace Demoder.Common
         /// <param name="needle"></param>
         /// <param name="offset"></param>
         /// <returns></returns>
-        public static int FindPos(List<byte> hayStack, List<byte> needle, int offset)
+        public static bool FindPos(byte[] hayStack, byte[] needle, int offset, out int pos)
         {
-            return FindPos(hayStack, needle, offset, hayStack.Count - 1);
+            return FindPos(hayStack, needle, offset, hayStack.Length - 1, out pos);
         }
 
         /// <summary>
@@ -64,20 +64,27 @@ namespace Demoder.Common
         /// <param name="offset"></param>
         /// <param name="stopAt"></param>
         /// <returns></returns>
-        public static int FindPos(List<byte> hayStack, List<byte> needle, int offset, int stopAt)
+        public static bool FindPos(byte[] hayStack, byte[] needle, int offset, int stopAt, out int pos)
         {
             #region exceptions
+            if (offset < 0) throw new ArgumentOutOfRangeException("Offset", offset, "Offset must be >=0.");
+            if (stopAt < 0) throw new ArgumentOutOfRangeException("StopAt", stopAt, "StopAt must be >=0.");
             if (hayStack == null) throw new ArgumentNullException("HayStack");
             if (needle == null) throw new ArgumentNullException("Needle");
-
-            if (stopAt >= hayStack.Count) throw new ArgumentOutOfRangeException("StopAt", stopAt, "StopAt must be less than the final byte pos.");
-            if (stopAt < 0) throw new ArgumentOutOfRangeException("StopAt", stopAt, "StopAt must be >=0.");
-            if (stopAt <= offset + needle.Count) throw new ArgumentOutOfRangeException("StopAt", stopAt, "StopAt must be >= bytepos of Offset+Needle length.");
-
-            if (offset >= (hayStack.Count - needle.Count)) throw new ArgumentOutOfRangeException("Offset", offset, "Offset must be less than the final byte pos minus Needle length.");
-            if (offset < 0) throw new ArgumentOutOfRangeException("Offset", offset, "Offset must be >=0.");
             #endregion
 
+            if (stopAt >= hayStack.Length)
+            {
+                pos = -1;
+                return false;
+            }
+ 
+            if (offset > (hayStack.Length - needle.Length))
+            {
+                pos = -1;
+                return false;
+            }
+           
             //Bytepos that Needle starts at.
             int needleBytePos = 0;
             int needleMatchIndex = 0;
@@ -94,12 +101,23 @@ namespace Demoder.Common
                 else if (needleMatchIndex != 0)
                 {
                     needleMatchIndex = 0;
-                    curBytePos = needleBytePos; //Start 1byte in front of where we started looking last time. The for loop will add 1 to this at the next loop.
+                    // Start 1byte in front of where we started looking last time. 
+                    // The for loop will add 1 to this at the next loop.
+                    curBytePos = needleBytePos; 
                 }
-                if (needleMatchIndex == needle.Count) return needleBytePos;
-                if (curBytePos >= stopAt) { throw new Exception("Needle not found in haystack."); }
+                if (needleMatchIndex == needle.Length)
+                {
+                    pos = needleBytePos;
+                    return true;
+                }
+                if (curBytePos >= stopAt) 
+                {
+                    pos = -1;
+                    return false;
+                }
             }
-            throw new Exception("Needle not found in haystack.");
+            pos = -1;
+            return false;            
         }
         #endregion
 
