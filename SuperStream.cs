@@ -206,7 +206,7 @@ namespace Demoder.Common
             {
                 if (this.EOF)
                 {
-                    throw new Exception("EOF reached before reading requested amount of bytes.");
+                    throw new IndexOutOfRangeException("EOF reached before reading requested amount of bytes.");
                 }
                 readBytes += this.Read(bytes, readBytes, (int)numBytes);
                 if (readBytes == numBytes) { break; }
